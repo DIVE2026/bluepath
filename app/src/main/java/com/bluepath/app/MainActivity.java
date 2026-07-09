@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
         h.setTypeface(Typeface.DEFAULT_BOLD);
         header.addView(h);
         TextView sub = new TextView(this);
-        sub.setText("해양 학습 · 티어 성장 · NCS 진로 로드맵");
+        sub.setText("해양 학습 · 티어 성장 · 진로 로드맵");
         sub.setTextColor(Color.parseColor("#BFFBFA"));
         sub.setTextSize(13);
         sub.setPadding(0, dp(4), 0, 0);
@@ -233,7 +233,7 @@ public class MainActivity extends Activity {
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         content.addView(sectionTitle("BluePath AI Agent"));
-        content.addView(body("교육 추천, 일정 확인, 티어 승급, 퀴즈, NCS 진로 로드맵을 물어보세요. 현재 버전은 오프라인 룰 기반 Agent이며, FastAPI/LLM API로 교체할 수 있도록 README에 API 계약을 포함했습니다."));
+        content.addView(body("교육 추천, 일정 확인, 티어 승급, 퀴즈, 진로 로드맵을 물어보세요. 현재 버전은 오프라인 룰 기반 Agent이며, FastAPI/LLM API로 교체할 수 있도록 README에 API 계약을 포함했습니다."));
         EditText input = new EditText(this);
         input.setHint("예: 항해사가 되려면 어떤 역량이 필요해?");
         input.setMinLines(3);

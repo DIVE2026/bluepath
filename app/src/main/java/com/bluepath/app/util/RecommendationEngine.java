@@ -134,7 +134,7 @@ public class RecommendationEngine {
             ContentItem item = recommendedContents(p, tier).get(0);
             return "추천 영상은 ‘" + item.title + "’입니다. 난도는 " + item.difficulty + ", 권장 티어는 " + item.requiredTier + "입니다.";
         }
-        return "저는 BluePath AI Agent입니다. 교육 추천, 일정 확인, 티어 승급, 퀴즈, NCS 진로 로드맵에 대해 질문해보세요. 현재 프로필 기준으로 관심 분야는 ‘" + p.interest + "’, 목표는 ‘" + p.goal + "’입니다.";
+        return "저는 BluePath AI Agent입니다. 교육 추천, 일정 확인, 티어 승급, 퀴즈, 진로 로드맵에 대해 질문해보세요. 현재 프로필 기준으로 관심 분야는 ‘" + p.interest + "’, 목표는 ‘" + p.goal + "’입니다.";
     }
     private static String join(String[] values, String sep) {
         StringBuilder sb = new StringBuilder();
