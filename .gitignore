@@ -21,4 +21,4 @@ finetuning/output/
 finetuning/checkpoints/
 
 .DS_Store
-gradle.properties
+/gradle.properties
