@@ -1,0 +1,40 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: bluepath
+      POSTGRES_USER: bluepath
+      POSTGRES_PASSWORD: bluepath
+    volumes:
+      - bluepath_db:/var/lib/postgresql/data
+      - ./backend/migrations/001_enable_pgvector.sql:/docker-entrypoint-initdb.d/001_enable_pgvector.sql:ro
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - backend/.env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  model:
+    profiles: ["model"]
+    build:
+      context: .
+      dockerfile: finetuning/Dockerfile
+    env_file:
+      - finetuning/.env
+    volumes:
+      - ./finetuning/output:/opt/bluepath/finetuning/output
+      - bluepath_hf_cache:/root/.cache/huggingface
+    ports:
+      - "8001:8001"
+
+volumes:
+  bluepath_db:
+  bluepath_hf_cache:
