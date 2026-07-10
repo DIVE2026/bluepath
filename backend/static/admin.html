@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BluePath Admin Console</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #15324a; background: #eef8fb; }
+    body { margin: 0; }
+    header { padding: 28px; background: linear-gradient(135deg,#06223f,#0e7490); color: white; }
+    main { max-width: 1180px; margin: auto; padding: 24px; display: grid; gap: 18px; }
+    section { background: white; border-radius: 18px; padding: 20px; box-shadow: 0 8px 28px #0e749018; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+    input, textarea, select, button { box-sizing: border-box; width: 100%; padding: 12px; margin-top: 8px; border-radius: 10px; border: 1px solid #c9dce2; }
+    button { border: 0; background: #0e7490; color: white; font-weight: 700; cursor: pointer; }
+    button.secondary { background: #e4f5f7; color: #073b55; }
+    button.danger { background: #b42318; }
+    pre { white-space: pre-wrap; background: #f4fafb; padding: 12px; border-radius: 10px; min-height: 40px; }
+    .row { border-top: 1px solid #e6eef1; padding: 14px 0; }
+    .actions { display:flex; gap:8px; }
+    .actions button { width:auto; min-width:100px; }
+    .pill { display:inline-block; padding:4px 9px; border-radius:999px; background:#dff5f5; margin-right:6px; font-size:12px; }
+    small { color:#607b8a; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>⚓ BluePath Admin Console</h1>
+  <p>Manage marine videos, quizzes, schedules, RAG knowledge, YouTube synchronization, and Diamond evidence.</p>
+</header>
+<main>
+  <section>
+    <h2>Administrator sign-in</h2>
+    <div class="grid">
+      <input id="email" type="email" placeholder="Admin email" />
+      <input id="password" type="password" placeholder="Password" />
+    </div>
+    <button onclick="login()">Sign in</button>
+    <pre id="authOutput">Not signed in.</pre>
+  </section>
+
+  <section>
+    <h2>Video, program, and event management</h2>
+    <div class="grid">
+      <input id="contentId" placeholder="Unique ID" />
+      <select id="contentType"><option value="video">Video</option><option value="program">Education program</option><option value="event">Event / experience</option><option value="schedule">Schedule</option></select>
+      <input id="contentTitle" placeholder="Title" />
+      <input id="contentSource" placeholder="Organization / source" />
+      <input id="contentUrl" placeholder="URL" />
+      <select id="contentDifficulty"><option value="하">Beginner</option><option value="중">Intermediate</option><option value="상">Advanced</option></select>
+      <select id="contentTier"><option>브론즈</option><option>실버</option><option>골드</option><option>플래티넘</option></select>
+      <input id="contentTopic" placeholder="Topic" value="해양교육" />
+      <input id="contentCareer" placeholder="Career tag" />
+      <input id="contentMinutes" type="number" min="0" placeholder="Minutes" />
+      <input id="contentStart" placeholder="Start date/time (ISO or YYYY-MM-DD)" />
+      <input id="contentEnd" placeholder="End date/time (ISO or YYYY-MM-DD)" />
+      <input id="contentTarget" placeholder="Target audience" value="전체" />
+      <input id="contentMethod" placeholder="Participation method" />
+      <input id="contentCategory" placeholder="Event category" />
+    </div>
+    <textarea id="contentDescription" rows="3" placeholder="Learner-facing description"></textarea>
+    <div class="actions"><button onclick="saveContent()">Save item</button><button class="secondary" onclick="loadContent()">Refresh list</button></div>
+    <pre id="contentOutput"></pre>
+    <div id="contentList"></div>
+  </section>
+
+  <section>
+    <h2>Promotion quiz management</h2>
+    <div class="grid">
+      <input id="quizId" placeholder="Unique quiz ID" />
+      <select id="quizTier"><option>브론즈</option><option>실버</option><option>골드</option><option>플래티넘</option></select>
+      <input id="quizTopic" placeholder="Topic" value="해양교육" />
+      <input id="quizSourceTitle" placeholder="Source title" />
+      <input id="quizSourceUrl" placeholder="Source URL" />
+      <select id="quizAnswer"><option value="0">Answer: option 1</option><option value="1">Answer: option 2</option><option value="2">Answer: option 3</option><option value="3">Answer: option 4</option></select>
+    </div>
+    <textarea id="quizQuestion" rows="2" placeholder="Question"></textarea>
+    <div class="grid"><input id="option1" placeholder="Option 1" /><input id="option2" placeholder="Option 2" /><input id="option3" placeholder="Option 3" /><input id="option4" placeholder="Option 4" /></div>
+    <textarea id="quizExplanation" rows="3" placeholder="Explanation"></textarea>
+    <div class="actions"><button onclick="saveQuiz()">Save quiz</button><button class="secondary" onclick="loadQuizzes()">Refresh quizzes</button></div>
+    <pre id="quizOutput"></pre>
+    <div id="quizList"></div>
+  </section>
+
+  <section>
+    <h2>Excel / CSV import</h2>
+    <p>Upload videos, programs, events, or schedules. A title is required for every row; a URL is required only for video rows. Korean column aliases and schedule fields are supported.</p>
+    <input id="contentFile" type="file" accept=".csv,.xlsx,.xls" />
+    <button onclick="uploadContent()">Validate and import</button>
+    <pre id="uploadOutput"></pre>
+  </section>
+
+  <section>
+    <h2>Quiz Excel / CSV import</h2>
+    <p>Each row must include a tier, question, four unique options, an answer, and an explanation. Use answerIndex 0–3, answerNumber 1–4, or exact answer text. Korean column aliases are supported.</p>
+    <input id="quizFile" type="file" accept=".csv,.xlsx,.xls" />
+    <button onclick="uploadQuizzes()">Validate and import quizzes</button>
+    <pre id="quizUploadOutput"></pre>
+  </section>
+
+  <section>
+    <h2>Institutional RAG knowledge import</h2>
+    <p>Upload CSV or Excel data with title and content columns. Organization, URL, and topic columns are optional.</p>
+    <input id="knowledgeFile" type="file" accept=".csv,.xlsx,.xls" />
+    <button onclick="uploadKnowledge()">Validate and add knowledge</button>
+    <pre id="knowledgeOutput"></pre>
+  </section>
+
+  <section>
+    <h2>RAG and YouTube operations</h2>
+    <div class="grid">
+      <div>
+        <textarea id="queries" rows="5">해양 교육
+해양 환경 교육
+스마트 항만
+자율운항선박</textarea>
+        <button onclick="syncYouTube()">Sync YouTube Data API now</button>
+      </div>
+      <div>
+        <p>Create missing embeddings after adding or updating institutional knowledge.</p>
+        <button onclick="embedKnowledge()">Build RAG embeddings</button>
+      </div>
+    </div>
+    <pre id="automationOutput"></pre>
+  </section>
+
+  <section>
+    <h2>Diamond evidence review</h2>
+    <button class="secondary" onclick="loadEvidence()">Refresh pending reviews</button>
+    <div id="evidenceList"></div>
+  </section>
+</main>
+<script>
+  let token = localStorage.getItem('bluepathAdminToken') || '';
+  const authHeaders = () => ({'Authorization': `Bearer ${token}`});
+  const jsonHeaders = () => ({...authHeaders(), 'Content-Type':'application/json'});
+  const show = (id, value) => document.getElementById(id).textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  async function request(url, options={}) {
+    const response = await fetch(url, options);
+    const data = await response.json().catch(() => ({detail: response.statusText}));
+    if (!response.ok) throw new Error(JSON.stringify(data));
+    return data;
+  }
+
+  async function login() {
+    try {
+      const data = await request('/api/v1/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:email.value,password:password.value,guardianEmail:null})});
+      token = data.accessToken; localStorage.setItem('bluepathAdminToken', token);
+      show('authOutput', `Signed in as ${data.displayName} (${data.email})`);
+      await Promise.all([loadContent(), loadQuizzes(), loadEvidence()]);
+    } catch (error) { show('authOutput', error.message); }
+  }
+
+  async function saveContent() {
+    const payload = {id:contentId.value.trim(),contentType:contentType.value,title:contentTitle.value.trim(),source:contentSource.value.trim(),url:contentUrl.value.trim(),difficulty:contentDifficulty.value,requiredTier:contentTier.value,topic:contentTopic.value.trim(),careerTag:contentCareer.value.trim(),minutes:Number(contentMinutes.value||0),startAt:contentStart.value.trim(),endAt:contentEnd.value.trim(),target:contentTarget.value.trim()||'전체',method:contentMethod.value.trim(),category:contentCategory.value.trim(),description:contentDescription.value.trim()};
+    try { show('contentOutput', await request('/api/v1/admin/content',{method:'POST',headers:jsonHeaders(),body:JSON.stringify(payload)})); await loadContent(); }
+    catch (error) { show('contentOutput', error.message); }
+  }
+
+  async function loadContent() {
+    try {
+      const data = await request('/api/v1/admin/content',{headers:authHeaders()});
+      contentList.innerHTML = data.map(item => `<div class="row"><span class="pill">${escapeHtml(item.contentType)}</span><span class="pill">${escapeHtml(item.requiredTier)}</span><strong>${escapeHtml(item.title)}</strong><br><small>${escapeHtml(item.source)} · ${escapeHtml(item.topic)}${item.startAt ? ` · ${escapeHtml(item.startAt)}` : ''}</small><p>${escapeHtml(item.description || '')}</p><div class="actions"><button class="secondary" onclick="editContentEncoded('${encodeURIComponent(JSON.stringify(item))}')">Edit</button><button class="danger" onclick="deleteContentEncoded('${encodeURIComponent(item.id)}')">Delete</button></div></div>`).join('');
+    } catch (error) { show('contentOutput', error.message); }
+  }
+
+  function editContentEncoded(value) { editContent(JSON.parse(decodeURIComponent(value))); }
+  function deleteContentEncoded(value) { deleteContent(decodeURIComponent(value)); }
+
+  function editContent(item) {
+    contentId.value=item.id; contentType.value=item.contentType; contentTitle.value=item.title; contentSource.value=item.source; contentUrl.value=item.url; contentDifficulty.value=item.difficulty||'중'; contentTier.value=item.requiredTier; contentTopic.value=item.topic; contentCareer.value=item.careerTag; contentMinutes.value=item.minutes; contentStart.value=item.startAt||''; contentEnd.value=item.endAt||''; contentTarget.value=item.target||'전체'; contentMethod.value=item.method||''; contentCategory.value=item.category||''; contentDescription.value=item.description||'';
+    window.scrollTo({top: document.querySelector('#contentId').getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth'});
+  }
+
+  async function deleteContent(id) {
+    if (!confirm('Delete this content item?')) return;
+    try { await request(`/api/v1/admin/content/${encodeURIComponent(id)}`,{method:'DELETE',headers:authHeaders()}); await loadContent(); }
+    catch (error) { show('contentOutput', error.message); }
+  }
+
+  async function saveQuiz() {
+    const payload={id:quizId.value.trim(),tier:quizTier.value,topic:quizTopic.value.trim(),question:quizQuestion.value.trim(),options:[option1.value,option2.value,option3.value,option4.value],answerIndex:Number(quizAnswer.value),explanation:quizExplanation.value.trim(),sourceTitle:quizSourceTitle.value.trim(),sourceUrl:quizSourceUrl.value.trim(),active:true};
+    try { show('quizOutput', await request('/api/v1/admin/quizzes',{method:'POST',headers:jsonHeaders(),body:JSON.stringify(payload)})); await loadQuizzes(); }
+    catch (error) { show('quizOutput', error.message); }
+  }
+
+  async function loadQuizzes() {
+    try {
+      const data = await request('/api/v1/admin/quizzes',{headers:authHeaders()});
+      quizList.innerHTML = data.map(item => `<div class="row"><span class="pill">${escapeHtml(item.tier)}</span><span class="pill">${escapeHtml(item.topic)}</span><strong>${escapeHtml(item.question)}</strong><br><small>Answer ${item.answerIndex+1} · ${escapeHtml(item.explanation)}</small><div class="actions"><button class="secondary" onclick="editQuizEncoded('${encodeURIComponent(JSON.stringify(item))}')">Edit</button><button class="danger" onclick="deleteQuizEncoded('${encodeURIComponent(item.id)}')">Delete</button></div></div>`).join('');
+    } catch (error) { show('quizOutput', error.message); }
+  }
+
+  function editQuizEncoded(value) { editQuiz(JSON.parse(decodeURIComponent(value))); }
+  function deleteQuizEncoded(value) { deleteQuiz(decodeURIComponent(value)); }
+
+  function editQuiz(item) {
+    quizId.value=item.id; quizTier.value=item.tier; quizTopic.value=item.topic; quizQuestion.value=item.question; [option1.value,option2.value,option3.value,option4.value]=item.options; quizAnswer.value=String(item.answerIndex); quizExplanation.value=item.explanation; quizSourceTitle.value=item.sourceTitle; quizSourceUrl.value=item.sourceUrl;
+    window.scrollTo({top: document.querySelector('#quizId').getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth'});
+  }
+
+  async function deleteQuiz(id) {
+    if (!confirm('Delete this quiz? Promotion sets must still contain enough active questions.')) return;
+    try { await request(`/api/v1/admin/quizzes/${encodeURIComponent(id)}`,{method:'DELETE',headers:authHeaders()}); await loadQuizzes(); }
+    catch (error) { show('quizOutput', error.message); }
+  }
+
+  async function uploadContent() {
+    const file = contentFile.files[0]; if (!file) return show('uploadOutput','Choose a file first.');
+    const form = new FormData(); form.append('file', file);
+    try { show('uploadOutput', await request('/api/v1/admin/content/upload',{method:'POST',headers:authHeaders(),body:form})); await loadContent(); }
+    catch (error) { show('uploadOutput', error.message); }
+  }
+
+  async function uploadQuizzes() {
+    const file = quizFile.files[0]; if (!file) return show('quizUploadOutput','Choose a file first.');
+    const form = new FormData(); form.append('file', file);
+    try { show('quizUploadOutput', await request('/api/v1/admin/quizzes/upload',{method:'POST',headers:authHeaders(),body:form})); await loadQuizzes(); }
+    catch (error) { show('quizUploadOutput', error.message); }
+  }
+
+  async function uploadKnowledge() {
+    const file=knowledgeFile.files[0]; if (!file) return show('knowledgeOutput','Choose a file first.');
+    const form=new FormData(); form.append('file',file);
+    try { show('knowledgeOutput',await request('/api/v1/admin/knowledge/upload',{method:'POST',headers:authHeaders(),body:form})); }
+    catch (error) { show('knowledgeOutput',error.message); }
+  }
+
+  async function syncYouTube() {
+    const queryList=queries.value.split('\n').map(v=>v.trim()).filter(Boolean);
+    try { show('automationOutput', await request('/api/v1/admin/youtube/sync',{method:'POST',headers:jsonHeaders(),body:JSON.stringify({queries:queryList,maxResultsPerQuery:10})})); await loadContent(); }
+    catch (error) { show('automationOutput', error.message); }
+  }
+
+  async function embedKnowledge() {
+    try { show('automationOutput', await request('/api/v1/admin/rag/embed',{method:'POST',headers:authHeaders()})); }
+    catch (error) { show('automationOutput', error.message); }
+  }
+
+  async function loadEvidence() {
+    try {
+      const data=await request('/api/v1/admin/diamond/pending',{headers:authHeaders()}); evidenceList.innerHTML='';
+      data.forEach(item=>{const div=document.createElement('div');div.className='row';div.innerHTML=`<strong>${escapeHtml(item.evidenceType)}: ${escapeHtml(item.title)}</strong><p>User: ${escapeHtml(item.userId)}</p><p><a target="_blank" rel="noopener" href="${escapeHtml(item.evidenceUrl)}">Open evidence</a></p><div class="actions"><button onclick="review('${item.id}','approved')">Approve</button><button class="secondary" onclick="review('${item.id}','rejected')">Request changes</button></div>`;evidenceList.appendChild(div);});
+    } catch (error) { evidenceList.textContent=error.message; }
+  }
+
+  async function review(id,status) {
+    const reviewNote=prompt('Review note (optional)')||'';
+    try { alert(JSON.stringify(await request(`/api/v1/admin/diamond/${id}/review`,{method:'POST',headers:jsonHeaders(),body:JSON.stringify({status,reviewNote})}))); await loadEvidence(); }
+    catch (error) { alert(error.message); }
+  }
+</script>
+</body>
+</html>
