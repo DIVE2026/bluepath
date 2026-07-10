@@ -1,0 +1,18 @@
+{
+  "seed": 20260711,
+  "total": 98,
+  "train": 74,
+  "validation": 14,
+  "evaluation": 10,
+  "categories": {
+    "grounded_agent": 31,
+    "policy": 10,
+    "quiz": 57
+  },
+  "tiers": {
+    "브론즈": 10,
+    "실버": 12,
+    "골드": 15,
+    "플래티넘": 20
+  }
+}
