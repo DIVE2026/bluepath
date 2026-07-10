@@ -1,3 +1,6 @@
 # Copy this file to developer.properties and set only the BluePath backend URL.
 # No LLM, YouTube, database, or fine-tuning secret is stored in the Android app.
 BLUEPATH_API_BASE_URL=https://api.example.com/
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+android.enableJetifier=true
