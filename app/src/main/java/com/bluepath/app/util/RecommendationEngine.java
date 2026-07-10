@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class RecommendationEngine {
+public final class RecommendationEngine {
+    private RecommendationEngine() {}
+
     public static String persona(String ageGroup, String goal, String interest) {
         if (ageGroup.contains("초등") || ageGroup.contains("유아")) return "바다 탐험 키즈";
         if (ageGroup.contains("중") || ageGroup.contains("고")) return "진로 탐색 항해자";
@@ -31,13 +33,25 @@ public class RecommendationEngine {
 
     public static int scoreContent(ContentItem c, UserProfile p, String tier) {
         int score = 30;
-        if (c.topic.contains(p.interest) || p.interest.contains(c.topic)) score += 30;
+        if (topicMatches(c, p.interest)) score += 30;
         if (c.careerTag.contains(p.interest) || c.title.contains(p.interest)) score += 15;
         if (tierRank(tier) >= tierRank(c.requiredTier)) score += 15;
         if (p.goal.contains("진로") && !c.careerTag.isEmpty()) score += 10;
         if (p.goal.contains("흥미") && c.difficulty.equals("하")) score += 10;
         if (p.goal.contains("직무") && (c.difficulty.equals("중") || c.difficulty.equals("상"))) score += 10;
         return Math.min(score, 100);
+    }
+
+    private static boolean topicMatches(ContentItem c, String interest) {
+        String all = c.topic + " " + c.careerTag + " " + c.title;
+        if (all.contains(interest) || interest.contains(c.topic)) return true;
+        if (interest.contains("선박")) return all.contains("선박") || all.contains("조선") || all.contains("해기사") || all.contains("기관사");
+        if (interest.contains("항해")) return all.contains("항해") || all.contains("해기사") || all.contains("해운");
+        if (interest.contains("해양환경")) return all.contains("환경") || all.contains("쓰레기") || all.contains("생태");
+        if (interest.contains("해양생물")) return all.contains("생물") || all.contains("고래") || all.contains("물고기");
+        if (interest.contains("항만")) return all.contains("항만") || all.contains("물류");
+        if (interest.contains("안전")) return all.contains("안전") || all.contains("비상") || all.contains("방제");
+        return interest.contains("문화") && (all.contains("문화") || all.contains("독도"));
     }
 
     public static List<ProgramItem> recommendedPrograms(UserProfile p) {
@@ -88,54 +102,63 @@ public class RecommendationEngine {
 
     public static List<QuizQuestion> quizForTier(String tier, String interest) {
         List<QuizQuestion> result = new ArrayList<>();
-        for (QuizQuestion q : DataRepository.quizzes()) {
-            if (tierRank(q.tier) <= tierRank(tier) + 1) result.add(q);
-        }
+        for (QuizQuestion q : DataRepository.quizzes()) if (q.tier.equals(tier)) result.add(q);
         result.sort(Comparator.comparingInt(q -> q.topic.contains(interest) ? 0 : 1));
-        return result;
+        int count = PromotionRules.questionCount(tier);
+        if (count > 0 && result.size() > count) result = new ArrayList<>(result.subList(0, count));
+
+        List<QuizQuestion> balanced = new ArrayList<>();
+        for (int i = 0; i < result.size(); i++) {
+            QuizQuestion q = result.get(i);
+            int shift = i % 4;
+            String[] options = new String[4];
+            for (int j = 0; j < 4; j++) options[(j + shift) % 4] = q.options[j];
+            balanced.add(new QuizQuestion(q.id + "-r" + shift, q.tier, q.topic, q.question,
+                    options, (q.answerIndex + shift) % 4, q.explanation));
+        }
+        return balanced;
     }
 
     public static String nextAction(UserProfile p, String tier) {
-        if (tier.equals("브론즈")) return "기초 영상 3개 또는 브론즈 퀴즈 70점 이상으로 실버 진입을 노려보세요.";
-        if (tier.equals("실버")) return "관심 분야 중급 영상과 NCS 기초 퀴즈를 완료하면 골드 로드맵이 열립니다.";
-        if (tier.equals("골드")) return "관심 직무를 선택하고 심화 퀴즈 80점 이상, 자격·교육 일정을 찜해 플래티넘을 준비하세요.";
-        if (tier.equals("플래티넘")) return "자격증, 교육 수료, 경력 인증 중 하나를 등록하면 다이아 후보가 됩니다.";
-        return "전문가 단계입니다. 멘토링·프로젝트 리뷰 기능을 통해 후배 학습자를 도울 수 있습니다.";
+        if (tier.equals("브론즈")) return "LLM이 만든 10문제를 모두 답한 뒤 7문제 이상 맞히면 " + PromotionRules.displayName("실버") + "로 승급합니다.";
+        if (tier.equals("실버")) return "LLM이 만든 12문제를 모두 답한 뒤 9문제 이상 맞히면 " + PromotionRules.displayName("골드") + "로 승급합니다.";
+        if (tier.equals("골드")) return "LLM이 만든 15문제를 모두 답한 뒤 10문제 이상 맞히면 " + PromotionRules.displayName("플래티넘") + "으로 승급합니다.";
+        if (tier.equals("플래티넘")) return "기존 XP 4,200점 또는 자격·교육·경력 인증 로드맵으로 " + PromotionRules.displayName("다이아") + "를 준비하세요.";
+        return "전문가 단계입니다. 멘토링과 프로젝트 리뷰로 후배 학습자를 도울 수 있습니다.";
     }
 
     public static int tierRank(String tier) {
-        switch (tier) {
-            case "브론즈": return 1;
-            case "실버": return 2;
-            case "골드": return 3;
-            case "플래티넘": return 4;
-            case "다이아": return 5;
-            default: return 1;
-        }
+        return PromotionRules.rank(tier);
     }
 
     public static String answerAgent(String question, UserProfile p, String tier) {
         String q = question == null ? "" : question.toLowerCase();
         if (q.contains("티어") || q.contains("승급") || q.contains("올리")) {
-            return "현재 " + tier + " 단계입니다. " + nextAction(p, tier) + " 영상 시청만으로는 최대 30%까지 반영되고, 퀴즈·미션·일정 참여가 더 크게 반영됩니다.";
+            return "현재 " + PromotionRules.displayName(tier) + " 단계입니다. " + nextAction(p, tier)
+                    + " 최종 티어는 기존 XP 기준과 퀴즈 획득 티어 중 높은 단계가 적용됩니다.";
         }
         if (q.contains("교육") || q.contains("일정") || q.contains("프로그램")) {
             ProgramItem item = recommendedPrograms(p).get(0);
-            return "추천 교육은 ‘" + item.title + "’입니다. 대상은 " + item.target + ", 기간은 " + item.startDate + "~" + item.endDate + "입니다. 추천 이유는 관심 분야 ‘" + p.interest + "’와 학습 목적 ‘" + p.goal + "’에 가장 가깝기 때문입니다.";
+            return "추천 교육은 ‘" + item.title + "’입니다. 대상은 " + item.target + ", 기간은 "
+                    + item.startDate + "~" + item.endDate + "입니다. 관심 분야 ‘" + p.interest
+                    + "’와 학습 목적 ‘" + p.goal + "’의 적합도를 기준으로 골랐습니다.";
         }
         if (q.contains("직업") || q.contains("진로") || q.contains("ncs") || q.contains("항해사")) {
             CareerItem item = recommendedCareers(p).get(0);
-            return "관심 분야 기준 추천 진로는 ‘" + item.title + "’입니다. 주요 NCS·역량은 " + join(item.ncsUnits, ", ") + "이고, 관련 근무지는 " + join(item.workplaces, ", ") + "입니다.";
+            return "추천 진로는 ‘" + item.title + "’입니다. 주요 역량은 " + join(item.ncsUnits, ", ")
+                    + "이고, 관련 근무지는 " + join(item.workplaces, ", ") + "입니다.";
         }
         if (q.contains("퀴즈") || q.contains("문제")) {
-            return "퀴즈/티어 탭에서 현재 티어에 맞는 승급 퀴즈를 풀 수 있습니다. 일정 점수 이상이면 영상을 다 보지 않아도 성장 게이지가 빠르게 찹니다.";
+            return "퀴즈 탭에서 현재 티어용 승급 퀴즈를 생성하세요. 선택 즉시 정답은 공개되지 않고, 모든 문항을 답한 뒤 최종 채점과 문항별 해설이 제공됩니다.";
         }
         if (q.contains("영상") || q.contains("콘텐츠")) {
             ContentItem item = recommendedContents(p, tier).get(0);
-            return "추천 영상은 ‘" + item.title + "’입니다. 난도는 " + item.difficulty + ", 권장 티어는 " + item.requiredTier + "입니다.";
+            return "추천 영상은 ‘" + item.title + "’입니다. 난도는 " + item.difficulty + ", 권장 티어는 " + PromotionRules.displayName(item.requiredTier) + "입니다.";
         }
-        return "저는 BluePath AI Agent입니다. 교육 추천, 일정 확인, 티어 승급, 퀴즈, 진로 로드맵에 대해 질문해보세요. 현재 프로필 기준으로 관심 분야는 ‘" + p.interest + "’, 목표는 ‘" + p.goal + "’입니다.";
+        return "BluePath 해양 도메인 에이전트입니다. 교육 추천, 일정, 승급 퀴즈, 해양 직무와 NCS 로드맵을 질문해보세요. 현재 관심 분야는 ‘"
+                + p.interest + "’, 목표는 ‘" + p.goal + "’입니다.";
     }
+
     private static String join(String[] values, String sep) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
@@ -144,5 +167,4 @@ public class RecommendationEngine {
         }
         return sb.toString();
     }
-
 }
