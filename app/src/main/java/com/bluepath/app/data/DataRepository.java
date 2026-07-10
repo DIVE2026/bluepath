@@ -7,6 +7,7 @@ import com.bluepath.app.model.ContentItem;
 import com.bluepath.app.model.EventItem;
 import com.bluepath.app.model.ProgramItem;
 import com.bluepath.app.model.QuizQuestion;
+import com.bluepath.app.network.ApiModels;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,6 +24,8 @@ import java.util.List;
 public final class DataRepository {
     private static Context appContext;
     private static List<ContentItem> contentCache;
+    private static List<ProgramItem> programCache;
+    private static List<EventItem> eventCache;
     private static List<QuizQuestion> quizCache;
 
     private DataRepository() {}
@@ -103,29 +106,94 @@ public final class DataRepository {
         return builder.toString();
     }
 
-    public static List<ProgramItem> programs() {
-        return Arrays.asList(
-                new ProgramItem("p-001", "독도의 날 기념프로그램", "전체", "2025-10-25", "2025-10-25", "오프라인", "독도·해양문화", "활동지, 독도 엽서, 독도 만들기, 참여형 퀴즈로 구성된 체험 프로그램"),
-                new ProgramItem("p-002", "2025 해양문화아카데미 ‘세상을 바꾼 바다X인물’", "성인", "2025-09-18", "2025-10-30", "온·오프라인", "해양문화", "바다를 매개로 역사적 인물과 세계사의 연결을 학습하는 성인 강좌"),
-                new ProgramItem("p-003", "가족 교육 프로그램 ‘잠수정 이야기’", "가족", "2026-02-07", "2026-02-08", "오프라인", "선박·해양문화", "초등학생 고학년 포함 가족 대상 잠수정 내부 탐방형 교육"),
-                new ProgramItem("p-004", "기획전시 [수군, 해전] 연계 대면프로그램", "가족", "2025-09-13", "2025-09-27", "오프라인", "해양역사", "활동지와 수군 투구 만들기 체험 중심 가족 프로그램"),
-                new ProgramItem("p-005", "교과서 안 해양박물관: 바다를 지켜줘!", "어린이", "2025-04-21", "2025-09-23", "오프라인", "해양환경", "초등학생 고학년 대상 교과 연계 해양환경 교육"),
-                new ProgramItem("p-006", "제3기 해양문화 교육사 양성 프로그램", "전문가", "2024-06-19", "2024-08-21", "오프라인", "해양교육", "관련 전공자와 교육 경험자를 대상으로 해양문화 교육 역량 양성"),
-                new ProgramItem("p-007", "3급면허취득원격교육(상선항해)", "전문가", "2025-01-01", "2025-12-31", "온라인", "항해·자격", "해기사 면허시험 합격자를 위한 원격교육 과정"),
-                new ProgramItem("p-008", "기초안전교육", "성인/직장인", "2025-01-06", "2025-01-10", "오프라인", "해양안전", "국제항해 승선자를 위한 선박 구조, 구명, 통신, 소화, 생존 이론 교육")
-        );
+    public static synchronized List<ProgramItem> programs() {
+        if (programCache == null) programCache = loadPrograms();
+        return new ArrayList<>(programCache);
     }
 
-    public static List<EventItem> events() {
-        return Arrays.asList(
-                new EventItem("e-001", "월드베스트 매직 콘서트", "2012-07-09", "2012-07-31", "전체", "공연", "국가대표 마술사들이 펼치는 마술 공연"),
-                new EventItem("e-002", "사운드 오브 매직아트", "2012-08-01", "2012-11-30", "전체", "공연", "사운드와 마술, 마임이 어우러진 퍼포먼스"),
-                new EventItem("e-003", "해로와 미로의 시간탐험대", "2012-12-01", "2012-12-31", "전체", "어린이 공연", "마술과 뮤지컬이 어우러진 어린이 마술뮤지컬"),
-                new EventItem("e-004", "[4D영상관] 4D 독도영상", "2012-08-15", "2012-08-15", "전체", "체험", "독도 주변 바다의 해양현상과 생태계를 실감형 영상으로 체험"),
-                new EventItem("e-005", "무료영화상영 ‘해양가족극장’", "2012-09-08", "2012-09-29", "전체", "영화", "가족이 즐길 수 있는 해양·자연 테마 영화 상영"),
-                new EventItem("e-006", "남극의 눈물 제작 체험담 강연", "2013-04-11", "2013-04-11", "전체", "강연", "해양·극지 다큐멘터리 제작 과정과 현장 경험 공유")
-        );
+    private static List<ProgramItem> loadPrograms() {
+        if (appContext == null) return Collections.emptyList();
+        List<ProgramItem> list = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(readAsset("seed_programs.json"));
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject item = array.getJSONObject(i);
+                list.add(new ProgramItem(
+                        item.getString("id"), item.getString("title"), item.optString("target", "전체"),
+                        item.optString("startDate", ""), item.optString("endDate", ""),
+                        item.optString("method", "오프라인"), item.optString("topic", "해양교육"),
+                        item.optString("description", "")
+                ));
+            }
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
+        return list;
     }
+
+    public static synchronized List<EventItem> events() {
+        if (eventCache == null) eventCache = loadEvents();
+        return new ArrayList<>(eventCache);
+    }
+
+    private static List<EventItem> loadEvents() {
+        if (appContext == null) return Collections.emptyList();
+        List<EventItem> list = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(readAsset("seed_events.json"));
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject item = array.getJSONObject(i);
+                list.add(new EventItem(
+                        item.getString("id"), item.getString("title"), item.optString("startDate", ""),
+                        item.optString("endDate", ""), item.optString("target", "전체"),
+                        item.optString("category", "행사"), item.optString("description", "")
+                ));
+            }
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public static synchronized void applyRemoteCatalog(List<ApiModels.ContentDto> remote) {
+        if (remote == null) return;
+        if (contentCache == null) contentCache = loadContents();
+        if (programCache == null) programCache = loadPrograms();
+        if (eventCache == null) eventCache = loadEvents();
+        for (ApiModels.ContentDto item : remote) {
+            if (item == null || item.id == null || item.id.trim().isEmpty()) continue;
+            if ("video".equals(item.contentType)) {
+                replaceContent(new ContentItem(item.id, safe(item.title), safe(item.source), safe(item.url),
+                        safeOr(item.difficulty, "중"), safeOr(item.requiredTier, "브론즈"),
+                        safeOr(item.topic, "해양교육"), safe(item.careerTag), item.minutes));
+            } else if ("program".equals(item.contentType) || "schedule".equals(item.contentType)) {
+                replaceProgram(new ProgramItem(item.id, safe(item.title), safeOr(item.target, "전체"),
+                        safe(item.startAt), safe(item.endAt), safeOr(item.method, "오프라인"),
+                        safeOr(item.topic, "해양교육"), safe(item.description)));
+            } else if ("event".equals(item.contentType)) {
+                replaceEvent(new EventItem(item.id, safe(item.title), safe(item.startAt), safe(item.endAt),
+                        safeOr(item.target, "전체"), safeOr(item.category, "행사"), safe(item.description)));
+            }
+        }
+    }
+
+    private static void replaceContent(ContentItem value) {
+        for (int i = 0; i < contentCache.size(); i++) if (contentCache.get(i).id.equals(value.id)) { contentCache.set(i, value); return; }
+        contentCache.add(value);
+    }
+
+    private static void replaceProgram(ProgramItem value) {
+        for (int i = 0; i < programCache.size(); i++) if (programCache.get(i).id.equals(value.id)) { programCache.set(i, value); return; }
+        programCache.add(value);
+    }
+
+    private static void replaceEvent(EventItem value) {
+        for (int i = 0; i < eventCache.size(); i++) if (eventCache.get(i).id.equals(value.id)) { eventCache.set(i, value); return; }
+        eventCache.add(value);
+    }
+
+    private static String safe(String value) { return value == null ? "" : value; }
+    private static String safeOr(String value, String fallback) { return value == null || value.trim().isEmpty() ? fallback : value; }
 
     public static List<CareerItem> careers() {
         return Arrays.asList(
