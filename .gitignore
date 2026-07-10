@@ -3,11 +3,21 @@ build/
 */build/
 
 local.properties
+developer.properties
+.env
+backend/.env
 
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/usage.statistics.xml
 .idea/dictionaries/
 .idea/shelf/
+
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+finetuning/output/
+finetuning/checkpoints/
 
 .DS_Store
