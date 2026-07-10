@@ -1,0 +1,242 @@
+[
+  {
+    "id": "marine-eval-001",
+    "category": "grounded_agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "근거:\n[1] 혹등고래 유령그물 탈출 대작전 (첨부 스프레드시트)\n영상 제목: 혹등고래 유령그물 탈출 대작전\n난도: 하\n권장 티어: 브론즈\n주제: 해양환경\n연결 진로: 해양환경 교육\n검색 키워드: 어린이 해양 교육\nURL: https://youtu.be/fkaXfrkgr-g?si=K7EgEC4W1o33gU2j\n\n질문: 이 근거를 바탕으로 해양 진로와 연결해 설명해줘. 근거 번호를 표시해줘."
+      }
+    ],
+    "referenceAnswer": "핵심 사실: 영상 제목: 혹등고래 유령그물 탈출 대작전\n난도: 하\n권장 티어: 브론즈\n주제: 해양환경\n연결 진로: 해양환경 교육\n검색 키워드: 어린이 해양 교육 [1]\n학습 권장사항: BluePath에서 ‘해양환경’ 관련 영상을 먼저 학습하고, 완료 후 현재 티어의 승급 퀴즈로 이해도를 확인하세요. 최신 자격·일정·법규가 관련되면 첨부 스프레드시트의 최신 안내를 다시 확인하는 것이 안전합니다.",
+    "checks": {
+      "mustBeJsonQuiz": false,
+      "expectedQuestionCount": 0,
+      "mustIncludeSourceNumbers": false,
+      "mustMentionSourceMarker": true,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-002",
+    "category": "grounded_agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "근거:\n[1] [스마트해운물류xICT멘토링] 25-01. 스마트 항만을 위한 지능형 컨테이너 자동 적재 시스템 (첨부 스프레드시트)\n영상 제목: [스마트해운물류xICT멘토링] 25-01. 스마트 항만을 위한 지능형 컨테이너 자동 적재 시스템\n난도: 상\n권장 티어: 골드\n주제: 항만·물류\n연결 진로: 스마트 항만\n검색 키워드: 스마트 항만 및 해운 물류 시스템 분석\nURL: https://www.youtube.com/watch?v=2aM7uqOYg7c\n\n질문: 이 근거를 바탕으로 해양 진로와 연결해 설명해줘. 근거 번호를 표시해줘."
+      }
+    ],
+    "referenceAnswer": "핵심 사실: 영상 제목: [스마트해운물류xICT멘토링] 25-01. 스마트 항만을 위한 지능형 컨테이너 자동 적재 시스템\n난도: 상\n권장 티어: 골드\n주제: 항만·물류\n연결 진로: 스마트 항만\n검색 키워드: 스마트 항만 및 해운 물류 시스템 분석 [1]\n학습 권장사항: BluePath에서 ‘항만·물류’ 관련 영상을 먼저 학습하고, 완료 후 현재 티어의 승급 퀴즈로 이해도를 확인하세요. 최신 자격·일정·법규가 관련되면 첨부 스프레드시트의 최신 안내를 다시 확인하는 것이 안전합니다.",
+    "checks": {
+      "mustBeJsonQuiz": false,
+      "expectedQuestionCount": 0,
+      "mustIncludeSourceNumbers": false,
+      "mustMentionSourceMarker": true,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-003",
+    "category": "quiz",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "티어: 실버\n주제: 항해·선박\n근거:\n[1] BluePath 검증 항해·선박 학습 노트 (BluePath reviewed quiz bank)\n핵심 설명: 항해당직은 충돌·좌초 등을 예방하며 안전한 운항을 유지하는 핵심 업무입니다.\n검증된 핵심 답: 지속적으로 주변 상황을 관찰하고 안전한 항해를 유지한다\nURL: \n\n근거를 벗어나지 않는 4지선다 승급 문제 1개를 만들어라. topic, question, options 4개, answerIndex, explanation, sourceNumbers를 포함하고 JSON만 출력하라."
+      }
+    ],
+    "referenceAnswer": "{\"questions\": [{\"topic\": \"항해·선박\", \"question\": \"항해당직의 목적은?\", \"options\": [\"승객의 식단만 정한다\", \"항구의 관광상품만 판매한다\", \"지속적으로 주변 상황을 관찰하고 안전한 항해를 유지한다\", \"선내 조명을 장식한다\"], \"answerIndex\": 2, \"explanation\": \"항해당직은 충돌·좌초 등을 예방하며 안전한 운항을 유지하는 핵심 업무입니다.\", \"sourceNumbers\": [1]}]}",
+    "checks": {
+      "mustBeJsonQuiz": true,
+      "expectedQuestionCount": 1,
+      "mustIncludeSourceNumbers": true,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-004",
+    "category": "quiz",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "티어: 실버\n주제: 해양진로\n근거:\n[1] BluePath 검증 해양진로 학습 노트 (BluePath reviewed quiz bank)\n핵심 설명: 학교를 비교할 때는 전공, 실습, 진로, 전형과 지원 제도를 종합적으로 살펴야 합니다.\n검증된 핵심 답: 학교 이름의 글자 수만\nURL: \n\n근거를 벗어나지 않는 4지선다 승급 문제 1개를 만들어라. topic, question, options 4개, answerIndex, explanation, sourceNumbers를 포함하고 JSON만 출력하라."
+      }
+    ],
+    "referenceAnswer": "{\"questions\": [{\"topic\": \"해양진로\", \"question\": \"해양대학교 진학 정보를 비교할 때 확인할 항목으로 적절하지 않은 것은?\", \"options\": [\"학교 이름의 글자 수만\", \"전공 교육과 승선실습·진로 지원\", \"입학 전형과 장학 제도\", \"졸업 후 진로\"], \"answerIndex\": 0, \"explanation\": \"학교를 비교할 때는 전공, 실습, 진로, 전형과 지원 제도를 종합적으로 살펴야 합니다.\", \"sourceNumbers\": [1]}]}",
+    "checks": {
+      "mustBeJsonQuiz": true,
+      "expectedQuestionCount": 1,
+      "mustIncludeSourceNumbers": true,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-005",
+    "category": "policy",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "골드에서 플래티넘 승급 기준은?"
+      }
+    ],
+    "referenceAnswer": "🥇 골드 승급 퀴즈는 15문제이며 10문제 이상 맞히면 🏆 플래티넘으로 승급합니다.",
+    "checks": {
+      "mustBeJsonQuiz": false,
+      "expectedQuestionCount": 0,
+      "mustIncludeSourceNumbers": false,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-006",
+    "category": "grounded_agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "근거:\n[1] 아름다운 바다 속에 이렇게 많은 쓰레기가 있다고? 버려진 플라스틱 빨대의 나비효과 [어린이 해양교육] (첨부 스프레드시트)\n영상 제목: 아름다운 바다 속에 이렇게 많은 쓰레기가 있다고? 버려진 플라스틱 빨대의 나비효과 [어린이 해양교육]\n난도: 하\n권장 티어: 브론즈\n주제: 해양환경\n연결 진로: 해양환경 교육\n검색 키워드: 어린이 해양 환경 보호 교육\nURL: https://www.youtube.com/watch?v=TxZtHAJF3X4\n\n질문: 핵심 사실과 학습 권장사항을 구분해서 알려줘."
+      }
+    ],
+    "referenceAnswer": "핵심 사실: 영상 제목: 아름다운 바다 속에 이렇게 많은 쓰레기가 있다고? 버려진 플라스틱 빨대의 나비효과 [어린이 해양교육]\n난도: 하\n권장 티어: 브론즈\n주제: 해양환경\n연결 진로: 해양환경 교육\n검색 키워드: 어린이 해양 환경 보호 교육 [1]\n학습 권장사항: BluePath에서 ‘해양환경’ 관련 영상을 먼저 학습하고, 완료 후 현재 티어의 승급 퀴즈로 이해도를 확인하세요. 최신 자격·일정·법규가 관련되면 첨부 스프레드시트의 최신 안내를 다시 확인하는 것이 안전합니다.",
+    "checks": {
+      "mustBeJsonQuiz": false,
+      "expectedQuestionCount": 0,
+      "mustIncludeSourceNumbers": false,
+      "mustMentionSourceMarker": true,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-007",
+    "category": "quiz",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "티어: 실버\n주제: 항해·선박\n근거:\n[1] BluePath 검증 항해·선박 학습 노트 (BluePath reviewed quiz bank)\n핵심 설명: 항해사는 선위 확인, 항해당직, 선박 조종과 안전 운항을 담당합니다.\n검증된 핵심 답: 선박의 위치와 항로를 확인하고 안전 운항을 관리한다\nURL: \n\n근거를 벗어나지 않는 4지선다 승급 문제 1개를 만들어라. topic, question, options 4개, answerIndex, explanation, sourceNumbers를 포함하고 JSON만 출력하라."
+      }
+    ],
+    "referenceAnswer": "{\"questions\": [{\"topic\": \"항해·선박\", \"question\": \"항해사의 핵심 업무와 가장 가까운 것은?\", \"options\": [\"호텔 객실을 청소한다\", \"농작물을 재배한다\", \"방송 영상을 편집한다\", \"선박의 위치와 항로를 확인하고 안전 운항을 관리한다\"], \"answerIndex\": 3, \"explanation\": \"항해사는 선위 확인, 항해당직, 선박 조종과 안전 운항을 담당합니다.\", \"sourceNumbers\": [1]}]}",
+    "checks": {
+      "mustBeJsonQuiz": true,
+      "expectedQuestionCount": 1,
+      "mustIncludeSourceNumbers": true,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-008",
+    "category": "grounded_agent",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "근거:\n[1] 한국해양수산연수원 3급, 5급 해기사 입교를 망설이는 분들을 위해서... (첨부 스프레드시트)\n영상 제목: 한국해양수산연수원 3급, 5급 해기사 입교를 망설이는 분들을 위해서...\n난도: 상\n권장 티어: 골드\n주제: 항해·선박\n연결 진로: 해기사·자격\n검색 키워드: 한국해양수산연수원 해기사 직무 교육\nURL: https://www.youtube.com/watch?v=V8qY4yhVJ5U\n\n질문: 이 근거를 바탕으로 해양 진로와 연결해 설명해줘. 근거 번호를 표시해줘."
+      }
+    ],
+    "referenceAnswer": "핵심 사실: 영상 제목: 한국해양수산연수원 3급, 5급 해기사 입교를 망설이는 분들을 위해서...\n난도: 상\n권장 티어: 골드\n주제: 항해·선박\n연결 진로: 해기사·자격\n검색 키워드: 한국해양수산연수원 해기사 직무 교육 [1]\n학습 권장사항: BluePath에서 ‘항해·선박’ 관련 영상을 먼저 학습하고, 완료 후 현재 티어의 승급 퀴즈로 이해도를 확인하세요. 최신 자격·일정·법규가 관련되면 첨부 스프레드시트의 최신 안내를 다시 확인하는 것이 안전합니다.",
+    "checks": {
+      "mustBeJsonQuiz": false,
+      "expectedQuestionCount": 0,
+      "mustIncludeSourceNumbers": false,
+      "mustMentionSourceMarker": true,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": true
+    }
+  },
+  {
+    "id": "marine-eval-009",
+    "category": "quiz",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "티어: 브론즈\n주제: 해양환경\n근거:\n[1] BluePath 검증 해양환경 학습 노트 (BluePath reviewed quiz bank)\n핵심 설명: 일회용품 사용을 줄이고 올바르게 분리배출하면 해양으로 유입되는 쓰레기를 줄일 수 있습니다.\n검증된 핵심 답: 일회용품 사용을 줄이고 분리배출한다\nURL: \n\n근거를 벗어나지 않는 4지선다 승급 문제 1개를 만들어라. topic, question, options 4개, answerIndex, explanation, sourceNumbers를 포함하고 JSON만 출력하라."
+      }
+    ],
+    "referenceAnswer": "{\"questions\": [{\"topic\": \"해양환경\", \"question\": \"바다 쓰레기를 줄이기 위한 행동으로 가장 적절한 것은?\", \"options\": [\"일회용품 사용을 줄이고 분리배출한다\", \"쓰레기를 모래에 묻는다\", \"바다에 음식물을 버린다\", \"플라스틱을 하천에 흘려보낸다\"], \"answerIndex\": 0, \"explanation\": \"일회용품 사용을 줄이고 올바르게 분리배출하면 해양으로 유입되는 쓰레기를 줄일 수 있습니다.\", \"sourceNumbers\": [1]}]}",
+    "checks": {
+      "mustBeJsonQuiz": true,
+      "expectedQuestionCount": 1,
+      "mustIncludeSourceNumbers": true,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  },
+  {
+    "id": "marine-eval-010",
+    "category": "quiz",
+    "messages": [
+      {
+        "role": "system",
+        "content": "당신은 BluePath Marine AI다. 해양환경, 해양생물, 항해, 선박기관, 해운·항만, 스마트해양, 해양안전, 해양교육과 NCS 진로에 특화되어 있다. 제공된 근거를 우선 사용하고 출처를 만들지 않는다. 법규·자격·일정처럼 바뀔 수 있는 정보는 공식 기관의 최신 정보를 확인하도록 안내한다. 승급 퀴즈는 정확히 4개의 보기와 정답 인덱스, 해설, 근거 번호를 포함한다."
+      },
+      {
+        "role": "user",
+        "content": "티어: 실버\n주제: 항해·선박\n근거:\n[1] BluePath 검증 항해·선박 학습 노트 (BluePath reviewed quiz bank)\n핵심 설명: 기관사는 주기관, 발전기, 보조기기 등 선박 기관 설비를 운전하고 정비합니다.\n검증된 핵심 답: 기관과 추진·보조 설비의 운전 및 정비\nURL: \n\n근거를 벗어나지 않는 4지선다 승급 문제 1개를 만들어라. topic, question, options 4개, answerIndex, explanation, sourceNumbers를 포함하고 JSON만 출력하라."
+      }
+    ],
+    "referenceAnswer": "{\"questions\": [{\"topic\": \"항해·선박\", \"question\": \"선박 기관사의 주요 역할은?\", \"options\": [\"기관과 추진·보조 설비의 운전 및 정비\", \"승객의 여행 사진 촬영\", \"항만 주변 식당 운영\", \"해변 모래성 제작\"], \"answerIndex\": 0, \"explanation\": \"기관사는 주기관, 발전기, 보조기기 등 선박 기관 설비를 운전하고 정비합니다.\", \"sourceNumbers\": [1]}]}",
+    "checks": {
+      "mustBeJsonQuiz": true,
+      "expectedQuestionCount": 1,
+      "mustIncludeSourceNumbers": true,
+      "mustMentionSourceMarker": false,
+      "mustAvoidFabricatedSource": true,
+      "mustAvoidSecretLeakage": true,
+      "mustRecommendOfficialVerification": false
+    }
+  }
+]
