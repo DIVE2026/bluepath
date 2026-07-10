@@ -27,6 +27,7 @@ public final class PromotionRules {
             case "브론즈": return 10;
             case "실버": return 12;
             case "골드": return 15;
+            case "플래티넘": return 20;
             default: return 0;
         }
     }
@@ -36,6 +37,7 @@ public final class PromotionRules {
             case "브론즈": return 7;
             case "실버": return 9;
             case "골드": return 10;
+            case "플래티넘": return 16;
             default: return 0;
         }
     }
@@ -72,6 +74,10 @@ public final class PromotionRules {
     public static String quizRule(String tier) {
         int total = questionCount(tier);
         int pass = passCount(tier);
+        if ("플래티넘".equals(tier)) {
+            return total + "문제 중 " + pass + "문제 이상 + 자격 증빙 + 해양 프로젝트 승인 시 "
+                    + displayName("다이아") + " 승급";
+        }
         if (total == 0) return "해당 티어는 퀴즈 단독 승급 대상이 아닙니다.";
         return total + "문제 중 " + pass + "문제 이상 정답 시 " + displayName(nextTier(tier)) + " 승급";
     }
@@ -87,8 +93,9 @@ public final class PromotionRules {
                 + "• 🥉 브론즈 → 🥈 실버: 10문제 중 7문제 이상\n"
                 + "• 🥈 실버 → 🥇 골드: 12문제 중 9문제 이상\n"
                 + "• 🥇 골드 → 🏆 플래티넘: 15문제 중 10문제 이상\n"
+                + "• 🏆 플래티넘 → 💎 다이아: 고급 20문제 중 16문제 이상, 자격 증빙 승인, 해양 프로젝트 승인\n"
                 + "• 모든 문제는 4지선다이며, 전 문항 선택 후 한 번에 채점합니다.\n"
                 + "• 채점 후 총점, 합격 여부, 문항별 정답과 해설을 제공합니다.\n\n"
-                + "최종 티어는 XP 기준 티어와 퀴즈로 획득한 티어 중 더 높은 단계가 적용됩니다.";
+                + "최종 티어는 XP 기준, 퀴즈 획득 티어, 다이아 인증 경로 중 가장 높은 단계가 적용됩니다.";
     }
 }
