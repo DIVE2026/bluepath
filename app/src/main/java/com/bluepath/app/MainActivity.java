@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         root.addView(brand);
 
         TextView tagline = new TextView(this);
-        tagline.setText("나의 현재 위치에서 해양 미래까지\n데이터로 항로를 설계하는 스마트 해도");
+        tagline.setText("나의 현재 수준에서 해양 전문가가 되기까지\n데이터로 항로를 설계하는 스마트 해도");
         tagline.setTextColor(Color.parseColor("#D9FFFF"));
         tagline.setTextSize(16);
         tagline.setGravity(Gravity.CENTER);
