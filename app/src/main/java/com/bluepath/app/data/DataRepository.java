@@ -5,6 +5,7 @@ import android.content.Context;
 import com.bluepath.app.model.CareerItem;
 import com.bluepath.app.model.ContentItem;
 import com.bluepath.app.model.EventItem;
+import com.bluepath.app.model.InstitutionItem;
 import com.bluepath.app.model.ProgramItem;
 import com.bluepath.app.model.QuizQuestion;
 import com.bluepath.app.network.ApiModels;
@@ -27,6 +28,9 @@ public final class DataRepository {
     private static List<ProgramItem> programCache;
     private static List<EventItem> eventCache;
     private static List<QuizQuestion> quizCache;
+    private static List<InstitutionItem> institutionCache;
+    private static List<String> surveyInsightCache;
+    private static int surveySampleSize;
 
     private DataRepository() {}
 
@@ -122,7 +126,7 @@ public final class DataRepository {
                         item.getString("id"), item.getString("title"), item.optString("target", "전체"),
                         item.optString("startDate", ""), item.optString("endDate", ""),
                         item.optString("method", "오프라인"), item.optString("topic", "해양교육"),
-                        item.optString("description", "")
+                        item.optString("description", ""), item.optString("source", "제공 데이터")
                 ));
             }
         } catch (Exception ignored) {
@@ -146,13 +150,69 @@ public final class DataRepository {
                 list.add(new EventItem(
                         item.getString("id"), item.getString("title"), item.optString("startDate", ""),
                         item.optString("endDate", ""), item.optString("target", "전체"),
-                        item.optString("category", "행사"), item.optString("description", "")
+                        item.optString("category", "행사"), item.optString("description", ""),
+                        item.optString("source", "제공 데이터")
                 ));
             }
         } catch (Exception ignored) {
             return Collections.emptyList();
         }
         return list;
+    }
+
+    public static synchronized List<InstitutionItem> institutions() {
+        if (institutionCache == null) institutionCache = loadInstitutions();
+        return new ArrayList<>(institutionCache);
+    }
+
+    private static List<InstitutionItem> loadInstitutions() {
+        if (appContext == null) return Collections.emptyList();
+        List<InstitutionItem> list = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(readAsset("seed_institutions.json"));
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject item = array.getJSONObject(i);
+                list.add(new InstitutionItem(
+                        item.getString("id"), item.optString("category", "유관기관"),
+                        item.optString("name", ""), item.optString("source", "해양기관 현황 데이터")
+                ));
+            }
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public static synchronized List<String> surveyInsights() {
+        if (surveyInsightCache == null) loadSurveyInsights();
+        return new ArrayList<>(surveyInsightCache == null ? Collections.emptyList() : surveyInsightCache);
+    }
+
+    public static synchronized int surveySampleSize() {
+        if (surveyInsightCache == null) loadSurveyInsights();
+        return surveySampleSize;
+    }
+
+    private static void loadSurveyInsights() {
+        surveyInsightCache = new ArrayList<>();
+        surveySampleSize = 0;
+        if (appContext == null) return;
+        try {
+            JSONObject root = new JSONObject(readAsset("survey_insights.json"));
+            surveySampleSize = root.optInt("sampleSize", 0);
+            JSONArray metrics = root.optJSONArray("metrics");
+            if (metrics == null) return;
+            for (int i = 0; i < metrics.length(); i++) {
+                JSONObject metric = metrics.getJSONObject(i);
+                int value = metric.optInt("value", 0);
+                int total = metric.optInt("total", surveySampleSize);
+                String label = metric.optString("label", "관람객 인사이트");
+                String insight = metric.optString("insight", "");
+                surveyInsightCache.add(label + " " + value + "/" + total + " · " + insight);
+            }
+        } catch (Exception ignored) {
+            surveyInsightCache.clear();
+        }
     }
 
     public static synchronized void applyRemoteCatalog(List<ApiModels.ContentDto> remote) {
@@ -169,10 +229,10 @@ public final class DataRepository {
             } else if ("program".equals(item.contentType) || "schedule".equals(item.contentType)) {
                 replaceProgram(new ProgramItem(item.id, safe(item.title), safeOr(item.target, "전체"),
                         safe(item.startAt), safe(item.endAt), safeOr(item.method, "오프라인"),
-                        safeOr(item.topic, "해양교육"), safe(item.description)));
+                        safeOr(item.topic, "해양교육"), safe(item.description), safe(item.source)));
             } else if ("event".equals(item.contentType)) {
                 replaceEvent(new EventItem(item.id, safe(item.title), safe(item.startAt), safe(item.endAt),
-                        safeOr(item.target, "전체"), safeOr(item.category, "행사"), safe(item.description)));
+                        safeOr(item.target, "전체"), safeOr(item.category, "행사"), safe(item.description), safe(item.source)));
             }
         }
     }
