@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
         signupCard.addView(signup, new LinearLayout.LayoutParams(-1, dp(48)));
         root.addView(signupCard);
 
-        Button back = outlineButton("소개 화면으로 돌아가기");
+        Button back = outlineButton("이전 화면으로 돌아가기");
         back.setOnClickListener(v -> showWelcomeScreen());
         root.addView(back, new LinearLayout.LayoutParams(-1, dp(46)));
 
