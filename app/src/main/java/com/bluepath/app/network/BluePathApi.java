@@ -13,6 +13,9 @@ public interface BluePathApi {
     @POST("api/v1/auth/login")
     Call<ApiModels.AuthResponse> login(@Body ApiModels.AuthRequest request);
 
+    @POST("api/v1/auth/password-reset/request")
+    Call<ApiModels.GenericResponse> requestPasswordReset(@Body ApiModels.PasswordResetRequest request);
+
     @POST("api/v1/ai/quiz")
     Call<ApiModels.QuizResponse> generateQuiz(
             @Header("Authorization") String authorization,
