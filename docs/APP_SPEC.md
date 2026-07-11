@@ -1,44 +1,56 @@
-# BluePath 최종 모바일 앱 명세 요약
+# BluePath Final Mobile App Specification Summary
 
-## 서비스 정의
+## Service Definition
 
-BluePath는 해양 교육 기관 및 현장에서 사용자의 해양 관련 흥미를 고취하고, 전 연령 사용자를 해양 인재로 성장시키기 위해 권장할 수 있는 모바일 학습·진로 플랫폼이다.
+BluePath is a mobile learning and career platform designed for use by marine education institutions and field-based learning environments. Its goal is to spark users' interest in the ocean and help learners of all ages grow into future marine professionals.
 
-## 핵심 사용자
+## Core Users
 
-- 초등학생: 해양생물, 독도, 선박, 바다 체험 교육 탐색
-- 중·고등학생: 해양 관련 진로 탐색, 직업 이해, 체험 프로그램 추천
-- 대학생·취업준비생: 해양수산 직무, NCS 역량, 자격증·시험 정보 확인
-- 성인·직장인: 재교육, 직무역량 강화, 전문교육 과정 탐색
-- 학부모: 자녀에게 맞는 가족형·체험형 해양교육 확인
-- 교육기관 담당자: 사용자 관심 데이터 기반 교육 수요 분석
+- **Elementary school students:** Explore marine life, Dokdo, ships, and ocean experience programs.
+- **Middle and high school students:** Discover marine-related careers, understand occupations, and receive recommendations for hands-on programs.
+- **University students and job seekers:** Review marine and fisheries occupations, NCS competencies, certifications, and examination information.
+- **Adults and professionals:** Find retraining opportunities, job competency development programs, and advanced professional courses.
+- **Parents:** Identify family-oriented and experiential marine education programs suitable for their children.
+- **Education institution managers:** Analyze educational demand based on user interest data.
 
-## 핵심 플로우
+## Core Flow
 
 ```text
-온보딩 진단 → 해양 인재 유형 분류 → 콘텐츠/교육 추천 → 퀴즈 기반 티어 성장 → 일정/이벤트 연결 → NCS 진로 로드맵 → AI Agent 상담
+Onboarding Assessment
+→ Marine Talent Type Classification
+→ Content and Education Recommendations
+→ Quiz-Based Tier Progression
+→ Schedule and Event Integration
+→ NCS Career Roadmap
+→ AI Agent Consultation
 ```
 
-## 티어 시스템
+## Tier System
 
-| 티어 | 의미 | 승급 기준 개요 |
+| Tier | Meaning | Promotion Criteria Overview |
 |---|---|---|
-| 브론즈 | 해양 입문자 | 쉬운 영상 3~5개 또는 기초 퀴즈 70점 이상 |
-| 실버 | 기초 학습자 | 중급 콘텐츠 5~7개, 분야별 퀴즈 75점 이상 |
-| 골드 | 진로 탐색자 | NCS 직무 로드맵, 심화 퀴즈 80점 이상 |
-| 플래티넘 | 실무 준비자 | 자격증·시험·전문교육 일정 등록 또는 관심 설정 |
-| 다이아 | 해양 전문 인재 | 관련 직무 경력, 수료증, 자격증, 프로젝트 인증 |
+| Bronze | Ocean Beginner | Complete 3–5 beginner videos or score at least 70% on a basic quiz |
+| Silver | Foundation Learner | Complete 5–7 intermediate learning items and score at least 75% on category-specific quizzes |
+| Gold | Career Explorer | Follow an NCS job roadmap and score at least 80% on advanced quizzes |
+| Platinum | Practice-Ready Learner | Register or express interest in certifications, exams, or professional training schedules |
+| Diamond | Marine Professional | Verify relevant work experience, certificates of completion, professional licenses, or project experience |
 
-## 추천 점수
+## Recommendation Score
 
 ```text
-추천 점수 = 관심사 유사도 + 연령/수준 적합도 + 티어 적합도 + 진로/NCS 연결성 + 일정 접근성 + 사용자 행동 이력
+Recommendation Score =
+Interest Similarity
++ Age and Level Suitability
++ Tier Suitability
++ Career and NCS Relevance
++ Schedule Accessibility
++ User Behavior History
 ```
 
-## AI Agent 명령 예시
+## Example AI Agent Commands
 
-- 내 관심 분야에 맞는 교육 추천해줘
-- 이번 달 가족이 갈 수 있는 해양 이벤트 알려줘
-- 내 티어 올리려면 뭘 해야 해?
-- 항해사가 되려면 어떤 역량이 필요해?
-- 골드 승급용 문제 풀게 해줘
+- Recommend training programs based on my interests.
+- Show me marine events my family can attend this month.
+- What should I do to advance to the next tier?
+- What competencies do I need to become a navigation officer?
+- Let me take a quiz for Gold-tier promotion.
