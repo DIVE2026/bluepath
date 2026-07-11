@@ -55,6 +55,14 @@ public class BluePathRepository {
         refreshCatalog();
     }
 
+    public String requestPasswordReset(String email) throws IOException {
+        requireCloud();
+        Response<ApiModels.GenericResponse> response = api.requestPasswordReset(
+                new ApiModels.PasswordResetRequest(email)).execute();
+        ApiModels.GenericResponse body = requireBody(response, "비밀번호 재설정 요청");
+        return body.message == null ? "비밀번호 재설정 안내를 확인해 주세요." : body.message;
+    }
+
     public ApiModels.CloudStateResponse pullCloudState() throws IOException {
         requireAuthenticated();
         Response<ApiModels.CloudStateResponse> response = api.cloudState(bearer()).execute();
