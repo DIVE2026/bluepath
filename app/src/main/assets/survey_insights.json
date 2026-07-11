@@ -1,0 +1,42 @@
+{
+  "source": "국립해양박물관 관람객 만족도 설문 데이터",
+  "sampleSize": 43,
+  "updatedAt": "2025-Q4",
+  "metrics": [
+    {
+      "id": "family_visit",
+      "label": "가족 동반 방문",
+      "value": 41,
+      "total": 43,
+      "insight": "가족 구성원이 함께 해결하는 협동형 현장 미션을 우선 설계합니다."
+    },
+    {
+      "id": "leisure_visit",
+      "label": "가족·친구 여가 목적",
+      "value": 36,
+      "total": 43,
+      "insight": "짧고 즐거운 체험에서 심화 학습으로 이어지는 항로가 필요합니다."
+    },
+    {
+      "id": "education_search",
+      "label": "교육·체험 정보 사전 탐색",
+      "value": 23,
+      "total": 43,
+      "insight": "대상·기간·난도·모집 상태를 한 화면에서 비교하도록 추천합니다."
+    },
+    {
+      "id": "mobile_need",
+      "label": "모바일 서비스 확대 요구",
+      "value": 15,
+      "total": 43,
+      "insight": "전시 현장과 모바일 학습 기록을 연결하는 기능의 근거가 됩니다."
+    },
+    {
+      "id": "must_recommend",
+      "label": "반드시 추천 의향",
+      "value": 30,
+      "total": 43,
+      "insight": "높은 만족도를 재방문·다음 학습·진로 탐색으로 확장합니다."
+    }
+  ]
+}
