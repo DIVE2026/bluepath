@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import hashlib
+import secrets
+import smtplib
+from collections import Counter
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from pathlib import Path
+from urllib.parse import urlencode
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import Content, DiamondEvidence, LearningRecord, QuizBankItem, Reminder, User, UserProfile
+from .models import Content, DiamondEvidence, LearningRecord, PasswordResetToken, QuizBankItem, Reminder, User, UserProfile
 from .schemas import (
     AdminContentItem,
     AdminQuizItem,
@@ -22,6 +29,8 @@ from .schemas import (
     AuthRequest,
     AuthResponse,
     CloudStateResponse,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     DiamondStatus,
     EvidenceRequest,
     EvidenceReviewRequest,
@@ -50,6 +59,7 @@ from .services import (
 
 settings = get_settings()
 STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
+ASSETS_DIR = Path(__file__).resolve().parents[2] / "app/src/main/assets"
 
 
 async def scheduled_youtube_sync() -> None:
@@ -90,7 +100,7 @@ async def lifespan(_: FastAPI):
             pass
 
 
-app = FastAPI(title=settings.app_name, version="1.1.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="1.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -113,6 +123,11 @@ def health() -> dict:
 @app.get("/admin", include_in_schema=False)
 def admin_dashboard() -> FileResponse:
     return FileResponse(STATIC_DIR / "admin.html")
+
+
+@app.get("/reset-password", include_in_schema=False)
+def password_reset_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "reset-password.html")
 
 
 @app.post("/api/v1/auth/register", response_model=AuthResponse)
@@ -141,6 +156,58 @@ def login(request: AuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
     return auth_response(user)
+
+
+@app.post("/api/v1/auth/password-reset/request", response_model=GenericResponse)
+def request_password_reset(request: PasswordResetRequest, db: Session = Depends(get_db)) -> GenericResponse:
+    email = request.email.lower().strip()
+    user = db.scalar(select(User).where(User.email == email, User.is_active.is_(True)))
+    if user:
+        now = datetime.now(timezone.utc)
+        for token in db.scalars(
+            select(PasswordResetToken).where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.used_at.is_(None),
+            )
+        ):
+            token.used_at = now
+        raw_token = secrets.token_urlsafe(48)
+        token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=now + timedelta(minutes=max(5, settings.password_reset_token_minutes)),
+            )
+        )
+        db.commit()
+        try:
+            send_password_reset_email(email, raw_token)
+        except Exception as exc:
+            # Keep the response generic so SMTP failures cannot reveal account existence.
+            print(f"BluePath password reset delivery failed: {exc}")
+    return GenericResponse(message="등록된 계정이라면 비밀번호 재설정 안내를 이메일로 보냈습니다.")
+
+
+@app.post("/api/v1/auth/password-reset/confirm", response_model=GenericResponse)
+def confirm_password_reset(request: PasswordResetConfirm, db: Session = Depends(get_db)) -> GenericResponse:
+    token_hash = hashlib.sha256(request.token.encode("utf-8")).hexdigest()
+    reset = db.scalar(select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash))
+    now = datetime.now(timezone.utc)
+    if not reset or reset.used_at is not None:
+        raise HTTPException(status_code=400, detail="Invalid or already used reset token")
+    expires_at = reset.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at <= now:
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    user = db.get(User, reset.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=400, detail="Account is not available")
+    user.password_hash = hash_password(request.newPassword)
+    reset.used_at = now
+    db.commit()
+    return GenericResponse(message="비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.")
 
 
 @app.post("/api/v1/ai/quiz", response_model=QuizResponse)
@@ -298,6 +365,120 @@ def list_reminders(
         )
         for item in reminders
     ]
+
+
+@app.get("/api/v1/admin/analytics/demand")
+def ocean_demand_radar(
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Aggregate anonymous learning demand and bundled survey evidence for institutions."""
+    profiles = list(db.scalars(select(UserProfile)))
+    interest_counts: Counter[str] = Counter()
+    goal_counts: Counter[str] = Counter()
+    skill_totals: Counter[str] = Counter()
+    skill_counts: Counter[str] = Counter()
+    for profile in profiles:
+        snapshot = profile.snapshot or {}
+        interest = str(snapshot.get("interest", "")).strip()
+        goal = str(snapshot.get("goal", "")).strip()
+        if interest:
+            interest_counts[interest] += 1
+        if goal:
+            goal_counts[goal] += 1
+        mastery = snapshot.get("skillMastery", {})
+        if isinstance(mastery, dict):
+            for topic, raw_score in mastery.items():
+                if isinstance(raw_score, (int, float)):
+                    skill_totals[str(topic)] += int(raw_score)
+                    skill_counts[str(topic)] += 1
+
+    records = list(db.scalars(select(LearningRecord)))
+    record_types = Counter(record.record_type for record in records)
+    completed_targets = Counter(
+        record.title or record.target_id
+        for record in records
+        if "completed" in (record.status or "").lower() or "passed" in (record.status or "").lower()
+    )
+    content_supply = Counter(
+        item.topic or "해양교육"
+        for item in db.scalars(select(Content))
+        if item.content_type in {"video", "program", "schedule"}
+    )
+
+    average_mastery = {
+        topic: round(skill_totals[topic] / skill_counts[topic])
+        for topic in skill_totals
+        if skill_counts[topic]
+    }
+    skill_gaps = sorted(
+        ({"topic": topic, "average": score, "gap": 100 - score} for topic, score in average_mastery.items()),
+        key=lambda item: item["average"],
+    )
+    demand_supply = []
+    for topic in sorted(set(interest_counts) | set(content_supply)):
+        demand = interest_counts.get(topic, 0)
+        supply = content_supply.get(topic, 0)
+        demand_supply.append({
+            "topic": topic,
+            "learnerDemand": demand,
+            "contentSupply": supply,
+            "opportunityScore": demand * 10 - supply,
+        })
+    demand_supply.sort(key=lambda item: item["opportunityScore"], reverse=True)
+
+    survey = {"sampleSize": 0, "metrics": []}
+    survey_path = ASSETS_DIR / "survey_insights.json"
+    if survey_path.exists():
+        survey = json.loads(survey_path.read_text(encoding="utf-8"))
+
+    return {
+        "profileCount": len(profiles),
+        "learningRecordCount": len(records),
+        "interestDistribution": dict(interest_counts.most_common()),
+        "goalDistribution": dict(goal_counts.most_common()),
+        "recordTypeDistribution": dict(record_types.most_common()),
+        "skillGaps": skill_gaps,
+        "demandSupply": demand_supply,
+        "topCompleted": [{"title": title, "count": count} for title, count in completed_targets.most_common(8)],
+        "survey": survey,
+        "recommendations": build_demand_recommendations(interest_counts, content_supply, skill_gaps, survey),
+    }
+
+
+def build_demand_recommendations(
+    interests: Counter[str],
+    supply: Counter[str],
+    skill_gaps: list[dict],
+    survey: dict,
+) -> list[str]:
+    recommendations: list[str] = []
+    if interests:
+        topic, count = interests.most_common(1)[0]
+        recommendations.append(
+            f"학습자 관심이 가장 높은 ‘{topic}’ 분야({count}명)의 신규 체험·심화 과정을 우선 검토하세요."
+        )
+    if skill_gaps:
+        gap = skill_gaps[0]
+        recommendations.append(
+            f"평균 숙련도가 가장 낮은 ‘{gap['topic']}’({gap['average']}점)에 진단-복습-프로젝트형 과정을 배치하세요."
+        )
+    for metric in survey.get("metrics", []):
+        label = str(metric.get("label", ""))
+        if "모바일" in label:
+            recommendations.append(
+                f"관람객 {metric.get('value', 0)}/{metric.get('total', survey.get('sampleSize', 0))}명의 모바일 안내 수요를 현장 협동 미션과 연결하세요."
+            )
+            break
+    if interests:
+        topic, demand = interests.most_common(1)[0]
+        available = supply.get(topic, 0)
+        recommendations.append(
+            f"‘{topic}’ 수요 {demand}명 대비 관련 콘텐츠 {available}개의 공급 균형을 정기적으로 점검하세요."
+        )
+    if not recommendations:
+        recommendations.append("학습 기록이 쌓이면 관심 분야, 역량 갭, 공급 부족을 바탕으로 과정 개설 우선순위를 제안합니다.")
+    return recommendations
 
 
 @app.get("/api/v1/admin/content", response_model=list[AdminContentItem])
@@ -551,6 +732,28 @@ def diamond_status_for(db: Session, user: User) -> DiamondStatus:
         eligible=eligible,
         message=message,
     )
+
+
+def send_password_reset_email(recipient: str, token: str) -> None:
+    query = urlencode({"token": token})
+    reset_url = settings.password_reset_base_url.rstrip("?") + ("&" if "?" in settings.password_reset_base_url else "?") + query
+    if not settings.smtp_host:
+        print(f"BluePath password reset link for {recipient}: {reset_url}")
+        return
+    message = EmailMessage()
+    message["Subject"] = "BluePath 비밀번호 재설정"
+    message["From"] = settings.smtp_from_email
+    message["To"] = recipient
+    message.set_content(
+        "BluePath 비밀번호를 재설정하려면 아래 링크를 열어 주세요. "
+        f"이 링크는 {max(5, settings.password_reset_token_minutes)}분 동안 유효합니다.\n\n{reset_url}"
+    )
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
+        if settings.smtp_use_tls:
+            smtp.starttls()
+        if settings.smtp_username:
+            smtp.login(settings.smtp_username, settings.smtp_password)
+        smtp.send_message(message)
 
 
 def bootstrap_admin(db: Session) -> None:
