@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     admin_email: str = ""
     admin_password: str = ""
 
+    password_reset_base_url: str = "http://localhost:8000/reset-password"
+    password_reset_token_minutes: int = 30
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_use_tls: bool = True
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     def validate_runtime(self) -> None:
@@ -39,6 +48,10 @@ class Settings(BaseSettings):
             problems.append("ADMIN_PASSWORD must contain at least 12 characters")
         if self.llm_base_url and not self.llm_model:
             problems.append("LLM_MODEL is required when LLM_BASE_URL is configured")
+        if not self.password_reset_base_url.startswith("https://"):
+            problems.append("PASSWORD_RESET_BASE_URL must use HTTPS in production")
+        if self.smtp_host and not self.smtp_from_email:
+            problems.append("SMTP_FROM_EMAIL is required when SMTP_HOST is configured")
         if problems:
             raise RuntimeError("Unsafe production configuration: " + "; ".join(problems))
 
