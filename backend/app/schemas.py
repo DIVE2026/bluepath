@@ -16,6 +16,15 @@ class AuthRequest(CamelModel):
     guardianEmail: EmailStr | None = None
 
 
+class PasswordResetRequest(CamelModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(CamelModel):
+    token: str = Field(min_length=32, max_length=512)
+    newPassword: str = Field(min_length=8, max_length=128)
+
+
 class AuthResponse(CamelModel):
     accessToken: str
     tokenType: str = "bearer"
