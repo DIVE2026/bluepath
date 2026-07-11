@@ -38,11 +38,108 @@ SYSTEM_PROMPT = (
 
 
 def seed_knowledge(db: Session) -> None:
-    if db.scalar(select(KnowledgeChunk.id).limit(1)):
-        return
-    if not KNOWLEDGE_SEED.exists():
-        return
-    for item in json.loads(KNOWLEDGE_SEED.read_text(encoding="utf-8")):
+    """Seed traceable RAG chunks from every bundled institutional data source.
+
+    The operation is idempotent so deployments can add newly bundled records without
+    deleting administrator-managed knowledge.
+    """
+    records: list[dict[str, Any]] = []
+    if KNOWLEDGE_SEED.exists():
+        records.extend(json.loads(KNOWLEDGE_SEED.read_text(encoding="utf-8")))
+
+    assets_dir = ROOT / "app/src/main/assets"
+    programs_path = assets_dir / "seed_programs.json"
+    if programs_path.exists():
+        for item in json.loads(programs_path.read_text(encoding="utf-8")):
+            records.append({
+                "id": f"rag-program-{item['id']}",
+                "title": item.get("title", "해양 교육 과정"),
+                "organization": item.get("source", "제공 교육 데이터"),
+                "url": item.get("url", ""),
+                "topic": item.get("topic", "해양교육"),
+                "content": (
+                    f"교육명: {item.get('title', '')}. 대상: {item.get('target', '전체')}. "
+                    f"운영기간: {item.get('startDate', '')}~{item.get('endDate', '')}. "
+                    f"방식: {item.get('method', '')}. 분야: {item.get('topic', '해양교육')}. "
+                    f"설명: {item.get('description', '')}. "
+                    "일정은 제공 데이터 기준이므로 현재 모집 여부는 공식 기관에서 다시 확인해야 한다."
+                ),
+                "metadata": {"recordType": "program", "recordId": item["id"]},
+            })
+
+    events_path = assets_dir / "seed_events.json"
+    if events_path.exists():
+        for item in json.loads(events_path.read_text(encoding="utf-8")):
+            records.append({
+                "id": f"rag-event-{item['id']}",
+                "title": item.get("title", "해양 행사"),
+                "organization": item.get("source", "제공 행사 데이터"),
+                "url": item.get("url", ""),
+                "topic": item.get("category", "해양교육"),
+                "content": (
+                    f"행사명: {item.get('title', '')}. 유형: {item.get('category', '행사')}. "
+                    f"대상: {item.get('target', '전체')}. 운영기간: {item.get('startDate', '')}~{item.get('endDate', '')}. "
+                    f"설명: {item.get('description', '')}. 종료된 행사는 현재 신청 과정이 아니라 기획·수요 분석용 아카이브다."
+                ),
+                "metadata": {"recordType": "event", "recordId": item["id"]},
+            })
+
+    institutions_path = assets_dir / "seed_institutions.json"
+    if institutions_path.exists():
+        for item in json.loads(institutions_path.read_text(encoding="utf-8")):
+            records.append({
+                "id": f"rag-institution-{item['id']}",
+                "title": item.get("name", "해양 기관"),
+                "organization": item.get("source", "해양기관 현황 데이터"),
+                "url": item.get("url", ""),
+                "topic": "해양기관",
+                "content": (
+                    f"기관명: {item.get('name', '')}. 기관 분류: {item.get('category', '유관기관')}. "
+                    "해양 진로의 근무지·교육·협력기관 후보로 연결할 수 있다. 실제 채용과 교육 제공 여부는 해당 기관의 최신 공고를 확인해야 한다."
+                ),
+                "metadata": {"recordType": "institution", "recordId": item["id"], "category": item.get("category", "")},
+            })
+
+    survey_path = assets_dir / "survey_insights.json"
+    if survey_path.exists():
+        survey = json.loads(survey_path.read_text(encoding="utf-8"))
+        sample_size = survey.get("sampleSize", 0)
+        for index, metric in enumerate(survey.get("metrics", []), start=1):
+            records.append({
+                "id": f"rag-survey-{index:02d}",
+                "title": metric.get("label", "관람객 인사이트"),
+                "organization": survey.get("source", "국립해양박물관 관람객 만족도 설문"),
+                "url": "",
+                "topic": "관람객 수요",
+                "content": (
+                    f"관람객 설문 표본 {sample_size}명 중 {metric.get('value', 0)}명이 해당했다. "
+                    f"지표: {metric.get('label', '')}. 해석: {metric.get('insight', '')}"
+                ),
+                "metadata": {"recordType": "survey", "sampleSize": sample_size},
+            })
+
+    ncs_records = [
+        ("navigator", "항해사", "항해", "선위결정, 항해당직, 선박조종, 항해장비 운용, 비상대응", "항해 영상, 안전 교육, 시뮬레이션, 해기사 자격 과정과 현장 경험을 단계적으로 연결한다."),
+        ("environment-educator", "해양환경 교육 기획자", "해양환경", "해양환경 이해, 교육 콘텐츠 기획, 관람객 소통, 프로그램 평가", "환경·생태 학습 후 체험 프로그램 설계와 교육 성과 평가 프로젝트로 확장한다."),
+        ("ecology-interpreter", "해양생태 해설사", "해양생물", "해양생물 분류, 해양생태계 해설, 전시 해설, 체험 안전", "생물 관찰과 생태계 이해를 전시 해설 및 현장 체험 운영 증거로 연결한다."),
+        ("safety-manager", "선박안전관리자", "해양안전", "선박안전관리, 비상대응, 구명설비 운용, 소화·생존 이론", "안전 이론, 비상대응 퀴즈, 공인 교육과 자격 증빙을 함께 확인한다."),
+        ("port-logistics", "항만물류 전문가", "항만·물류", "화물관리, 항만운영, 해운물류 이해, 데이터 기반 운영", "항만·물류 콘텐츠와 데이터 분석 프로젝트, 현장 교육 과정을 순서대로 연결한다."),
+    ]
+    for slug, title, topic, units, pathway in ncs_records:
+        records.append({
+            "id": f"rag-ncs-{slug}",
+            "title": f"{title} NCS 역량 항로",
+            "organization": "BluePath NCS mapping",
+            "url": "",
+            "topic": topic,
+            "content": f"직무: {title}. 핵심 역량: {units}. 권장 항로: {pathway}",
+            "metadata": {"recordType": "ncs-career", "career": title},
+        })
+
+    changed = False
+    for item in records:
+        if db.get(KnowledgeChunk, item["id"]):
+            continue
         db.add(
             KnowledgeChunk(
                 id=item["id"],
@@ -54,7 +151,9 @@ def seed_knowledge(db: Session) -> None:
                 metadata_json=item.get("metadata", {}),
             )
         )
-    db.commit()
+        changed = True
+    if changed:
+        db.commit()
 
 
 def seed_contents(db: Session) -> None:
