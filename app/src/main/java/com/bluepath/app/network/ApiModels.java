@@ -21,6 +21,15 @@ public final class ApiModels {
         }
     }
 
+
+    public static class PasswordResetRequest {
+        public String email;
+
+        public PasswordResetRequest(String email) {
+            this.email = email;
+        }
+    }
+
     public static class AuthResponse {
         public String accessToken;
         public String tokenType;
