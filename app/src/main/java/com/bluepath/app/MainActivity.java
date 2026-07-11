@@ -165,11 +165,6 @@ public class MainActivity extends AppCompatActivity {
         tagline.setPadding(0, dp(12), 0, dp(18));
         root.addView(tagline);
 
-        LinearLayout features = row();
-        features.addView(welcomeMetric("92", "교육 과정"), new LinearLayout.LayoutParams(0, -2, 1));
-        features.addView(welcomeMetric("28", "해양 영상"), new LinearLayout.LayoutParams(0, -2, 1));
-        features.addView(welcomeMetric("88", "해양 기관"), new LinearLayout.LayoutParams(0, -2, 1));
-        root.addView(features);
 
         View spacer = new View(this);
         root.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1));
