@@ -1,4 +1,4 @@
-# BluePath 1.2 — Data-Driven Ocean Skill Navigator
+# BluePath — Data-Driven Ocean Skill Navigator
 
 BluePath is an Android learning and career-navigation platform that converts marine videos, museum programs, training courses, visitor-demand data, quizzes, and NCS-oriented career competencies into an explainable personal route.
 
@@ -10,7 +10,7 @@ The learner experience now follows a commercial-app style entry flow:
 2. Sign-in, account creation, or password-reset request
 3. First-time ocean-talent profile setup
 4. The authenticated app shell with a collapsible sidebar
-5. Home, Learning, Quiz, Schedule, Career, AI, and **MY**
+5. Home, Learning, Quiz, Schedule, Career, AI, and MY
 
 The bottom navigation has been removed. Every tab begins with a designed introduction panel that explains what the tab is for and how its data is used.
 
@@ -197,4 +197,4 @@ Then build normally:
 ./gradlew test assembleDebug
 ```
 
-BluePath 1.2 turns ocean curiosity into an explainable and verifiable route from discovery, through learning and assessment, to institutional education and marine careers.
+BluePath turns ocean curiosity into an explainable and verifiable route from discovery, through learning and assessment, to institutional education and marine careers.
