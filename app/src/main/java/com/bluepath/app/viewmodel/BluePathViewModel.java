@@ -57,6 +57,10 @@ public class BluePathViewModel extends AndroidViewModel {
         });
     }
 
+    public void requestPasswordReset(String email) {
+        run("password_reset", () -> repository.requestPasswordReset(email));
+    }
+
     public void syncNow() {
         run("sync", repository::syncNow);
     }
