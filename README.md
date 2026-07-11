@@ -4,6 +4,12 @@
 
 BluePath is an Android learning and career-navigation platform that converts marine videos, museum programs, training courses, visitor-demand data, quizzes, and NCS-oriented career competencies into an explainable personal route.
 
+<div align="center">
+
+[Product Specification](docs/APP_SPEC.md) · [Developer Setup](docs/DEVELOPER_SETUP.md) · [Marine AI Setup](docs/MARINE_LLM_SETUP.md) · [Fine-Tuning Guide](docs/FINE_TUNING_GUIDE.md)
+
+</div>
+
 ## Product Flow
 
 The learner experience now follows a commercial-app style entry flow:
@@ -184,6 +190,17 @@ Run:
 ```bash
 pytest -q backend/tests/test_api.py
 ```
+
+## Documentation
+
+| Document | Description |
+| --- | --- |
+| [Product Specification](docs/APP_SPEC.md) | Product definition, target users, core learner flow, tier system, recommendation model, and AI Agent examples |
+| [Developer Setup](docs/DEVELOPER_SETUP.md) | Android API configuration, backend environment setup, administrator workflow, YouTube synchronization, and test commands |
+| [Marine AI Setup](docs/MARINE_LLM_SETUP.md) | Overview of the server-side marine AI architecture, RAG grounding, quiz validation, and offline fallback behavior |
+| [Fine-Tuning Guide](docs/FINE_TUNING_GUIDE.md) | Dataset generation, LoRA training, evaluation, model serving, backend integration, and production release checklist |
+
+---
 
 ## Android Build
 
