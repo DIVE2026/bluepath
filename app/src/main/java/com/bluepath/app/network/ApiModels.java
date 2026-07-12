@@ -17,7 +17,10 @@ public final class ApiModels {
         public AuthRequest(String email, String password, String guardianEmail) {
             this.email = email;
             this.password = password;
-            this.guardianEmail = guardianEmail;
+            this.guardianEmail =
+                    guardianEmail == null || guardianEmail.trim().isEmpty()
+                            ? null
+                            : guardianEmail.trim();
         }
     }
 
