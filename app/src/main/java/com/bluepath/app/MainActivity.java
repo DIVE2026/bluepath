@@ -2435,16 +2435,25 @@ public class MainActivity extends AppCompatActivity {
     private void maybeRefreshDashboard() {
         if (dashboardRefreshing || !cloudRepository.isCloudConfigured()) return;
         if (System.currentTimeMillis() - dashboardRefreshedAt < 60_000L) return;
+
+        // Record the attempt before the request starts. If the server is unavailable or
+        // an older account cannot load the new dashboard endpoint, renderHome() must not
+        // immediately start the same request again and continuously replace the view tree.
         dashboardRefreshing = true;
+        dashboardRefreshedAt = System.currentTimeMillis();
         executor.execute(() -> {
+            boolean refreshed = false;
             try {
                 cloudRepository.refreshDashboard();
-                dashboardRefreshedAt = System.currentTimeMillis();
+                refreshed = true;
             } catch (Exception ignored) {
+                // Keep the locally cached dashboard usable. A later visit can retry after
+                // the cooldown without blocking scrolling or button input.
             }
+            final boolean shouldRender = refreshed;
             runOnUiThread(() -> {
                 dashboardRefreshing = false;
-                if (currentTab == 0) showApp(0);
+                if (shouldRender && currentTab == 0) showApp(0);
             });
         });
     }
