@@ -550,7 +550,7 @@ public class MainActivity extends AppCompatActivity {
         addNavButton("✓  퀴즈", 2);
         addNavButton("◷  일정", 3);
         addNavButton("⌁  진로", 4);
-        addNavButton("✦  AI", 5);
+        addNavButton("✦  AI Agent", 5);
         addNavButton("●  MY", 6);
 
         View sideSpacer = new View(this);
@@ -667,7 +667,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderHome() {
-        addTabIntro("🧭", "TODAY'S ROUTE", "홈 · 오늘의 항로", "현재 티어와 역량 데이터, 다음 학습, 실제 교육 일정과 관람객 수요 근거를 한 화면에서 확인합니다.");
+        addTabIntro("🧭", "TODAY'S ROUTE", "홈 · 오늘의 항로", "현재 티어와 역량 데이터, 다음 학습, 실제 교육 일정과 관람객 수요 근거를 본 화면에서 확인할 수 있습니다.");
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         String xpTier = store.getXpTier();
