@@ -62,16 +62,17 @@ public class TierShieldView extends View {
         fill.setShadowLayer(12f, 0, 5f, Color.argb(90, 0, 0, 0));
         canvas.drawPath(shield, fill);
         canvas.drawPath(shield, stroke);
-        text.setTextSize(Math.max(16f, Math.min(w, h) * 0.18f));
-        canvas.drawText(shortName(), w / 2f, h * 0.54f, text);
-        text.setTextSize(Math.max(10f, Math.min(w, h) * 0.1f));
-        canvas.drawText("TIER", w / 2f, h * 0.69f, text);
-    }
-
-    private String shortName() {
-        if ("플래티넘".equals(tier)) return "P";
-        if ("다이아".equals(tier)) return "D";
-        return tier.substring(0, 1);
+        String tierLabel = tier == null || tier.trim().isEmpty() ? "브론즈" : tier.trim();
+        float availableWidth = w * 0.72f;
+        float tierTextSize = Math.max(14f, Math.min(w, h) * 0.16f);
+        text.setTextSize(tierTextSize);
+        float measuredWidth = text.measureText(tierLabel);
+        if (measuredWidth > availableWidth && measuredWidth > 0f) {
+            text.setTextSize(tierTextSize * availableWidth / measuredWidth);
+        }
+        canvas.drawText(tierLabel, w / 2f, h * 0.55f, text);
+        text.setTextSize(Math.max(9f, Math.min(w, h) * 0.09f));
+        canvas.drawText("TIER", w / 2f, h * 0.70f, text);
     }
 
     private int lighten(int color) {

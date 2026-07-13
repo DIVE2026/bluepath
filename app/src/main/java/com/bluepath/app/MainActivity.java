@@ -715,15 +715,19 @@ public class MainActivity extends AppCompatActivity {
         intro.setLayoutParams(params);
 
         LinearLayout top = row();
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        TextView iconView = new TextView(this);
-        iconView.setText(icon);
-        iconView.setTextSize(28);
-        iconView.setGravity(Gravity.CENTER);
-        top.addView(iconView, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        top.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        boolean hasIcon = icon != null && !icon.trim().isEmpty();
+        if (hasIcon) {
+            TextView iconView = new TextView(this);
+            iconView.setText(icon);
+            iconView.setTextSize(28);
+            iconView.setGravity(Gravity.CENTER);
+            top.addView(iconView, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        }
         LinearLayout copy = new LinearLayout(this);
         copy.setOrientation(LinearLayout.VERTICAL);
-        copy.setPadding(dp(10), 0, 0, 0);
+        copy.setGravity(Gravity.START);
+        copy.setPadding(hasIcon ? dp(10) : 0, 0, 0, 0);
         TextView eye = new TextView(this);
         eye.setText(eyebrow);
         eye.setTextColor(Color.parseColor("#9EF5F0"));
@@ -751,12 +755,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderHome() {
-        addTabIntro(
-                "",
-                "TODAY'S ROUTE",
-                "홈 · 오늘의 항로",
-                "닉네임, 하나로 통합된 티어, 팔로우 관계와 최근 활동 흐름을 확인합니다."
-        );        maybeRefreshDashboard();
+        addTabIntro("", "TODAY'S ROUTE", "홈 · 오늘의 항로", "닉네임, 하나로 통합된 티어, 팔로우 관계와 최근 활동 흐름을 한눈에 확인합니다.");
+        maybeRefreshDashboard();
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         int xp = p.xp;
@@ -788,7 +788,7 @@ public class MainActivity extends AppCompatActivity {
         hero.addView(body("현재 티어 진행도 " + progress + "%" + ("다이아".equals(tier) ? " · 최고 티어" : " · 다음 기준 XP " + next)));
         content.addView(hero);
 
-        content.addView(sectionTitle("나의 활동 잔디"));
+        content.addView(sectionTitle("나의 활동"));
         LinearLayout heatCard = card();
         int currentActivityYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
         int joinedActivityYear = store.getAccountJoinedYear();
@@ -798,8 +798,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView heatmapTitle = big(selectedActivityYear + "년 활동");
         heatCard.addView(heatmapTitle);
-        heatCard.addView(body("영상·논문 열람과 커뮤니티 글·댓글 활동이 많을수록 해당 날짜의 하늘색이 진해집니다. 월별 구획은 좌우로 밀어서 확인할 수 있습니다."));
-
+        heatCard.addView(body("하루 한 번의 학습과 참여가 나만의 해양 커리어를 만듭니다. 오늘도 작은 활동 하나를 기록해 보세요."));
         ActivityHeatmapView heatmap = new ActivityHeatmapView(this);
         heatmap.setYear(selectedActivityYear);
         heatmap.setActivity(store.getActivityCounts());
