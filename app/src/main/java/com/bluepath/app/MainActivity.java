@@ -50,7 +50,6 @@ import com.bluepath.app.util.PromotionRules;
 import com.bluepath.app.util.RecommendationEngine;
 import com.bluepath.app.view.ActivityHeatmapView;
 import com.bluepath.app.view.OceanBackgroundView;
-import com.bluepath.app.view.PromotionCelebrationView;
 import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.viewmodel.BluePathViewModel;
 import com.bumptech.glide.Glide;
@@ -776,11 +775,10 @@ public class MainActivity extends AppCompatActivity {
         heroText.addView(body("팔로워 " + store.getFollowerCount() + " · 팔로잉 " + store.getFollowingCount()));
         heroText.addView(body(p.interest + " · " + p.goal + " · " + p.level));
         top.addView(heroText, new LinearLayout.LayoutParams(0, -2, 1));
-        TierShieldView shield = new TierShieldView(this);
-        shield.setTier(tier);
+        TierShieldView shield = tierShield(tier);
         top.addView(shield, new LinearLayout.LayoutParams(dp(92), dp(104)));
         hero.addView(top);
-        hero.addView(big(PromotionRules.displayName(tier) + " · XP " + xp));
+        hero.addView(big(plainTierText(tier) + " · XP " + xp));
         ProgressBar bar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         bar.setMax(100);
         bar.setProgress(progress);
@@ -860,7 +858,7 @@ public class MainActivity extends AppCompatActivity {
 
         content.addView(sectionTitle("다음 승급 체크포인트"));
         LinearLayout ruleCard = card();
-        ruleCard.addView(big(PromotionRules.quizRule(tier)));
+        ruleCard.addView(big(plainTierCopy(PromotionRules.quizRule(tier))));
         ruleCard.addView(body("티어는 하나만 표시되며 학습 XP, 퀴즈 성과와 인증 조건을 종합해 결정됩니다."));
         Button goQuiz = primaryButton("승급 퀴즈로 이동");
         goQuiz.setOnClickListener(v -> showApp(2));
@@ -920,21 +918,30 @@ public class MainActivity extends AppCompatActivity {
         content.addView(sectionTitle("난도별 해양 영상 라이브러리"));
         content.addView(body("기존 영상 자료는 모두 영상 하위 탭에 유지되며, 관심 분야와 통합 티어에 맞춰 정렬됩니다."));
         List<ContentItem> all = RecommendationEngine.recommendedContents(p, tier, store);
-        addDifficultySection("하", "입문 · " + PromotionRules.displayName("브론즈"), all);
-        addDifficultySection("중", "진로 탐색 · " + PromotionRules.displayName("실버"), all);
-        addDifficultySection("상", "직무 심화 · " + PromotionRules.displayName("골드"), all);
+        addDifficultySection("하", "입문", "브론즈", all);
+        addDifficultySection("중", "진로 탐색", "실버", all);
+        addDifficultySection("상", "직무 심화", "골드", all);
     }
 
-    private void addDifficultySection(String difficulty, String subtitle, List<ContentItem> all) {
+    private void addDifficultySection(String difficulty, String subtitle, String recommendedTier, List<ContentItem> all) {
         int count = 0;
         for (ContentItem item : all) if (item.difficulty.equals(difficulty)) count++;
+
         LinearLayout heading = row();
         heading.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = sectionTitle(difficulty + " 난도");
         heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView meta = label(subtitle + " · " + count + "개");
+
+        LinearLayout tierMeta = row();
+        tierMeta.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        TierShieldView shield = tierShield(recommendedTier);
+        tierMeta.addView(shield, new LinearLayout.LayoutParams(dp(36), dp(42)));
+        TextView meta = label(subtitle + " · " + plainTierText(recommendedTier) + " · " + count + "개");
         meta.setGravity(Gravity.END);
-        heading.addView(meta);
+        meta.setPadding(dp(6), 0, 0, 0);
+        tierMeta.addView(meta);
+        heading.addView(tierMeta);
+
         content.addView(heading);
         for (ContentItem item : all) if (item.difficulty.equals(difficulty)) addContentCard(item, false);
     }
@@ -943,12 +950,25 @@ public class MainActivity extends AppCompatActivity {
         addTabIntro("", "SKILL CHECK", "퀴즈 · 역량 진단", "승급 점수만 확인하는 것이 아니라 문항별 주제를 역량 증거로 저장해 다음 학습과 진로 추천을 정교하게 만듭니다.");
         String currentTier = store.getTier();
         content.addView(sectionTitle("AI 승급 퀴즈"));
-        content.addView(body("현재 통합 티어: " + PromotionRules.displayName(currentTier) + " · " + PromotionRules.quizRule(currentTier)));
+        LinearLayout currentTierCard = card();
+        currentTierCard.addView(tierSummaryRow(
+                currentTier,
+                "현재 통합 티어",
+                plainTierCopy(PromotionRules.quizRule(currentTier)),
+                dp(70),
+                dp(82)
+        ));
+        content.addView(currentTierCard);
 
         if (PromotionRules.questionCount(currentTier) == 0 && activeQuiz.isEmpty()) {
             LinearLayout card = card();
-            card.addView(big("모든 승급 항로를 완료했습니다."));
-            card.addView(body("💎 다이아 티어를 달성했습니다. 해양 학습 기록, 프로젝트와 진로 로드맵을 계속 확장해 보세요."));
+            card.addView(tierSummaryRow(
+                    "다이아",
+                    "모든 승급 항로를 완료했습니다",
+                    "최고 티어를 달성했습니다. 해양 학습 기록, 프로젝트와 진로 로드맵을 계속 확장해 보세요.",
+                    dp(78),
+                    dp(90)
+            ));
             Button manual = outlineButton("전체 승급 매뉴얼 보기");
             manual.setOnClickListener(v -> showPromotionManual());
             card.addView(manual);
@@ -972,8 +992,13 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout startCard = card();
             int total = PromotionRules.questionCount(currentTier);
             int pass = PromotionRules.passCount(currentTier);
-            startCard.addView(big(PromotionRules.displayTransition(currentTier)));
-            startCard.addView(body(total + "문제 · 합격선 " + pass + "문제 · 전 문항 4지선다"));
+            startCard.addView(tierSummaryRow(
+                    currentTier,
+                    plainTierCopy(PromotionRules.displayTransition(currentTier)),
+                    total + "문제 · 합격선 " + pass + "문제 · 전 문항 4지선다",
+                    dp(68),
+                    dp(80)
+            ));
             startCard.addView(body(llmClient.isConfigured()
                     ? "BluePath 해양 AI가 공공·기관 자료를 검색해 근거 기반 문제를 생성합니다."
                     : "연결이 어려운 상황에서도 해양 특화 로컬 문제은행으로 학습할 수 있습니다."));
@@ -985,9 +1010,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         LinearLayout session = card();
-        session.addView(big(PromotionRules.displayName(quizAttemptTier) + " 승급 세션"));
-        session.addView(body(activeQuiz.size() + "문제 · 합격선 " + PromotionRules.passCount(quizAttemptTier)
-                + "문제 · 출제: " + quizSource));
+        session.addView(tierSummaryRow(
+                quizAttemptTier,
+                plainTierText(quizAttemptTier) + " 승급 세션",
+                activeQuiz.size() + "문제 · 합격선 " + PromotionRules.passCount(quizAttemptTier)
+                        + "문제 · 출제: " + quizSource,
+                dp(68),
+                dp(80)
+        ));
         if (!quizNotice.isEmpty()) session.addView(note(quizNotice, MUTED));
         content.addView(session);
 
@@ -1113,7 +1143,7 @@ public class MainActivity extends AppCompatActivity {
         boolean passed = correct >= PromotionRules.passCount(quizAttemptTier);
         quizAwardedXp = store.calculateQuizXpAward(quizAttemptTier, correct, passed);
         store.recordQuizAttempt(quizAttemptTier, correct, activeQuiz.size(), passed, quizSource);
-        viewModel.recordLearning("quiz", quizAttemptTier, PromotionRules.displayName(quizAttemptTier),
+        viewModel.recordLearning("quiz", quizAttemptTier, plainTierText(quizAttemptTier),
                 correct + "/" + activeQuiz.size() + (passed ? " passed" : " retry"));
         if (quizAwardedXp > 0) store.addXp(quizAwardedXp);
         if (passed) store.promoteByQuiz(quizAttemptTier);
@@ -1131,15 +1161,23 @@ public class MainActivity extends AppCompatActivity {
         int score = total == 0 ? 0 : Math.round(quizCorrect * 100f / total);
         LinearLayout result = card();
         result.addView(big(passed ? "🎉 승급 기준 통과" : "🌊 다시 항해할 준비"));
+        String resultTier = passed ? store.getTier() : quizAttemptTier;
+        result.addView(tierSummaryRow(
+                resultTier,
+                passed ? "현재 티어" : "도전 중인 티어",
+                plainTierText(resultTier),
+                dp(64),
+                dp(74)
+        ));
         result.addView(huge(score + "점"));
         result.addView(body(quizCorrect + " / " + total + " 정답 · 합격선 " + PromotionRules.passCount(quizAttemptTier) + "문제"));
         String passMessage;
         if (passed && "플래티넘".equals(quizAttemptTier)) {
             passMessage = "다이아 고급 퀴즈를 통과했습니다. MY에서 자격 증빙과 해양 프로젝트를 제출해 인증 항로를 완성하세요.";
         } else if (passed) {
-            passMessage = PromotionRules.displayName(quizAttemptTier) + "에서 "
-                    + PromotionRules.displayName(PromotionRules.nextTier(quizAttemptTier))
-                    + "로 승급했습니다. 현재 통합 티어: " + PromotionRules.displayName(store.getTier());
+            passMessage = plainTierText(quizAttemptTier) + "에서 "
+                    + plainTierText(PromotionRules.nextTier(quizAttemptTier))
+                    + "로 승급했습니다. 현재 통합 티어: " + plainTierText(store.getTier());
         } else {
             passMessage = "합격까지 " + Math.max(0, PromotionRules.passCount(quizAttemptTier) - quizCorrect) + "문제가 더 필요합니다.";
         }
@@ -1396,8 +1434,12 @@ public class MainActivity extends AppCompatActivity {
         authorText.setOrientation(LinearLayout.VERTICAL);
         authorText.setPadding(dp(10), 0, 0, 0);
         authorText.addView(big(post.author.nickname));
-        authorText.addView(label(PromotionRules.displayName(post.author.tier) + " · 팔로워 " + post.author.followerCount));
+        authorText.addView(label("팔로워 " + post.author.followerCount));
         authorRow.addView(authorText, new LinearLayout.LayoutParams(0, -2, 1));
+        TierShieldView authorShield = tierShield(post.author.tier);
+        LinearLayout.LayoutParams authorShieldParams = new LinearLayout.LayoutParams(dp(40), dp(46));
+        authorShieldParams.setMargins(dp(4), 0, dp(6), 0);
+        authorRow.addView(authorShield, authorShieldParams);
         if (!store.getNickname().equals(post.author.nickname)) {
             Button follow = outlineButton(post.author.isFollowing ? "팔로잉" : "팔로우");
             follow.setOnClickListener(v -> toggleFollow(post.author.userId));
@@ -1437,10 +1479,14 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout head = row();
             head.setGravity(Gravity.CENTER_VERTICAL);
             head.addView(profileAvatar(comment.author.nickname, comment.author.profileImageUrl, dp(34)), new LinearLayout.LayoutParams(dp(34), dp(34)));
-            TextView name = body(comment.author.nickname + " · " + PromotionRules.displayName(comment.author.tier));
+            TextView name = body(comment.author.nickname);
             name.setTypeface(Typeface.DEFAULT_BOLD);
             name.setPadding(dp(8), 0, 0, 0);
             head.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
+            TierShieldView commentShield = tierShield(comment.author.tier);
+            LinearLayout.LayoutParams commentShieldParams = new LinearLayout.LayoutParams(dp(30), dp(36));
+            commentShieldParams.setMargins(dp(4), 0, dp(4), 0);
+            head.addView(commentShield, commentShieldParams);
             if (!store.getNickname().equals(comment.author.nickname)) {
                 Button follow = outlineButton(comment.author.isFollowing ? "팔로잉" : "팔로우");
                 follow.setTextSize(10);
@@ -1548,11 +1594,10 @@ public class MainActivity extends AppCompatActivity {
         profileText.addView(label(store.getAccountEmail()));
         profileText.addView(body("팔로워 " + store.getFollowerCount() + " · 팔로잉 " + store.getFollowingCount()));
         profileTop.addView(profileText, new LinearLayout.LayoutParams(0, -2, 1));
-        TierShieldView myShield = new TierShieldView(this);
-        myShield.setTier(tier);
+        TierShieldView myShield = tierShield(tier);
         profileTop.addView(myShield, new LinearLayout.LayoutParams(dp(88), dp(100)));
         profileCard.addView(profileTop);
-        profileCard.addView(big("통합 티어 " + PromotionRules.displayName(tier) + " · XP " + p.xp));
+        profileCard.addView(big("통합 티어 " + plainTierText(tier) + " · XP " + p.xp));
         Button uploadPhoto = outlineButton("프로필 사진 업로드");
         uploadPhoto.setOnClickListener(v -> profileImagePicker.launch(new String[]{"image/jpeg", "image/png", "image/webp"}));
         profileCard.addView(uploadPhoto, new LinearLayout.LayoutParams(-1, dp(46)));
@@ -1575,12 +1620,12 @@ public class MainActivity extends AppCompatActivity {
 
         content.addView(sectionTitle("승급·학습 리포트"));
         LinearLayout report = card();
-        report.addView(big("XP " + p.xp + " · " + PromotionRules.quizRule(tier)));
-        report.addView(body("최근 퀴즈: " + store.getLastQuizSummary()));
-        report.addView(body(PromotionRules.displayName("브론즈") + " 최고 " + store.getBestQuizScore("브론즈") + "/10 · "
-                + PromotionRules.displayName("실버") + " 최고 " + store.getBestQuizScore("실버") + "/12 · "
-                + PromotionRules.displayName("골드") + " 최고 " + store.getBestQuizScore("골드") + "/15 · "
-                + PromotionRules.displayName("플래티넘") + " 고급 " + store.getBestQuizScore("플래티넘") + "/20"));
+        report.addView(big("XP " + p.xp + " · " + plainTierCopy(PromotionRules.quizRule(tier))));
+        report.addView(body("최근 퀴즈: " + plainTierCopy(store.getLastQuizSummary())));
+        addTierScoreRow(report, "브론즈", "최고 " + store.getBestQuizScore("브론즈") + "/10");
+        addTierScoreRow(report, "실버", "최고 " + store.getBestQuizScore("실버") + "/12");
+        addTierScoreRow(report, "골드", "최고 " + store.getBestQuizScore("골드") + "/15");
+        addTierScoreRow(report, "플래티넘", "고급 " + store.getBestQuizScore("플래티넘") + "/20");
         Button manual = outlineButton("승급 기준 전체 보기");
         manual.setOnClickListener(v -> showPromotionManual());
         report.addView(manual);
@@ -1662,9 +1707,15 @@ public class MainActivity extends AppCompatActivity {
         }
         content.addView(reminderCard);
 
-        content.addView(sectionTitle("💎 다이아 인증 항로"));
+        content.addView(sectionTitle("다이아 인증 항로"));
         LinearLayout diamondCard = card();
-        diamondCard.addView(big("고급 퀴즈 · 자격 증빙 · 해양 프로젝트"));
+        diamondCard.addView(tierSummaryRow(
+                "다이아",
+                "다이아 인증 항로",
+                "고급 퀴즈 · 자격 증빙 · 해양 프로젝트",
+                dp(72),
+                dp(84)
+        ));
         diamondCard.addView(body("세 항목을 모두 완료하고 검토 승인을 받으면 다이아 인증 항로가 완성됩니다."));
         diamondCard.addView(note("고급 퀴즈 16/20: " + statusLabel(store.isDiamondAdvancedQuizPassed() ? "approved" : "not_submitted"),
                 store.isDiamondAdvancedQuizPassed() ? SUCCESS : MUTED));
@@ -1861,7 +1912,14 @@ public class MainActivity extends AppCompatActivity {
         boolean completed = store.getCompletedContentIds().contains(item.id);
         boolean started = store.isContentStarted(item.id);
         LinearLayout card = card();
-        card.addView(label(item.difficulty + " 난도 · " + PromotionRules.displayName(item.requiredTier) + " 권장 · 적합도 " + score));
+        LinearLayout tierRow = row();
+        tierRow.setGravity(Gravity.CENTER_VERTICAL);
+        TierShieldView requiredTierShield = tierShield(item.requiredTier);
+        tierRow.addView(requiredTierShield, new LinearLayout.LayoutParams(dp(38), dp(44)));
+        TextView tierMeta = label(item.difficulty + " 난도 · " + plainTierText(item.requiredTier) + " 권장 · 적합도 " + score);
+        tierMeta.setPadding(dp(7), 0, 0, 0);
+        tierRow.addView(tierMeta, new LinearLayout.LayoutParams(0, -2, 1));
+        card.addView(tierRow);
         card.addView(big("▶ " + item.title));
         String duration = item.minutes > 0 ? " · " + item.minutes + "분" : "";
         card.addView(body("출처: " + item.source + duration));
@@ -1956,7 +2014,14 @@ public class MainActivity extends AppCompatActivity {
         String tier = store.getTier();
         int score = RecommendationEngine.scoreCareer(item, p, tier, store);
         LinearLayout card = card();
-        card.addView(label(item.field + " · 권장 " + PromotionRules.displayName(item.recommendedTier) + " · 적합도 " + score));
+        LinearLayout tierRow = row();
+        tierRow.setGravity(Gravity.CENTER_VERTICAL);
+        TierShieldView recommendedTierShield = tierShield(item.recommendedTier);
+        tierRow.addView(recommendedTierShield, new LinearLayout.LayoutParams(dp(40), dp(46)));
+        TextView tierMeta = label(item.field + " · 권장 " + plainTierText(item.recommendedTier) + " · 적합도 " + score);
+        tierMeta.setPadding(dp(7), 0, 0, 0);
+        tierRow.addView(tierMeta, new LinearLayout.LayoutParams(0, -2, 1));
+        card.addView(tierRow);
         card.addView(big("🧭 " + item.title));
         card.addView(body(item.description));
         addReasonList(card, RecommendationEngine.careerReasons(item, p, tier, store));
@@ -2137,7 +2202,7 @@ public class MainActivity extends AppCompatActivity {
     private void showPromotionManual() {
         new AlertDialog.Builder(this)
                 .setTitle("BluePath 승급 매뉴얼")
-                .setMessage(PromotionRules.fullManual())
+                .setMessage(plainTierCopy(PromotionRules.fullManual()))
                 .setPositiveButton("확인", null)
                 .show();
     }
@@ -2400,28 +2465,66 @@ public class MainActivity extends AppCompatActivity {
         return v;
     }
 
-    private TextView tierBadge(String tier) {
-        TextView badge = new TextView(this);
-        badge.setText(PromotionRules.displayName(tier));
-        badge.setTextSize(12);
-        badge.setTypeface(Typeface.DEFAULT_BOLD);
-        badge.setGravity(Gravity.CENTER);
-        int background;
-        int foreground;
-        switch (tier) {
-            case "실버": background = Color.parseColor("#E2E8F0"); foreground = Color.parseColor("#334155"); break;
-            case "골드": background = Color.parseColor("#FEF3C7"); foreground = Color.parseColor("#92400E"); break;
-            case "플래티넘": background = Color.parseColor("#E0F2FE"); foreground = Color.parseColor("#075985"); break;
-            case "다이아": background = Color.parseColor("#EDE9FE"); foreground = Color.parseColor("#5B21B6"); break;
-            default: background = Color.parseColor("#FDE6D3"); foreground = Color.parseColor("#9A3412");
+    private TierShieldView tierShield(String tier) {
+        TierShieldView shield = new TierShieldView(this);
+        shield.setTier(tier);
+        return shield;
+    }
+
+    private LinearLayout tierSummaryRow(
+            String tier,
+            String titleText,
+            String detailText,
+            int shieldWidth,
+            int shieldHeight
+    ) {
+        LinearLayout row = row();
+        row.setGravity(Gravity.CENTER_VERTICAL);
+
+        TierShieldView shield = tierShield(tier);
+        row.addView(shield, new LinearLayout.LayoutParams(shieldWidth, shieldHeight));
+
+        LinearLayout copy = new LinearLayout(this);
+        copy.setOrientation(LinearLayout.VERTICAL);
+        copy.setPadding(dp(10), 0, 0, 0);
+        copy.addView(big(titleText));
+        if (detailText != null && !detailText.trim().isEmpty()) {
+            copy.addView(body(detailText));
         }
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(background);
-        bg.setCornerRadius(dp(14));
-        badge.setBackground(bg);
-        badge.setTextColor(foreground);
-        badge.setPadding(dp(12), dp(7), dp(12), dp(7));
-        return badge;
+        row.addView(copy, new LinearLayout.LayoutParams(0, -2, 1));
+        return row;
+    }
+
+    private void addTierScoreRow(LinearLayout parent, String tier, String scoreText) {
+        LinearLayout scoreRow = row();
+        scoreRow.setGravity(Gravity.CENTER_VERTICAL);
+        TierShieldView shield = tierShield(tier);
+        scoreRow.addView(shield, new LinearLayout.LayoutParams(dp(38), dp(44)));
+        TextView score = body(plainTierText(tier) + " · " + scoreText);
+        score.setTypeface(Typeface.DEFAULT_BOLD);
+        score.setPadding(dp(8), 0, 0, 0);
+        scoreRow.addView(score, new LinearLayout.LayoutParams(0, -2, 1));
+        parent.addView(scoreRow);
+    }
+
+    private String plainTierText(String tier) {
+        String value = PromotionRules.displayName(tier);
+        if (value == null || value.trim().isEmpty()) value = tier;
+        return plainTierCopy(value);
+    }
+
+    private String plainTierCopy(String text) {
+        if (text == null || text.isEmpty()) return "";
+        StringBuilder result = new StringBuilder();
+        for (int index = 0; index < text.length();) {
+            int codePoint = text.codePointAt(index);
+            index += Character.charCount(codePoint);
+            boolean emojiDecoration = codePoint == 0xFE0F
+                    || codePoint == 0x20E3
+                    || (codePoint >= 0x1F000 && codePoint <= 0x1FAFF);
+            if (!emojiDecoration) result.appendCodePoint(codePoint);
+        }
+        return result.toString().replaceAll("\\s{2,}", " ").trim();
     }
 
     private LinearLayout statCard(String value, String labelText) {
@@ -2628,12 +2731,58 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPromotionCelebration(String newTier) {
         if (appRoot == null) return;
-        PromotionCelebrationView celebration = new PromotionCelebrationView(this);
-        appRoot.addView(celebration, new FrameLayout.LayoutParams(-1, -1));
-        celebration.setOnClickListener(v -> appRoot.removeView(celebration));
-        celebration.play(newTier, () -> {
-            if (celebration.getParent() == appRoot) appRoot.removeView(celebration);
+
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(Color.parseColor("#AA06223F"));
+        overlay.setClickable(true);
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER_HORIZONTAL);
+        panel.setPadding(dp(28), dp(26), dp(28), dp(24));
+        panel.setBackgroundResource(R.drawable.bg_card);
+        panel.setElevation(dp(18));
+
+        TierShieldView shield = tierShield(newTier);
+        LinearLayout.LayoutParams shieldParams = new LinearLayout.LayoutParams(dp(128), dp(146));
+        shieldParams.gravity = Gravity.CENTER_HORIZONTAL;
+        panel.addView(shield, shieldParams);
+
+        TextView title = huge("새 티어 달성");
+        title.setGravity(Gravity.CENTER);
+        panel.addView(title);
+        TextView tierName = big(plainTierText(newTier));
+        tierName.setGravity(Gravity.CENTER);
+        panel.addView(tierName);
+        TextView message = body("학습과 퀴즈 성과가 반영되어 새로운 티어로 승급했습니다.");
+        message.setGravity(Gravity.CENTER);
+        panel.addView(message);
+
+        Button close = primaryButton("계속하기");
+        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(-1, dp(48));
+        closeParams.setMargins(0, dp(10), 0, 0);
+        panel.addView(close, closeParams);
+
+        FrameLayout.LayoutParams panelParams = new FrameLayout.LayoutParams(
+                Math.min(dp(340), getResources().getDisplayMetrics().widthPixels - dp(32)),
+                -2,
+                Gravity.CENTER
+        );
+        overlay.addView(panel, panelParams);
+        appRoot.addView(overlay, new FrameLayout.LayoutParams(-1, -1));
+
+        View.OnClickListener dismiss = v -> {
+            if (overlay.getParent() == appRoot) appRoot.removeView(overlay);
+        };
+        close.setOnClickListener(dismiss);
+        overlay.setOnClickListener(v -> {
+            if (v == overlay) dismiss.onClick(v);
         });
+
+        panel.setScaleX(0.82f);
+        panel.setScaleY(0.82f);
+        panel.setAlpha(0f);
+        panel.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(260).start();
     }
 
     private void openUrl(String url) {
