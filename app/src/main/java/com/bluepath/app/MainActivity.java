@@ -882,7 +882,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderLearning() {
-        addTabIntro("🌊", "LEARNING LIBRARY", "학습 자료 · 맞춤 콘텐츠", "자연어로 필요한 자료를 검색하고 영상과 논문을 구분해 탐색합니다.");
+        addTabIntro("", "LEARNING LIBRARY", "학습 자료 · 맞춤 콘텐츠", "자연어로 필요한 자료를 검색하고 영상과 논문을 구분해 탐색합니다.");
         addAiSearchBox(learningSubTab, "예: 해양환경 입문자가 20분 안에 볼 만한 영상이나 논문", learningSearchLoading, learningSearchResponse);
 
         LinearLayout tabs = row();
@@ -940,7 +940,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderQuiz() {
-        addTabIntro("✓", "SKILL CHECK", "퀴즈 · 역량 진단", "승급 점수만 확인하는 것이 아니라 문항별 주제를 역량 증거로 저장해 다음 학습과 진로 추천을 정교하게 만듭니다.");
+        addTabIntro("", "SKILL CHECK", "퀴즈 · 역량 진단", "승급 점수만 확인하는 것이 아니라 문항별 주제를 역량 증거로 저장해 다음 학습과 진로 추천을 정교하게 만듭니다.");
         String currentTier = store.getTier();
         content.addView(sectionTitle("AI 승급 퀴즈"));
         content.addView(body("현재 통합 티어: " + PromotionRules.displayName(currentTier) + " · " + PromotionRules.quizRule(currentTier)));
@@ -1145,8 +1145,8 @@ public class MainActivity extends AppCompatActivity {
         }
         result.addView(note(passMessage, passed ? SUCCESS : DANGER));
         result.addView(note(quizAwardedXp > 0
-                ? "이번 시도 XP +" + quizAwardedXp + " · 최초 합격 또는 최고점 향상 보상"
-                : "이번 시도 XP 0 · 동일 점수 반복이나 반복 실패에는 보상이 지급되지 않습니다.",
+                        ? "이번 시도 XP +" + quizAwardedXp + " · 최초 합격 또는 최고점 향상 보상"
+                        : "이번 시도 XP 0 · 동일 점수 반복이나 반복 실패에는 보상이 지급되지 않습니다.",
                 quizAwardedXp > 0 ? OCEAN : MUTED));
         result.addView(body("아래에서 문항별 정답과 해설을 확인하세요. 각 주제의 결과는 MY 역량 여권과 다음 추천에 반영됩니다."));
         content.addView(result);
@@ -1165,7 +1165,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderSchedule() {
-        addTabIntro("◷", "LIVE & ARCHIVE", "일정 · 교육 탐색", "자연어로 원하는 일정 조건을 입력하면 관련 교육·행사 자료를 우선 추려 보여줍니다.");
+        addTabIntro("", "LIVE & ARCHIVE", "일정 · 교육 탐색", "자연어로 원하는 일정 조건을 입력하면 관련 교육·행사 자료를 우선 추려 보여줍니다.");
         addAiSearchBox("schedule", "예: 부산에서 고등학생이 여름방학에 참여할 해양 안전 교육", scheduleSearchLoading, scheduleSearchResponse);
         if (scheduleSearchResponse != null && scheduleSearchResponse.items != null && !scheduleSearchResponse.items.isEmpty()) {
             content.addView(sectionTitle("AI 일정 검색 결과"));
@@ -1195,7 +1195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderCareer() {
-        addTabIntro("✦", "UNIVERSAL CAREER AI", "AI 진로 상담", "상용 LLM 수준의 질의응답, 앱 내부 RAG, 선택형 실시간 웹 검색을 결합해 진로와 학습 경로를 안내합니다.");
+        addTabIntro("", "UNIVERSAL CAREER AI", "AI 진로 상담", "상용 LLM 수준의 질의응답, 앱 내부 RAG, 선택형 실시간 웹 검색을 결합해 진로와 학습 경로를 안내합니다.");
         UserProfile p = store.getProfile();
         String tier = store.getTier();
 
@@ -1272,7 +1272,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderCommunity() {
-        addTabIntro("≋", "OCEAN COMMUNITY", "해양 커뮤니티", "자유 게시판과 질문 게시판에서 글·댓글·대댓글을 작성하고 다양한 이모지로 공감하며 서로 팔로우할 수 있습니다.");
+        addTabIntro("", "OCEAN COMMUNITY", "해양 커뮤니티", "자유 게시판과 질문 게시판에서 글·댓글·대댓글을 작성하고 다양한 이모지로 공감하며 서로 팔로우할 수 있습니다.");
 
         LinearLayout tabs = row();
         Button free = "free".equals(communityCategory) ? primaryButton("자유 게시판") : outlineButton("자유 게시판");
@@ -1532,7 +1532,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderMyPage() {
-        addTabIntro("●", "MY OCEAN PAGE", "MY · 나의 해양 여권", "닉네임, 프로필 사진, 하나로 통합된 티어, 학습 증거와 계정 설정을 관리합니다.");
+        addTabIntro("", "MY OCEAN PAGE", "MY · 나의 해양 여권", "닉네임, 프로필 사진, 하나로 통합된 티어, 학습 증거와 계정 설정을 관리합니다.");
         UserProfile p = store.getProfile();
         String tier = store.getTier();
 
