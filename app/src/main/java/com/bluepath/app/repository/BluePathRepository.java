@@ -171,7 +171,7 @@ public class BluePathRepository {
             int read;
             while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
         }
-        RequestBody body = RequestBody.create(temp, MediaType.parse(mimeType));
+        RequestBody body = RequestBody.create(MediaType.parse(mimeType), temp);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", temp.getName(), body);
         ApiModels.ProfileImageResponse response = requireBody(api.uploadProfileImage(bearer(), part).execute(), "프로필 사진 업로드");
         store.setProfileImageUrl(response.profileImageUrl);
