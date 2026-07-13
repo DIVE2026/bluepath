@@ -1,6 +1,7 @@
 package com.bluepath.app.repository;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.bluepath.app.data.DataRepository;
 import com.bluepath.app.local.BluePathDatabase;
@@ -11,10 +12,16 @@ import com.bluepath.app.network.ApiModels;
 import com.bluepath.app.network.BluePathApi;
 import com.bluepath.app.storage.UserStore;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Response;
 
 public class BluePathRepository {
@@ -34,12 +41,18 @@ public class BluePathRepository {
         return ApiClient.isConfigured();
     }
 
-    public void register(String email, String password, String guardianEmail) throws IOException {
+    public ApiModels.NicknameAvailability nicknameAvailable(String nickname) throws IOException {
+        requireCloud();
+        return requireBody(api.nicknameAvailable(nickname).execute(), "닉네임 중복 확인");
+    }
+
+    public void register(String email, String password, String guardianEmail, String nickname) throws IOException {
         requireCloud();
         Response<ApiModels.AuthResponse> response = api.register(
-                new ApiModels.AuthRequest(email, password, guardianEmail)).execute();
+                new ApiModels.AuthRequest(email, password, guardianEmail, nickname)).execute();
         ApiModels.AuthResponse body = requireBody(response, "회원가입");
-        store.saveCloudSession(body.email, body.displayName, body.accessToken);
+        store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
+                body.followerCount, body.followingCount, body.accessToken);
         syncNow();
         refreshCatalog();
     }
@@ -47,9 +60,10 @@ public class BluePathRepository {
     public void login(String email, String password) throws IOException {
         requireCloud();
         Response<ApiModels.AuthResponse> response = api.login(
-                new ApiModels.AuthRequest(email, password, "")).execute();
+                new ApiModels.AuthRequest(email, password, "", null)).execute();
         ApiModels.AuthResponse body = requireBody(response, "로그인");
-        store.saveCloudSession(body.email, body.displayName, body.accessToken);
+        store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
+                body.followerCount, body.followingCount, body.accessToken);
         ApiModels.CloudStateResponse cloud = pullCloudState();
         if (cloud.snapshot == null || cloud.snapshot.isEmpty()) syncNow();
         refreshCatalog();
@@ -94,6 +108,75 @@ public class BluePathRepository {
         List<ApiModels.ContentDto> body = requireBody(response, "학습 카탈로그 업데이트");
         DataRepository.applyRemoteCatalog(body);
         return body.size();
+    }
+
+
+    public ApiModels.AiSearchResponse aiSearch(String query, String resourceType) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.aiSearch(bearer(), new ApiModels.AiSearchRequest(query, resourceType, 12)).execute(), "AI 자료 검색");
+    }
+
+    public ApiModels.DashboardResponse refreshDashboard() throws IOException {
+        requireAuthenticated();
+        ApiModels.DashboardResponse body = requireBody(api.dashboard(bearer()).execute(), "홈 활동 불러오기");
+        store.applyDashboard(body);
+        return body;
+    }
+
+    public List<ApiModels.CommunityPostDto> communityPosts(String category) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityPosts(bearer(), category).execute(), "커뮤니티 불러오기");
+    }
+
+    public ApiModels.CommunityPostDto createCommunityPost(String category, String title, String body) throws IOException {
+        requireAuthenticated();
+        ApiModels.CommunityPostDto result = requireBody(api.createCommunityPost(
+                bearer(), new ApiModels.CommunityPostRequest(category, title, body)).execute(), "게시글 작성");
+        store.recordActivity("community_post", 1);
+        return result;
+    }
+
+    public ApiModels.CommunityCommentDto createCommunityComment(String postId, String body, String parentId) throws IOException {
+        requireAuthenticated();
+        ApiModels.CommunityCommentDto result = requireBody(api.createCommunityComment(
+                bearer(), postId, new ApiModels.CommunityCommentRequest(body, parentId)).execute(), "댓글 작성");
+        store.recordActivity("community_comment", 1);
+        return result;
+    }
+
+    public ApiModels.ReactionToggleResponse toggleReaction(String targetType, String targetId, String emoji) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.toggleReaction(bearer(), new ApiModels.ReactionToggleRequest(targetType, targetId, emoji)).execute(), "공감 반응");
+    }
+
+    public ApiModels.FollowResponse toggleFollow(String userId) throws IOException {
+        requireAuthenticated();
+        ApiModels.FollowResponse response = requireBody(api.toggleFollow(bearer(), userId).execute(), "팔로우");
+        store.setFollowingCount(response.followingCount);
+        return response;
+    }
+
+    public String uploadProfileImage(Uri uri) throws IOException {
+        requireAuthenticated();
+        String mimeType = context.getContentResolver().getType(uri);
+        if (mimeType == null || (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png") && !mimeType.equals("image/webp"))) {
+            mimeType = "image/jpeg";
+        }
+        String extension = mimeType.equals("image/png") ? ".png" : mimeType.equals("image/webp") ? ".webp" : ".jpg";
+        File temp = File.createTempFile("bluepath-profile-", extension, context.getCacheDir());
+        try (InputStream input = context.getContentResolver().openInputStream(uri);
+             FileOutputStream output = new FileOutputStream(temp)) {
+            if (input == null) throw new IOException("선택한 사진을 읽을 수 없습니다.");
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
+        }
+        RequestBody body = RequestBody.create(temp, MediaType.parse(mimeType));
+        MultipartBody.Part part = MultipartBody.Part.createFormData("file", temp.getName(), body);
+        ApiModels.ProfileImageResponse response = requireBody(api.uploadProfileImage(bearer(), part).execute(), "프로필 사진 업로드");
+        store.setProfileImageUrl(response.profileImageUrl);
+        temp.delete();
+        return response.profileImageUrl;
     }
 
     public void recordLearning(String type, String targetId, String title, String status) {

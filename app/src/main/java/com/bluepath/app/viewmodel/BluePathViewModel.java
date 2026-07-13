@@ -43,9 +43,9 @@ public class BluePathViewModel extends AndroidViewModel {
         return repository.isCloudConfigured();
     }
 
-    public void register(String email, String password, String guardianEmail) {
+    public void register(String email, String password, String guardianEmail, String nickname) {
         run("register", () -> {
-            repository.register(email, password, guardianEmail);
+            repository.register(email, password, guardianEmail, nickname);
             return "BluePath 계정이 생성되었습니다.";
         });
     }

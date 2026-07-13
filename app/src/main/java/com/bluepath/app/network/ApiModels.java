@@ -13,14 +13,13 @@ public final class ApiModels {
         public String email;
         public String password;
         public String guardianEmail;
+        public String nickname;
 
-        public AuthRequest(String email, String password, String guardianEmail) {
+        public AuthRequest(String email, String password, String guardianEmail, String nickname) {
             this.email = email;
             this.password = password;
-            this.guardianEmail =
-                    guardianEmail == null || guardianEmail.trim().isEmpty()
-                            ? null
-                            : guardianEmail.trim();
+            this.guardianEmail = guardianEmail == null || guardianEmail.trim().isEmpty() ? null : guardianEmail.trim();
+            this.nickname = nickname == null || nickname.trim().isEmpty() ? null : nickname.trim();
         }
     }
 
@@ -38,6 +37,35 @@ public final class ApiModels {
         public String tokenType;
         public String email;
         public String displayName;
+        public String nickname;
+        public String profileImageUrl;
+        public int followerCount;
+        public int followingCount;
+    }
+
+    public static class NicknameAvailability {
+        public String nickname;
+        public boolean available;
+        public String message;
+    }
+
+    public static class ProfileSummary {
+        public String userId;
+        public String nickname;
+        public String profileImageUrl;
+        public String tier;
+        public int followerCount;
+        public int followingCount;
+        public boolean isFollowing;
+    }
+
+    public static class DashboardResponse {
+        public ProfileSummary profile;
+        public Map<String, Integer> activity;
+    }
+
+    public static class ProfileImageResponse {
+        public String profileImageUrl;
     }
 
     public static class QuizRequest {
@@ -152,6 +180,98 @@ public final class ApiModels {
         public String method;
         public String category;
         public String description;
+    }
+
+
+    public static class AiSearchRequest {
+        public String query;
+        public String resourceType;
+        public int limit;
+
+        public AiSearchRequest(String query, String resourceType, int limit) {
+            this.query = query;
+            this.resourceType = resourceType;
+            this.limit = limit;
+        }
+    }
+
+    public static class AiSearchResponse {
+        public String summary;
+        public List<ContentDto> items = new ArrayList<>();
+        public List<SourceDto> sources = new ArrayList<>();
+        public boolean usedLiveWeb;
+    }
+
+    public static class ReactionSummary {
+        public String emoji;
+        public int count;
+        public boolean reactedByMe;
+    }
+
+    public static class CommunityCommentDto {
+        public String id;
+        public String postId;
+        public String parentId;
+        public ProfileSummary author;
+        public String body;
+        public String createdAt;
+        public List<ReactionSummary> reactions = new ArrayList<>();
+    }
+
+    public static class CommunityPostDto {
+        public String id;
+        public String category;
+        public ProfileSummary author;
+        public String title;
+        public String body;
+        public String createdAt;
+        public List<ReactionSummary> reactions = new ArrayList<>();
+        public List<CommunityCommentDto> comments = new ArrayList<>();
+    }
+
+    public static class CommunityPostRequest {
+        public String category;
+        public String title;
+        public String body;
+
+        public CommunityPostRequest(String category, String title, String body) {
+            this.category = category;
+            this.title = title;
+            this.body = body;
+        }
+    }
+
+    public static class CommunityCommentRequest {
+        public String body;
+        public String parentId;
+
+        public CommunityCommentRequest(String body, String parentId) {
+            this.body = body;
+            this.parentId = parentId;
+        }
+    }
+
+    public static class ReactionToggleRequest {
+        public String targetType;
+        public String targetId;
+        public String emoji;
+
+        public ReactionToggleRequest(String targetType, String targetId, String emoji) {
+            this.targetType = targetType;
+            this.targetId = targetId;
+            this.emoji = emoji;
+        }
+    }
+
+    public static class ReactionToggleResponse {
+        public boolean active;
+        public List<ReactionSummary> reactions = new ArrayList<>();
+    }
+
+    public static class FollowResponse {
+        public boolean following;
+        public int followerCount;
+        public int followingCount;
     }
 
     public static class GenericResponse {

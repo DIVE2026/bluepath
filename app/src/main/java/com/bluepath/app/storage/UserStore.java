@@ -7,6 +7,9 @@ import com.bluepath.app.model.UserProfile;
 import com.bluepath.app.network.ApiModels;
 import com.bluepath.app.util.PromotionRules;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -121,14 +124,16 @@ public class UserStore {
 
     public void markCompleted(String contentId) {
         Set<String> ids = getCompletedContentIds();
-        ids.add(contentId);
+        boolean added = ids.add(contentId);
         prefs.edit().putStringSet("completed", ids).apply();
+        if (added) recordActivity("learning", 1);
     }
 
     public void markContentStarted(String contentId) {
         if (contentId == null || contentId.trim().isEmpty()) return;
         if (getContentStartedAt(contentId) <= 0L) {
             prefs.edit().putLong("contentStarted_" + contentId, System.currentTimeMillis()).apply();
+            recordActivity("learning", 1);
         }
     }
 
@@ -237,11 +242,16 @@ public class UserStore {
         return prefs.getString("lastQuizSummary", "아직 응시 기록이 없습니다.");
     }
 
-    public void saveCloudSession(String email, String displayName, String accessToken) {
+    public void saveCloudSession(String email, String displayName, String nickname, String profileImageUrl,
+                                 int followerCount, int followingCount, String accessToken) {
         secureTokenStore.put(accessToken == null ? "" : accessToken);
         prefs.edit()
                 .putString("accountEmail", email == null ? "" : email)
                 .putString("accountDisplayName", displayName == null ? "BluePath Learner" : displayName)
+                .putString("nickname", nickname == null || nickname.trim().isEmpty() ? displayName : nickname.trim())
+                .putString("profileImageUrl", profileImageUrl == null ? "" : profileImageUrl)
+                .putInt("followerCount", Math.max(0, followerCount))
+                .putInt("followingCount", Math.max(0, followingCount))
                 .apply();
     }
 
@@ -257,6 +267,91 @@ public class UserStore {
         return prefs.getString("accountDisplayName", "BluePath Learner");
     }
 
+
+    public String getNickname() {
+        String fallback = getAccountDisplayName();
+        return prefs.getString("nickname", fallback == null ? "BluePath" : fallback);
+    }
+
+    public String getProfileImageUrl() {
+        return prefs.getString("profileImageUrl", "");
+    }
+
+    public void setProfileImageUrl(String value) {
+        prefs.edit().putString("profileImageUrl", value == null ? "" : value).apply();
+    }
+
+    public int getFollowerCount() {
+        return prefs.getInt("followerCount", 0);
+    }
+
+    public int getFollowingCount() {
+        return prefs.getInt("followingCount", 0);
+    }
+
+    public void setFollowCounts(int followerCount, int followingCount) {
+        prefs.edit()
+                .putInt("followerCount", Math.max(0, followerCount))
+                .putInt("followingCount", Math.max(0, followingCount))
+                .apply();
+    }
+
+    public void setFollowingCount(int followingCount) {
+        prefs.edit().putInt("followingCount", Math.max(0, followingCount)).apply();
+    }
+
+    public void applyDashboard(ApiModels.DashboardResponse response) {
+        if (response == null) return;
+        SharedPreferences.Editor editor = prefs.edit();
+        if (response.profile != null) {
+            if (response.profile.nickname != null && !response.profile.nickname.trim().isEmpty()) {
+                editor.putString("nickname", response.profile.nickname.trim());
+            }
+            editor.putString("profileImageUrl", response.profile.profileImageUrl == null ? "" : response.profile.profileImageUrl)
+                    .putInt("followerCount", Math.max(0, response.profile.followerCount))
+                    .putInt("followingCount", Math.max(0, response.profile.followingCount));
+        }
+        if (response.activity != null) {
+            JSONObject json = new JSONObject();
+            for (Map.Entry<String, Integer> entry : response.activity.entrySet()) {
+                try { json.put(entry.getKey(), Math.max(0, entry.getValue())); } catch (JSONException ignored) {}
+            }
+            editor.putString("serverActivity", json.toString());
+        }
+        editor.apply();
+    }
+
+    public void recordActivity(String type, int amount) {
+        if (amount <= 0) return;
+        String day = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(new Date());
+        JSONObject json;
+        try {
+            json = new JSONObject(prefs.getString("localActivity", "{}"));
+            json.put(day, json.optInt(day, 0) + amount);
+            prefs.edit().putString("localActivity", json.toString()).apply();
+        } catch (JSONException ignored) {
+        }
+    }
+
+    public Map<String, Integer> getActivityCounts() {
+        Map<String, Integer> result = new HashMap<>();
+        mergeActivityJson(result, prefs.getString("serverActivity", "{}"));
+        mergeActivityJson(result, prefs.getString("localActivity", "{}"));
+        return result;
+    }
+
+    private void mergeActivityJson(Map<String, Integer> target, String raw) {
+        try {
+            JSONObject json = new JSONObject(raw == null ? "{}" : raw);
+            java.util.Iterator<String> keys = json.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                target.put(key, Math.max(target.getOrDefault(key, 0), Math.max(0, json.optInt(key, 0))));
+            }
+        } catch (JSONException ignored) {
+        }
+    }
+
     public String getAccessToken() {
         return secureTokenStore.get();
     }
@@ -266,6 +361,11 @@ public class UserStore {
         prefs.edit()
                 .remove("accountEmail")
                 .remove("accountDisplayName")
+                .remove("nickname")
+                .remove("profileImageUrl")
+                .remove("followerCount")
+                .remove("followingCount")
+                .remove("serverActivity")
                 .apply();
     }
 
@@ -368,6 +468,8 @@ public class UserStore {
     public Map<String, Object> toCloudSnapshot() {
         UserProfile profile = getProfile();
         Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("nickname", getNickname());
+        snapshot.put("profileImageUrl", getProfileImageUrl());
         snapshot.put("ageGroup", profile.ageGroup);
         snapshot.put("interest", profile.interest);
         snapshot.put("goal", profile.goal);
