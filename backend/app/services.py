@@ -3,20 +3,25 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import ipaddress
 import json
 import math
 import re
+import socket
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
+from bs4 import BeautifulSoup
 from fastapi import HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .models import Content, KnowledgeChunk, QuizBankItem
-from .schemas import AgentRequest, AgentResponse, QuizQuestion, QuizRequest, QuizResponse, SourceItem
+from .schemas import AdminContentItem, AgentRequest, AgentResponse, AiSearchRequest, AiSearchResponse, QuizQuestion, QuizRequest, QuizResponse, SourceItem
 
 settings = get_settings()
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +34,14 @@ TIER_RULES = {
     "골드": (15, 10),
     "플래티넘": (20, 16),
 }
+
+@dataclass
+class WebEvidence:
+    title: str
+    url: str
+    organization: str
+    content: str
+
 
 SYSTEM_PROMPT = (
     "You are BluePath Marine AI, a Korean-language ocean education specialist. "
@@ -267,33 +280,204 @@ def generate_quiz(db: Session, request: QuizRequest) -> QuizResponse:
 
 def answer_agent(db: Session, request: AgentRequest) -> AgentResponse:
     query = f"{request.question} {request.profile.get('interest', '')} {request.tier}"
-    sources = retrieve_sources(db, query, 5)
-    source_items = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in sources]
+    local_sources = retrieve_sources(db, query, 5)
+    live_sources = retrieve_live_web_sources(request.question, min(4, settings.web_search_max_results))
+    source_items = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in local_sources]
+    source_items.extend(SourceItem(title=s.title, url=s.url, organization=s.organization) for s in live_sources)
 
     if settings.llm_enabled:
-        evidence = "\n\n".join(
-            f"[{i + 1}] {s.title} ({s.organization})\n{s.content}\nURL: {s.url}"
-            for i, s in enumerate(sources)
+        evidence_parts = [
+            f"[LOCAL {i + 1}] {item.title} ({item.organization})\n{item.content}\nURL: {item.url}"
+            for i, item in enumerate(local_sources)
+        ]
+        evidence_parts.extend(
+            f"[WEB {i + 1}] {item.title} ({item.organization})\n{item.content}\nURL: {item.url}"
+            for i, item in enumerate(live_sources)
         )
+        evidence = "\n\n".join(evidence_parts)
         prompt = (
             f"Learner profile: {json.dumps(request.profile, ensure_ascii=False)}\n"
             f"Current tier: {request.tier}\nPromotion manual:\n{request.promotionManual}\n"
-            f"Retrieved evidence:\n{evidence}\n\nQuestion: {request.question}\n"
-            "Answer in Korean in 4-8 clear sentences. Cite evidence with [1], [2] markers when used, "
-            "include one actionable next step inside BluePath, and state uncertainty when evidence is insufficient."
+            f"Retrieved local and live-web evidence:\n{evidence}\n\nQuestion: {request.question}\n"
+            "Answer in Korean. Put the direct answer first, then a practical career/learning path. "
+            "Cite source markers exactly as [LOCAL 1] or [WEB 1] when used. Never claim live browsing if no WEB evidence exists. "
+            "For laws, licenses, recruitment, prices, or schedules, state that the user must verify the latest official source. "
+            "Include one actionable next step inside BluePath and clearly state uncertainty or conflicting evidence."
         )
         try:
-            return AgentResponse(answer=call_chat(prompt, 0.25, 1200).strip(), sources=source_items)
+            return AgentResponse(answer=call_chat(prompt, 0.2, 1800).strip(), sources=source_items)
         except Exception:
             pass
 
     interest = request.profile.get("interest", "해양")
+    web_note = " 실시간 웹 자료도 함께 확인했습니다." if live_sources else " 현재 실시간 웹 검색 키가 없어 앱의 검증된 자료를 우선 사용했습니다."
     answer = (
-        f"현재 관심 분야는 ‘{interest}’, 티어는 {request.tier}입니다. "
-        "추천 영상에서 관련 주제를 먼저 학습한 뒤 승급 퀴즈를 풀고, 진로 탭에서 NCS 역량을 연결해 보세요. "
-        "온라인 근거 검색을 사용할 수 없는 경우에는 앱의 검증된 로컬 콘텐츠를 기준으로 안내합니다."
+        f"현재 관심 분야는 ‘{interest}’, 통합 티어는 {request.tier}입니다.{web_note} "
+        "관련 학습 자료를 먼저 확인하고, 퀴즈와 실제 교육 일정을 거쳐 진로 역량 증거를 쌓는 순서를 권장합니다. "
+        "자격·채용·법령·모집 일정은 반드시 연결된 공식 기관의 최신 공고를 다시 확인해 주세요."
     )
     return AgentResponse(answer=answer, sources=source_items)
+
+
+def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
+    type_map = {"video": {"video"}, "schedule": {"program", "event", "schedule"}, "paper": {"paper"}}
+    allowed = type_map[request.resourceType]
+    items = list(db.scalars(select(Content).where(Content.content_type.in_(allowed)).limit(500)))
+    tokens = tokenize(request.query)
+
+    def score(item: Content) -> float:
+        metadata = item.metadata_json or {}
+        document = " ".join([
+            item.title, item.source, item.topic, item.career_tag,
+            str(metadata.get("description", "")), str(metadata.get("target", "")),
+            str(metadata.get("method", "")), str(metadata.get("category", "")),
+        ])
+        base = lexical_score(tokens, tokenize(document))
+        exact = 1.0 if request.query.lower() in document.lower() else 0.0
+        return base * 10 + exact * 3
+
+    ranked = sorted(items, key=score, reverse=True)
+    selected = [item for item in ranked if score(item) > 0][: request.limit]
+    if not selected:
+        selected = ranked[: min(request.limit, 5)]
+
+    live_sources = retrieve_live_web_sources(
+        f"{request.query} 해양 {request.resourceType} 공식 자료",
+        min(3, settings.web_search_max_results),
+    )
+    sources = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in live_sources]
+    summary = f"‘{request.query}’ 요청과 가장 관련성이 높은 {len(selected)}개 자료를 추렸습니다."
+    if settings.llm_enabled and (selected or live_sources):
+        catalog_text = "\n".join(
+            f"- {item.id}: {item.title} / {item.topic} / {item.source} / {item.url}"
+            for item in selected
+        )
+        web_text = "\n".join(f"- {s.title}: {s.content[:1200]} ({s.url})" for s in live_sources)
+        prompt = (
+            f"User request: {request.query}\nResource type: {request.resourceType}\n"
+            f"BluePath candidates:\n{catalog_text}\nLive web evidence:\n{web_text}\n"
+            "Write a concise Korean summary explaining why these results fit. Do not invent items or URLs. "
+            "Mention when official schedules must be rechecked."
+        )
+        try:
+            summary = call_chat(prompt, 0.15, 500).strip()
+        except Exception:
+            pass
+    return AiSearchResponse(
+        summary=summary,
+        items=[content_schema(item) for item in selected],
+        sources=sources,
+        usedLiveWeb=bool(live_sources),
+    )
+
+
+def retrieve_live_web_sources(query: str, limit: int = 4) -> list[WebEvidence]:
+    if not settings.web_search_enabled or limit <= 0:
+        return []
+    provider = settings.web_search_provider.strip().lower()
+    try:
+        results = tavily_search(query, limit) if provider == "tavily" else brave_search(query, limit) if provider == "brave" else []
+    except Exception:
+        return []
+    evidence: list[WebEvidence] = []
+    for item in results[:limit]:
+        url = str(item.get("url", "")).strip()
+        if not is_safe_public_url(url):
+            continue
+        snippet = str(item.get("content") or item.get("description") or "").strip()
+        crawled = crawl_public_page(url)
+        content = crawled or snippet
+        if not content:
+            continue
+        host = urlparse(url).hostname or ""
+        evidence.append(WebEvidence(
+            title=str(item.get("title") or host or "웹 자료").strip(),
+            url=url,
+            organization=host,
+            content=content[: settings.web_crawl_max_chars],
+        ))
+    return evidence
+
+
+def tavily_search(query: str, limit: int) -> list[dict[str, Any]]:
+    response = httpx.post(
+        "https://api.tavily.com/search",
+        json={"api_key": settings.web_search_api_key, "query": query, "max_results": limit, "search_depth": "advanced"},
+        timeout=settings.web_search_timeout_seconds,
+    )
+    response.raise_for_status()
+    return list(response.json().get("results", []))
+
+
+def brave_search(query: str, limit: int) -> list[dict[str, Any]]:
+    response = httpx.get(
+        "https://api.search.brave.com/res/v1/web/search",
+        params={"q": query, "count": limit, "search_lang": "ko"},
+        headers={"Accept": "application/json", "X-Subscription-Token": settings.web_search_api_key},
+        timeout=settings.web_search_timeout_seconds,
+    )
+    response.raise_for_status()
+    return list(response.json().get("web", {}).get("results", []))
+
+
+def crawl_public_page(url: str) -> str:
+    try:
+        response = httpx.get(
+            url,
+            follow_redirects=True,
+            headers={"User-Agent": "BluePathBot/1.3 (+educational retrieval)"},
+            timeout=settings.web_search_timeout_seconds,
+        )
+        response.raise_for_status()
+        if not is_safe_public_url(str(response.url)):
+            return ""
+        content_type = response.headers.get("content-type", "")
+        if "text/html" not in content_type and "text/plain" not in content_type:
+            return ""
+        raw = response.content[:500_000]
+        soup = BeautifulSoup(raw, "html.parser")
+        for tag in soup(["script", "style", "noscript", "svg"]):
+            tag.decompose()
+        return re.sub(r"\s+", " ", soup.get_text(" ", strip=True)).strip()
+    except Exception:
+        return ""
+
+
+def is_safe_public_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return False
+        addresses = socket.getaddrinfo(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
+        for address in addresses:
+            ip = ipaddress.ip_address(address[4][0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                return False
+        return True
+    except Exception:
+        return False
+
+
+def content_schema(item: Content) -> AdminContentItem:
+    metadata = item.metadata_json or {}
+    return AdminContentItem(
+        id=item.id,
+        title=item.title,
+        contentType=item.content_type,
+        source=item.source,
+        url=item.url,
+        difficulty=item.difficulty,
+        requiredTier=item.required_tier,
+        topic=item.topic,
+        careerTag=item.career_tag,
+        minutes=item.minutes,
+        startAt=str(metadata.get("startAt", "")),
+        endAt=str(metadata.get("endAt", "")),
+        target=str(metadata.get("target", "전체")),
+        method=str(metadata.get("method", "")),
+        category=str(metadata.get("category", "")),
+        description=str(metadata.get("description", "")),
+    )
 
 
 def create_embedding(text: str) -> list[float] | None:

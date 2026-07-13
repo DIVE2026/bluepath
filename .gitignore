@@ -22,3 +22,5 @@ finetuning/checkpoints/
 
 .DS_Store
 /gradle.properties
+
+backend/uploads/

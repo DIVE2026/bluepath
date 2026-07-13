@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(320) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   display_name VARCHAR(120) NOT NULL DEFAULT 'BluePath Learner',
+  nickname VARCHAR(40) UNIQUE,
+  profile_image_url TEXT NOT NULL DEFAULT '',
   role VARCHAR(40) NOT NULL DEFAULT 'learner',
   guardian_email VARCHAR(320),
   guardian_consent BOOLEAN NOT NULL DEFAULT FALSE,
@@ -115,3 +117,56 @@ CREATE TABLE IF NOT EXISTS reminders (
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- BluePath 1.3 community, following, profile, and reactions
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_nickname_ci
+  ON users (lower(nickname));
+
+CREATE TABLE IF NOT EXISTS follows (
+  id VARCHAR(36) PRIMARY KEY,
+  follower_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_follow_pair UNIQUE (follower_id, following_id),
+  CONSTRAINT ck_follow_not_self CHECK (follower_id <> following_id)
+);
+CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id);
+
+CREATE TABLE IF NOT EXISTS community_posts (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (category IN ('free', 'question')),
+  title VARCHAR(240) NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_community_posts_category_created
+  ON community_posts(category, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS community_comments (
+  id VARCHAR(36) PRIMARY KEY,
+  post_id VARCHAR(36) NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  parent_id VARCHAR(36) REFERENCES community_comments(id) ON DELETE CASCADE,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_community_comments_post_created
+  ON community_comments(post_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_community_comments_parent
+  ON community_comments(parent_id);
+
+CREATE TABLE IF NOT EXISTS community_reactions (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('post', 'comment')),
+  target_id VARCHAR(36) NOT NULL,
+  emoji VARCHAR(16) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_reaction_toggle UNIQUE (user_id, target_type, target_id, emoji)
+);
+CREATE INDEX IF NOT EXISTS idx_community_reactions_target
+  ON community_reactions(target_type, target_id);

@@ -14,6 +14,89 @@ class AuthRequest(CamelModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     guardianEmail: EmailStr | None = None
+    nickname: str | None = Field(default=None, min_length=2, max_length=20, pattern=r"^[0-9A-Za-z가-힣_.-]+$")
+
+
+
+
+class NicknameAvailability(CamelModel):
+    nickname: str
+    available: bool
+    message: str
+
+
+class ProfileSummary(CamelModel):
+    userId: str
+    nickname: str
+    profileImageUrl: str = ""
+    tier: str = "브론즈"
+    followerCount: int = 0
+    followingCount: int = 0
+    isFollowing: bool = False
+
+
+class ProfileImageResponse(CamelModel):
+    profileImageUrl: str
+
+
+class ReactionSummary(CamelModel):
+    emoji: str
+    count: int
+    reactedByMe: bool = False
+
+
+class CommunityCommentItem(CamelModel):
+    id: str
+    postId: str
+    parentId: str | None = None
+    author: ProfileSummary
+    body: str
+    createdAt: datetime
+    reactions: list[ReactionSummary] = Field(default_factory=list)
+
+
+class CommunityPostItem(CamelModel):
+    id: str
+    category: str
+    author: ProfileSummary
+    title: str
+    body: str
+    createdAt: datetime
+    reactions: list[ReactionSummary] = Field(default_factory=list)
+    comments: list[CommunityCommentItem] = Field(default_factory=list)
+
+
+class CommunityPostCreate(CamelModel):
+    category: str = Field(pattern="^(free|question)$")
+    title: str = Field(min_length=2, max_length=240)
+    body: str = Field(min_length=2, max_length=8000)
+
+
+class CommunityCommentCreate(CamelModel):
+    body: str = Field(min_length=1, max_length=3000)
+    parentId: str | None = None
+
+
+class ReactionToggleRequest(CamelModel):
+    targetType: str = Field(pattern="^(post|comment)$")
+    targetId: str
+    emoji: str = Field(min_length=1, max_length=16)
+
+
+class ReactionToggleResponse(CamelModel):
+    active: bool
+    reactions: list[ReactionSummary]
+
+
+class FollowResponse(CamelModel):
+    following: bool
+    followerCount: int
+    followingCount: int
+
+
+class DashboardResponse(CamelModel):
+    profile: ProfileSummary
+    activity: dict[str, int] = Field(default_factory=dict)
 
 
 class PasswordResetRequest(CamelModel):
@@ -30,6 +113,10 @@ class AuthResponse(CamelModel):
     tokenType: str = "bearer"
     email: EmailStr
     displayName: str
+    nickname: str
+    profileImageUrl: str = ""
+    followerCount: int = 0
+    followingCount: int = 0
 
 
 class SourceItem(CamelModel):
@@ -153,6 +240,19 @@ class AdminContentItem(CamelModel):
     method: str = ""
     category: str = ""
     description: str = ""
+
+
+class AiSearchRequest(CamelModel):
+    query: str = Field(min_length=1, max_length=1000)
+    resourceType: str = Field(pattern="^(video|schedule|paper)$")
+    limit: int = Field(default=10, ge=1, le=30)
+
+
+class AiSearchResponse(CamelModel):
+    summary: str
+    items: list[AdminContentItem] = Field(default_factory=list)
+    sources: list[SourceItem] = Field(default_factory=list)
+    usedLiveWeb: bool = False
 
 
 class YouTubeSyncRequest(CamelModel):

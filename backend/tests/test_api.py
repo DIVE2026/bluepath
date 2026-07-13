@@ -32,6 +32,7 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
             'email': 'learner@bluepath.example.com',
             'password': 'LearnerPassword123!',
             'guardianEmail': None,
+            'nickname': 'OceanLearner',
         })
         assert register.status_code == 200, register.text
         token = register.json()['accessToken']
@@ -47,6 +48,15 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert all(len(item['options']) == 4 for item in questions)
         assert all(0 <= item['answerIndex'] <= 3 for item in questions)
         assert all(item['explanation'] for item in questions)
+
+        search = client.post('/api/v1/ai/search', headers=auth_header(token), json={
+            'query': '해양환경 입문 영상',
+            'resourceType': 'video',
+            'limit': 5,
+        })
+        assert search.status_code == 200, search.text
+        assert isinstance(search.json()['items'], list)
+        assert search.json()['summary']
 
         sync = client.post('/api/v1/sync', headers=auth_header(token), json={
             'snapshot': {
@@ -285,7 +295,8 @@ def test_password_reset_is_one_time_and_does_not_disclose_accounts(monkeypatch) 
             'email': email,
             'password': old_password,
             'guardianEmail': None,
-        })
+                'nickname': 'ResetOcean',
+            })
         assert register.status_code == 200, register.text
 
         unknown = client.post('/api/v1/auth/password-reset/request', json={
@@ -322,3 +333,89 @@ def test_password_reset_is_one_time_and_does_not_disclose_accounts(monkeypatch) 
         })
         assert old_login.status_code == 401
         assert new_login.status_code == 200
+
+
+def test_nickname_community_follow_reactions_and_dashboard() -> None:
+    with TestClient(app) as client:
+        first = client.post('/api/v1/auth/register', json={
+            'email': 'community-one@bluepath.example.com',
+            'password': 'CommunityPassword123!',
+            'nickname': 'BlueWhale',
+            'guardianEmail': None,
+        })
+        second = client.post('/api/v1/auth/register', json={
+            'email': 'community-two@bluepath.example.com',
+            'password': 'CommunityPassword123!',
+            'nickname': 'SeaTurtle',
+            'guardianEmail': None,
+        })
+        assert first.status_code == 200, first.text
+        assert second.status_code == 200, second.text
+        duplicate = client.get('/api/v1/auth/nickname-available?nickname=BlueWhale')
+        assert duplicate.status_code == 200
+        assert duplicate.json()['available'] is False
+        case_insensitive = client.get('/api/v1/auth/nickname-available?nickname=bluewhale')
+        assert case_insensitive.status_code == 200
+        assert case_insensitive.json()['available'] is False
+
+        case_duplicate = client.post('/api/v1/auth/register', json={
+            'email': 'community-duplicate@bluepath.example.com',
+            'password': 'CommunityPassword123!',
+            'nickname': 'BLUEWHALE',
+            'guardianEmail': None,
+        })
+        assert case_duplicate.status_code == 409
+
+        first_headers = auth_header(first.json()['accessToken'])
+        second_headers = auth_header(second.json()['accessToken'])
+        png_1x1 = (
+            b'\x89PNG\r\n\x1a\n'
+            b'\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+            b'\x00\x00\x00\rIDAT\x08\xd7c\xf8\xcf\xc0\xf0\x1f\x00\x05\x00\x01\xff\x89\x99\x8d\x1d'
+            b'\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
+        uploaded = client.post('/api/v1/profile/image', headers=first_headers, files={
+            'file': ('avatar.png', png_1x1, 'image/png'),
+        })
+        assert uploaded.status_code == 200, uploaded.text
+        assert uploaded.json()['profileImageUrl'].endswith('.png')
+        post = client.post('/api/v1/community/posts', headers=first_headers, json={
+            'category': 'question',
+            'title': '해양 진로 질문',
+            'body': '항만 물류 진로를 준비하려면 무엇부터 시작해야 하나요?',
+        })
+        assert post.status_code == 200, post.text
+        post_id = post.json()['id']
+        author_id = post.json()['author']['userId']
+
+        comment = client.post(f'/api/v1/community/posts/{post_id}/comments', headers=second_headers, json={
+            'body': '기초 물류 영상과 현장 교육부터 추천합니다.',
+            'parentId': None,
+        })
+        assert comment.status_code == 200, comment.text
+        reply = client.post(f'/api/v1/community/posts/{post_id}/comments', headers=first_headers, json={
+            'body': '답변 감사합니다.',
+            'parentId': comment.json()['id'],
+        })
+        assert reply.status_code == 200, reply.text
+        reaction = client.post('/api/v1/community/reactions', headers=second_headers, json={
+            'targetType': 'post', 'targetId': post_id, 'emoji': '🌊',
+        })
+        assert reaction.status_code == 200, reaction.text
+        assert reaction.json()['active'] is True
+        follow = client.post(f'/api/v1/community/users/{author_id}/follow', headers=second_headers)
+        assert follow.status_code == 200, follow.text
+        assert follow.json()['following'] is True
+
+        feed = client.get('/api/v1/community/posts?category=question', headers=second_headers)
+        assert feed.status_code == 200, feed.text
+        item = feed.json()[0]
+        assert len(item['comments']) == 2
+        assert item['author']['isFollowing'] is True
+        assert any(value['emoji'] == '🌊' and value['count'] == 1 for value in item['reactions'])
+
+        dashboard = client.get('/api/v1/dashboard', headers=first_headers)
+        assert dashboard.status_code == 200, dashboard.text
+        assert dashboard.json()['profile']['nickname'] == 'BlueWhale'
+        assert dashboard.json()['profile']['followerCount'] == 1
+        assert sum(dashboard.json()['activity'].values()) >= 2

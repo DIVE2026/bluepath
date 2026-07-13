@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     embedding_model: str = ""
     embedding_dimensions: int = 1536
 
+    web_search_provider: str = ""
+    web_search_api_key: str = ""
+    web_search_max_results: int = 5
+    web_search_timeout_seconds: int = 15
+    web_crawl_max_chars: int = 12000
+
     youtube_api_key: str = ""
     youtube_sync_hours: int = 0
     youtube_sync_queries: str = "해양 교육,해양 환경 교육,스마트 항만,자율운항선박"
@@ -48,6 +54,8 @@ class Settings(BaseSettings):
             problems.append("ADMIN_PASSWORD must contain at least 12 characters")
         if self.llm_base_url and not self.llm_model:
             problems.append("LLM_MODEL is required when LLM_BASE_URL is configured")
+        if self.web_search_provider and not self.web_search_api_key:
+            problems.append("WEB_SEARCH_API_KEY is required when WEB_SEARCH_PROVIDER is configured")
         if not self.password_reset_base_url.startswith("https://"):
             problems.append("PASSWORD_RESET_BASE_URL must use HTTPS in production")
         if self.smtp_host and not self.smtp_from_email:
@@ -64,6 +72,10 @@ class Settings(BaseSettings):
     @property
     def llm_enabled(self) -> bool:
         return bool(self.llm_base_url.strip() and self.llm_model.strip())
+
+    @property
+    def web_search_enabled(self) -> bool:
+        return bool(self.web_search_provider.strip() and self.web_search_api_key.strip())
 
     @property
     def youtube_query_list(self) -> list[str]:

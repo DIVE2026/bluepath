@@ -12,31 +12,47 @@ from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import urlencode
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import delete, func, inspect, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import Content, DiamondEvidence, LearningRecord, PasswordResetToken, QuizBankItem, Reminder, User, UserProfile
+from .models import CommunityComment, CommunityPost, CommunityReaction, Content, DiamondEvidence, Follow, LearningRecord, PasswordResetToken, QuizBankItem, Reminder, User, UserProfile
 from .schemas import (
     AdminContentItem,
     AdminQuizItem,
     AgentRequest,
     AgentResponse,
+    AiSearchRequest,
+    AiSearchResponse,
     AuthRequest,
     AuthResponse,
+    CommunityCommentCreate,
+    CommunityCommentItem,
+    CommunityPostCreate,
+    CommunityPostItem,
     CloudStateResponse,
+    DashboardResponse,
     PasswordResetConfirm,
     PasswordResetRequest,
     DiamondStatus,
     EvidenceRequest,
     EvidenceReviewRequest,
+    FollowResponse,
     GenericResponse,
+    NicknameAvailability,
+    ProfileImageResponse,
+    ProfileSummary,
     QuizRequest,
     QuizResponse,
+    ReactionSummary,
+    ReactionToggleRequest,
+    ReactionToggleResponse,
     ReminderRequest,
     ReminderResponse,
     SyncRequest,
@@ -53,13 +69,34 @@ from .services import (
     import_quiz_file,
     seed_contents,
     seed_knowledge,
+    search_resources,
     seed_quizzes,
     sync_youtube,
 )
 
 settings = get_settings()
 STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
+UPLOADS_DIR = Path(__file__).resolve().parents[1] / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "app/src/main/assets"
+
+
+def apply_compatibility_migrations() -> None:
+    """Keep existing SQLite/PostgreSQL deployments bootable after additive profile changes."""
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    columns = {column["name"] for column in inspector.get_columns("users")}
+    statements: list[str] = []
+    if "nickname" not in columns:
+        statements.append("ALTER TABLE users ADD COLUMN nickname VARCHAR(40)")
+    if "profile_image_url" not in columns:
+        statements.append("ALTER TABLE users ADD COLUMN profile_image_url TEXT NOT NULL DEFAULT ''")
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_nickname ON users (nickname)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_nickname_ci ON users (lower(nickname))"))
 
 
 async def scheduled_youtube_sync() -> None:
@@ -84,6 +121,7 @@ async def scheduled_youtube_sync() -> None:
 async def lifespan(_: FastAPI):
     settings.validate_runtime()
     Base.metadata.create_all(bind=engine)
+    apply_compatibility_migrations()
     with SessionLocal() as db:
         seed_contents(db)
         seed_knowledge(db)
@@ -100,7 +138,8 @@ async def lifespan(_: FastAPI):
             pass
 
 
-app = FastAPI(title=settings.app_name, version="1.2.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="1.3.0", lifespan=lifespan)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -117,6 +156,8 @@ def health() -> dict:
         "environment": settings.environment,
         "llmEnabled": settings.llm_enabled,
         "embeddingEnabled": bool(settings.embedding_model),
+        "liveWebSearchEnabled": settings.web_search_enabled,
+        "liveWebSearchProvider": settings.web_search_provider if settings.web_search_enabled else "",
     }
 
 
@@ -130,22 +171,41 @@ def password_reset_page() -> FileResponse:
     return FileResponse(STATIC_DIR / "reset-password.html")
 
 
+@app.get("/api/v1/auth/nickname-available", response_model=NicknameAvailability)
+def nickname_available(nickname: str = Query(min_length=2, max_length=20), db: Session = Depends(get_db)) -> NicknameAvailability:
+    value = normalize_nickname(nickname)
+    available = db.scalar(select(User.id).where(func.lower(User.nickname) == value.lower())) is None
+    return NicknameAvailability(
+        nickname=value,
+        available=available,
+        message="사용 가능한 닉네임입니다." if available else "이미 사용 중인 닉네임입니다.",
+    )
+
+
 @app.post("/api/v1/auth/register", response_model=AuthResponse)
 def register(request: AuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
     email = request.email.lower().strip()
+    nickname = normalize_nickname(request.nickname or "")
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(status_code=409, detail="Email is already registered")
+    if db.scalar(select(User).where(func.lower(User.nickname) == nickname.lower())):
+        raise HTTPException(status_code=409, detail="Nickname is already in use")
     user = User(
         email=email,
         password_hash=hash_password(request.password),
-        display_name=email.split("@")[0],
+        display_name=nickname,
+        nickname=nickname,
         guardian_email=str(request.guardianEmail) if request.guardianEmail else None,
         guardian_consent=False,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Email or nickname is already registered") from exc
     db.refresh(user)
-    return auth_response(user)
+    return auth_response(user, db)
 
 
 @app.post("/api/v1/auth/login", response_model=AuthResponse)
@@ -155,7 +215,7 @@ def login(request: AuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is disabled")
-    return auth_response(user)
+    return auth_response(user, db)
 
 
 @app.post("/api/v1/auth/password-reset/request", response_model=GenericResponse)
@@ -228,6 +288,15 @@ def ai_agent(
     return answer_agent(db, request)
 
 
+@app.post("/api/v1/ai/search", response_model=AiSearchResponse)
+def ai_search(
+    request: AiSearchRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> AiSearchResponse:
+    return search_resources(db, request)
+
+
 @app.get("/api/v1/catalog", response_model=list[AdminContentItem])
 def learner_catalog(
     _: User = Depends(get_current_user),
@@ -235,6 +304,152 @@ def learner_catalog(
 ) -> list[AdminContentItem]:
     items = db.scalars(select(Content).order_by(Content.content_type, Content.updated_at.desc()).limit(500))
     return [content_to_schema(item) for item in items]
+
+
+@app.get("/api/v1/dashboard", response_model=DashboardResponse)
+def dashboard(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DashboardResponse:
+    counts: dict[str, int] = {}
+    for record in db.scalars(select(LearningRecord).where(LearningRecord.user_id == user.id)):
+        if record.record_type not in {"video", "paper"}:
+            continue
+        day = record.synced_at.date().isoformat()
+        counts[day] = counts.get(day, 0) + 1
+    for post in db.scalars(select(CommunityPost).where(CommunityPost.user_id == user.id)):
+        day = post.created_at.date().isoformat()
+        counts[day] = counts.get(day, 0) + 1
+    for comment in db.scalars(select(CommunityComment).where(CommunityComment.user_id == user.id)):
+        day = comment.created_at.date().isoformat()
+        counts[day] = counts.get(day, 0) + 1
+    return DashboardResponse(profile=profile_summary(db, user, user), activity=counts)
+
+
+@app.post("/api/v1/profile/image", response_model=ProfileImageResponse)
+async def upload_profile_image(
+    request: Request,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ProfileImageResponse:
+    content_type = (file.content_type or "").lower()
+    if content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, and WebP profile images are supported")
+    raw = await file.read(5_000_001)
+    if len(raw) > 5_000_000:
+        raise HTTPException(status_code=413, detail="Profile image must be 5 MB or smaller")
+    signatures = {
+        "image/jpeg": raw.startswith(b"\xff\xd8\xff"),
+        "image/png": raw.startswith(b"\x89PNG\r\n\x1a\n"),
+        "image/webp": len(raw) >= 12 and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP",
+    }
+    if not raw or not signatures[content_type]:
+        raise HTTPException(status_code=400, detail="Uploaded bytes do not match the declared image type")
+    extension = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}[content_type]
+    filename = f"profile-{user.id}-{secrets.token_hex(6)}{extension}"
+    (UPLOADS_DIR / filename).write_bytes(raw)
+    user.profile_image_url = str(request.base_url).rstrip("/") + f"/uploads/{filename}"
+    db.commit()
+    return ProfileImageResponse(profileImageUrl=user.profile_image_url)
+
+
+@app.get("/api/v1/community/posts", response_model=list[CommunityPostItem])
+def list_community_posts(
+    category: str = Query(default="free", pattern="^(free|question)$"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[CommunityPostItem]:
+    rows = list(db.scalars(
+        select(CommunityPost).where(CommunityPost.category == category).order_by(CommunityPost.created_at.desc()).limit(50)
+    ))
+    return [community_post_schema(db, item, user) for item in rows]
+
+
+@app.post("/api/v1/community/posts", response_model=CommunityPostItem)
+def create_community_post(
+    request: CommunityPostCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CommunityPostItem:
+    post = CommunityPost(user_id=user.id, category=request.category, title=request.title.strip(), body=request.body.strip())
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return community_post_schema(db, post, user)
+
+
+@app.post("/api/v1/community/posts/{post_id}/comments", response_model=CommunityCommentItem)
+def create_community_comment(
+    post_id: str,
+    request: CommunityCommentCreate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CommunityCommentItem:
+    post = db.get(CommunityPost, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if request.parentId:
+        parent = db.get(CommunityComment, request.parentId)
+        if parent is None or parent.post_id != post_id:
+            raise HTTPException(status_code=400, detail="Parent comment does not belong to this post")
+    comment = CommunityComment(post_id=post_id, user_id=user.id, parent_id=request.parentId, body=request.body.strip())
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return community_comment_schema(db, comment, user)
+
+
+@app.post("/api/v1/community/reactions", response_model=ReactionToggleResponse)
+def toggle_community_reaction(
+    request: ReactionToggleRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ReactionToggleResponse:
+    allowed = {"👍", "❤️", "😂", "😮", "😢", "👏", "🔥", "🌊"}
+    if request.emoji not in allowed:
+        raise HTTPException(status_code=400, detail="Unsupported reaction emoji")
+    target = db.get(CommunityPost if request.targetType == "post" else CommunityComment, request.targetId)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Reaction target not found")
+    existing = db.scalar(select(CommunityReaction).where(
+        CommunityReaction.user_id == user.id,
+        CommunityReaction.target_type == request.targetType,
+        CommunityReaction.target_id == request.targetId,
+        CommunityReaction.emoji == request.emoji,
+    ))
+    active = existing is None
+    if existing:
+        db.delete(existing)
+    else:
+        db.add(CommunityReaction(user_id=user.id, target_type=request.targetType, target_id=request.targetId, emoji=request.emoji))
+    db.commit()
+    return ReactionToggleResponse(active=active, reactions=reaction_summaries(db, request.targetType, request.targetId, user.id))
+
+
+@app.post("/api/v1/community/users/{target_user_id}/follow", response_model=FollowResponse)
+def toggle_follow(
+    target_user_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> FollowResponse:
+    if target_user_id == user.id:
+        raise HTTPException(status_code=400, detail="You cannot follow yourself")
+    target = db.get(User, target_user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    existing = db.scalar(select(Follow).where(Follow.follower_id == user.id, Follow.following_id == target_user_id))
+    following = existing is None
+    if existing:
+        db.delete(existing)
+    else:
+        db.add(Follow(follower_id=user.id, following_id=target_user_id))
+    db.commit()
+    return FollowResponse(
+        following=following,
+        followerCount=count_followers(db, target_user_id),
+        followingCount=count_following(db, user.id),
+    )
 
 
 @app.get("/api/v1/sync", response_model=CloudStateResponse)
@@ -707,11 +922,88 @@ def quiz_to_schema(item: QuizBankItem) -> AdminQuizItem:
     )
 
 
-def auth_response(user: User) -> AuthResponse:
+def auth_response(user: User, db: Session) -> AuthResponse:
+    nickname = user.nickname or user.display_name or user.email.split("@")[0]
     return AuthResponse(
         accessToken=create_access_token(user),
         email=user.email,
         displayName=user.display_name,
+        nickname=nickname,
+        profileImageUrl=user.profile_image_url or "",
+        followerCount=count_followers(db, user.id),
+        followingCount=count_following(db, user.id),
+    )
+
+
+def normalize_nickname(value: str) -> str:
+    nickname = value.strip()
+    if not 2 <= len(nickname) <= 20:
+        raise HTTPException(status_code=422, detail="Nickname must be 2-20 characters")
+    if not all(ch.isalnum() or ch in "_.-" for ch in nickname):
+        raise HTTPException(status_code=422, detail="Nickname contains unsupported characters")
+    return nickname
+
+
+def count_followers(db: Session, user_id: str) -> int:
+    return len(list(db.scalars(select(Follow.id).where(Follow.following_id == user_id))))
+
+
+def count_following(db: Session, user_id: str) -> int:
+    return len(list(db.scalars(select(Follow.id).where(Follow.follower_id == user_id))))
+
+
+def profile_summary(db: Session, target: User, viewer: User) -> ProfileSummary:
+    snapshot = target.profile.snapshot if target.profile else {}
+    followed = db.scalar(select(Follow.id).where(Follow.follower_id == viewer.id, Follow.following_id == target.id)) is not None
+    return ProfileSummary(
+        userId=target.id,
+        nickname=target.nickname or target.display_name or target.email.split("@")[0],
+        profileImageUrl=target.profile_image_url or "",
+        tier=str(snapshot.get("tier", "브론즈")),
+        followerCount=count_followers(db, target.id),
+        followingCount=count_following(db, target.id),
+        isFollowing=followed,
+    )
+
+
+def reaction_summaries(db: Session, target_type: str, target_id: str, viewer_id: str) -> list[ReactionSummary]:
+    rows = list(db.scalars(select(CommunityReaction).where(
+        CommunityReaction.target_type == target_type,
+        CommunityReaction.target_id == target_id,
+    )))
+    counts: Counter[str] = Counter(item.emoji for item in rows)
+    mine = {item.emoji for item in rows if item.user_id == viewer_id}
+    order = ["👍", "❤️", "😂", "😮", "😢", "👏", "🔥", "🌊"]
+    return [ReactionSummary(emoji=emoji, count=counts[emoji], reactedByMe=emoji in mine) for emoji in order if counts[emoji]]
+
+
+def community_comment_schema(db: Session, comment: CommunityComment, viewer: User) -> CommunityCommentItem:
+    author = db.get(User, comment.user_id)
+    return CommunityCommentItem(
+        id=comment.id,
+        postId=comment.post_id,
+        parentId=comment.parent_id,
+        author=profile_summary(db, author, viewer),
+        body=comment.body,
+        createdAt=comment.created_at,
+        reactions=reaction_summaries(db, "comment", comment.id, viewer.id),
+    )
+
+
+def community_post_schema(db: Session, post: CommunityPost, viewer: User) -> CommunityPostItem:
+    author = db.get(User, post.user_id)
+    comments = list(db.scalars(
+        select(CommunityComment).where(CommunityComment.post_id == post.id).order_by(CommunityComment.created_at)
+    ))
+    return CommunityPostItem(
+        id=post.id,
+        category=post.category,
+        author=profile_summary(db, author, viewer),
+        title=post.title,
+        body=post.body,
+        createdAt=post.created_at,
+        reactions=reaction_summaries(db, "post", post.id, viewer.id),
+        comments=[community_comment_schema(db, item, viewer) for item in comments],
     )
 
 
@@ -762,8 +1054,14 @@ def bootstrap_admin(db: Session) -> None:
     email = settings.admin_email.lower().strip()
     user = db.scalar(select(User).where(User.email == email))
     if user:
+        changed = False
         if user.role != "super_admin":
             user.role = "super_admin"
+            changed = True
+        if not user.nickname:
+            user.nickname = "BluePathAdmin"
+            changed = True
+        if changed:
             db.commit()
         return
     db.add(
@@ -771,6 +1069,7 @@ def bootstrap_admin(db: Session) -> None:
             email=email,
             password_hash=hash_password(settings.admin_password),
             display_name="BluePath Admin",
+            nickname="BluePathAdmin",
             role="super_admin",
         )
     )
