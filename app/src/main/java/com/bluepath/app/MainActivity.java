@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         View lowerSpace = new View(this);
         root.addView(lowerSpace, new LinearLayout.LayoutParams(1, 0, 1f));
 
-        Button start = authPrimaryButton(store.hasCloudSession() ? "내 항로로 계속하기  →" : "시작하기  →");
+        Button start = authPrimaryButton(store.hasCloudSession() ? "내 계정으로 계속하기  →" : "시작하기  →");
         start.setOnClickListener(v -> {
             if (store.hasCloudSession() && store.hasProfile()) showApp(0); else showLoginScreen();
         });
@@ -539,18 +539,13 @@ public class MainActivity extends AppCompatActivity {
         sideHead.addView(close, new LinearLayout.LayoutParams(dp(44), dp(40)));
         sidebar.addView(sideHead);
 
-        LinearLayout account = card();
-        account.addView(label("SIGNED IN"));
-        account.addView(big(store.getAccountDisplayName()));
-        account.addView(body(store.getAccountEmail()));
-        sidebar.addView(account);
 
         addNavButton("⌂  홈", 0);
         addNavButton("▶  학습", 1);
         addNavButton("✓  퀴즈", 2);
         addNavButton("◷  일정", 3);
         addNavButton("⌁  진로", 4);
-        addNavButton("✦  AI Agent", 5);
+        addNavButton("✦  AI 상담", 5);
         addNavButton("●  MY", 6);
 
         View sideSpacer = new View(this);
@@ -701,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
 
         addSkillSummaryCard();
 
-        content.addView(sectionTitle("AI 추천 항로"));
+        content.addView(sectionTitle("AI 추천 교육 자료"));
         List<ContentItem> items = RecommendationEngine.recommendedContents(p, tier, store);
         for (int i = 0; i < Math.min(3, items.size()); i++) addContentCard(items.get(i), true);
 
@@ -720,7 +715,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<String> insights = DataRepository.surveyInsights();
         if (!insights.isEmpty()) {
-            content.addView(sectionTitle("관람객 데이터가 말하는 설계 근거"));
+            content.addView(sectionTitle("관람객 데이터 기반 추천 근거"));
             LinearLayout insightCard = card();
             insightCard.addView(big("실제 관람객 " + DataRepository.surveySampleSize() + "명 응답 분석"));
             for (int i = 0; i < Math.min(4, insights.size()); i++) insightCard.addView(body("• " + insights.get(i)));
@@ -1006,7 +1001,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderAgent() {
-        addTabIntro("✦", "SOURCED MARINE AI", "AI · 근거 기반 상담", "학습·승급·일정·진로 질문을 해양 특화 데이터와 출처를 바탕으로 상담하고, 연결 실패 시 검증된 로컬 안내로 전환합니다.");
+        addTabIntro("✦", "SOURCED MARINE AI", "AI 상담", "학습·승급·일정·진로와 관련된 다양한 질문에 답변합니다.");
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         content.addView(sectionTitle("BluePath Marine AI Agent"));
