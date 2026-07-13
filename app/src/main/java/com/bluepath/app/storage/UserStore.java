@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -243,7 +244,7 @@ public class UserStore {
     }
 
     public void saveCloudSession(String email, String displayName, String nickname, String profileImageUrl,
-                                 int followerCount, int followingCount, String accessToken) {
+                                 int followerCount, int followingCount, String joinedAt, String accessToken) {
         secureTokenStore.put(accessToken == null ? "" : accessToken);
         prefs.edit()
                 .putString("accountEmail", email == null ? "" : email)
@@ -252,6 +253,7 @@ public class UserStore {
                 .putString("profileImageUrl", profileImageUrl == null ? "" : profileImageUrl)
                 .putInt("followerCount", Math.max(0, followerCount))
                 .putInt("followingCount", Math.max(0, followingCount))
+                .putString("accountJoinedAt", normalizedJoinedAt(joinedAt))
                 .apply();
     }
 
@@ -310,6 +312,9 @@ public class UserStore {
             editor.putString("profileImageUrl", response.profile.profileImageUrl == null ? "" : response.profile.profileImageUrl)
                     .putInt("followerCount", Math.max(0, response.profile.followerCount))
                     .putInt("followingCount", Math.max(0, response.profile.followingCount));
+            if (response.profile.joinedAt != null && !response.profile.joinedAt.trim().isEmpty()) {
+                editor.putString("accountJoinedAt", response.profile.joinedAt.trim());
+            }
         }
         if (response.activity != null) {
             JSONObject json = new JSONObject();
@@ -352,6 +357,34 @@ public class UserStore {
         }
     }
 
+
+    public int getAccountJoinedYear() {
+        int currentYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
+        int joinedYear = parseYear(prefs.getString("accountJoinedAt", ""), currentYear);
+        for (String day : getActivityCounts().keySet()) {
+            int activityYear = parseYear(day, currentYear);
+            if (activityYear >= 2000 && activityYear < joinedYear) joinedYear = activityYear;
+        }
+        return Math.max(2000, Math.min(currentYear, joinedYear));
+    }
+
+    private String normalizedJoinedAt(String joinedAt) {
+        if (joinedAt != null && !joinedAt.trim().isEmpty()) return joinedAt.trim();
+        String existing = prefs.getString("accountJoinedAt", "");
+        if (existing != null && !existing.trim().isEmpty()) return existing.trim();
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA).format(new Date());
+    }
+
+    private int parseYear(String value, int fallback) {
+        if (value == null || value.length() < 4) return fallback;
+        try {
+            int parsed = Integer.parseInt(value.substring(0, 4));
+            return parsed >= 2000 && parsed <= fallback ? parsed : fallback;
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
+    }
+
     public String getAccessToken() {
         return secureTokenStore.get();
     }
@@ -365,6 +398,7 @@ public class UserStore {
                 .remove("profileImageUrl")
                 .remove("followerCount")
                 .remove("followingCount")
+                .remove("accountJoinedAt")
                 .remove("serverActivity")
                 .apply();
     }

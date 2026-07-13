@@ -52,7 +52,7 @@ public class BluePathRepository {
                 new ApiModels.AuthRequest(email, password, guardianEmail, nickname)).execute();
         ApiModels.AuthResponse body = requireBody(response, "회원가입");
         store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
-                body.followerCount, body.followingCount, body.accessToken);
+                body.followerCount, body.followingCount, body.joinedAt, body.accessToken);
         syncNow();
         refreshCatalog();
     }
@@ -63,7 +63,7 @@ public class BluePathRepository {
                 new ApiModels.AuthRequest(email, password, "", null)).execute();
         ApiModels.AuthResponse body = requireBody(response, "로그인");
         store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
-                body.followerCount, body.followingCount, body.accessToken);
+                body.followerCount, body.followingCount, body.joinedAt, body.accessToken);
         ApiModels.CloudStateResponse cloud = pullCloudState();
         if (cloud.snapshot == null || cloud.snapshot.isEmpty()) syncNow();
         refreshCatalog();

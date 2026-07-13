@@ -33,6 +33,7 @@ class ProfileSummary(CamelModel):
     followerCount: int = 0
     followingCount: int = 0
     isFollowing: bool = False
+    joinedAt: datetime
 
 
 class ProfileImageResponse(CamelModel):
@@ -117,6 +118,7 @@ class AuthResponse(CamelModel):
     profileImageUrl: str = ""
     followerCount: int = 0
     followingCount: int = 0
+    joinedAt: datetime
 
 
 class SourceItem(CamelModel):

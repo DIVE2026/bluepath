@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentTab = 0;
     private String learningSubTab = "video";
     private String communityCategory = "free";
+    private int selectedActivityYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
     private boolean dashboardRefreshing = false;
     private long dashboardRefreshedAt = 0L;
     private boolean communityLoading = false;
@@ -785,12 +786,63 @@ public class MainActivity extends AppCompatActivity {
 
         content.addView(sectionTitle("나의 활동 잔디"));
         LinearLayout heatCard = card();
-        heatCard.addView(big("최근 1년 활동"));
-        heatCard.addView(body("영상·논문 열람과 커뮤니티 글·댓글 활동이 많을수록 해당 날짜의 하늘색이 진해집니다."));
+        int currentActivityYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
+        int joinedActivityYear = store.getAccountJoinedYear();
+        if (selectedActivityYear < joinedActivityYear || selectedActivityYear > currentActivityYear) {
+            selectedActivityYear = currentActivityYear;
+        }
+
+        TextView heatmapTitle = big(selectedActivityYear + "년 활동");
+        heatCard.addView(heatmapTitle);
+        heatCard.addView(body("영상·논문 열람과 커뮤니티 글·댓글 활동이 많을수록 해당 날짜의 하늘색이 진해집니다. 월별 구획은 좌우로 밀어서 확인할 수 있습니다."));
+
         ActivityHeatmapView heatmap = new ActivityHeatmapView(this);
+        heatmap.setYear(selectedActivityYear);
         heatmap.setActivity(store.getActivityCounts());
-        heatCard.addView(heatmap, new LinearLayout.LayoutParams(-1, dp(150)));
+        HorizontalScrollView heatmapScroll = new HorizontalScrollView(this);
+        heatmapScroll.setHorizontalScrollBarEnabled(true);
+        heatmapScroll.setFillViewport(false);
+        heatmapScroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        heatmapScroll.addView(heatmap, new FrameLayout.LayoutParams(-2, -2));
+        heatCard.addView(heatmapScroll, new LinearLayout.LayoutParams(-1, dp(188)));
         heatCard.addView(label("적음  ▫  ▪  ▪  ▪  ■  많음"));
+        heatCard.addView(label("연도별 보기 · 가입 연도부터"));
+
+        HorizontalScrollView yearScroll = new HorizontalScrollView(this);
+        yearScroll.setHorizontalScrollBarEnabled(false);
+        yearScroll.setFillViewport(false);
+        LinearLayout yearRow = new LinearLayout(this);
+        yearRow.setOrientation(LinearLayout.HORIZONTAL);
+        yearRow.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        for (int year = joinedActivityYear; year <= currentActivityYear; year++) {
+            final int targetYear = year;
+            Button yearButton = outlineButton(String.valueOf(year));
+            yearButton.setTag(year);
+            styleActivityYearButton(yearButton, year == selectedActivityYear);
+            yearButton.setOnClickListener(v -> {
+                selectedActivityYear = targetYear;
+                heatmapTitle.setText(targetYear + "년 활동");
+                heatmap.setYear(targetYear);
+                for (int i = 0; i < yearRow.getChildCount(); i++) {
+                    View child = yearRow.getChildAt(i);
+                    if (child instanceof Button && child.getTag() instanceof Integer) {
+                        styleActivityYearButton((Button) child, ((Integer) child.getTag()) == targetYear);
+                    }
+                }
+                heatmapScroll.post(() -> {
+                    if (targetYear == currentActivityYear) heatmapScroll.fullScroll(View.FOCUS_RIGHT);
+                    else heatmapScroll.scrollTo(0, 0);
+                });
+            });
+            LinearLayout.LayoutParams yearParams = new LinearLayout.LayoutParams(dp(82), dp(40));
+            yearParams.setMargins(0, dp(4), dp(8), dp(2));
+            yearRow.addView(yearButton, yearParams);
+        }
+        yearScroll.addView(yearRow, new FrameLayout.LayoutParams(-2, -2));
+        heatCard.addView(yearScroll, new LinearLayout.LayoutParams(-1, dp(48)));
+        heatmapScroll.post(() -> {
+            if (selectedActivityYear == currentActivityYear) heatmapScroll.fullScroll(View.FOCUS_RIGHT);
+        });
         content.addView(heatCard);
 
         LinearLayout stats = row();
@@ -1477,7 +1529,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderMyPage() {
-        addTabIntro("●", "MY OCEAN PASSPORT", "MY · 나의 해양 여권", "닉네임, 프로필 사진, 하나로 통합된 티어, 학습 증거와 계정 설정을 관리합니다.");
+        addTabIntro("●", "MY OCEAN PAGE", "MY · 나의 해양 여권", "닉네임, 프로필 사진, 하나로 통합된 티어, 학습 증거와 계정 설정을 관리합니다.");
         UserProfile p = store.getProfile();
         String tier = store.getTier();
 
@@ -2431,6 +2483,13 @@ public class MainActivity extends AppCompatActivity {
         b.setMinimumHeight(0);
         return b;
     }
+
+    private void styleActivityYearButton(Button button, boolean selected) {
+        button.setTextColor(selected ? Color.WHITE : NAVY);
+        button.setTypeface(Typeface.DEFAULT, selected ? Typeface.BOLD : Typeface.NORMAL);
+        button.setBackgroundResource(selected ? R.drawable.bg_primary_button : R.drawable.bg_secondary_button);
+    }
+
 
     private void maybeRefreshDashboard() {
         if (dashboardRefreshing || !cloudRepository.isCloudConfigured()) return;

@@ -932,6 +932,7 @@ def auth_response(user: User, db: Session) -> AuthResponse:
         profileImageUrl=user.profile_image_url or "",
         followerCount=count_followers(db, user.id),
         followingCount=count_following(db, user.id),
+        joinedAt=user.created_at,
     )
 
 
@@ -963,6 +964,7 @@ def profile_summary(db: Session, target: User, viewer: User) -> ProfileSummary:
         followerCount=count_followers(db, target.id),
         followingCount=count_following(db, target.id),
         isFollowing=followed,
+        joinedAt=target.created_at,
     )
 
 

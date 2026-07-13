@@ -41,6 +41,7 @@ public final class ApiModels {
         public String profileImageUrl;
         public int followerCount;
         public int followingCount;
+        public String joinedAt;
     }
 
     public static class NicknameAvailability {
@@ -57,6 +58,7 @@ public final class ApiModels {
         public int followerCount;
         public int followingCount;
         public boolean isFollowing;
+        public String joinedAt;
     }
 
     public static class DashboardResponse {
