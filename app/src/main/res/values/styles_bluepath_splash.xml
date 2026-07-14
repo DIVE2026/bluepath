@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Theme.BluePath가 프로젝트의 실제 앱 테마 이름과 다르면
+        parent 값을 기존 테마 이름으로 바꾸세요.
+    -->
+    <style name="Theme.BluePath.Splash" parent="AppTheme">
+        <!-- Android 11 이하에서 Activity가 그려지기 전 표시되는 시작 창 -->
+        <item name="android:windowBackground">@drawable/launch_screen_bluepath</item>
+        <item name="android:windowDisablePreview">false</item>
+        <item name="android:statusBarColor">#073642</item>
+        <item name="android:navigationBarColor">#03262F</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

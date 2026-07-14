@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12 이상 시스템 SplashScreen -->
+    <style name="Theme.BluePath.Splash" parent="AppTheme">
+        <item name="android:windowSplashScreenBackground">#062D38</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_bluepath_wave_splash</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimationDuration">250</item>
+
+        <!-- 앱 콘텐츠가 뜨는 순간에도 색이 튀지 않도록 동일 계열 유지 -->
+        <item name="android:windowBackground">@drawable/launch_screen_bluepath</item>
+        <item name="android:statusBarColor">#073642</item>
+        <item name="android:navigationBarColor">#03262F</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

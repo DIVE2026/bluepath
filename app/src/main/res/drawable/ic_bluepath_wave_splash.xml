@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 시작 화면의 ∿ 문양을 스플래시 화면에서도 사용할 수 있도록 벡터로 표현 -->
+    <path
+        android:pathData="M16,54 C24,34 36,34 44,54 C52,74 64,74 72,54 C80,34 92,34 100,54"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
