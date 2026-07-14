@@ -68,6 +68,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String WAVE_MARK = "∿";
+
     private final int NAVY = Color.parseColor("#06223F");
     private final int OCEAN = Color.parseColor("#0E7490");
     private final int CYAN = Color.parseColor("#18D6D2");
@@ -250,13 +252,11 @@ public class MainActivity extends AppCompatActivity {
         View upperSpace = new View(this);
         root.addView(upperSpace, new LinearLayout.LayoutParams(1, 0, 0.65f));
 
-        TextView waveMark = new TextView(this);
-        waveMark.setText("∿");
-        waveMark.setTextColor(Color.WHITE);
-        waveMark.setTextSize(98);
-        waveMark.setTypeface(Typeface.DEFAULT_BOLD);
-        waveMark.setGravity(Gravity.CENTER);
-        waveMark.setIncludeFontPadding(false);
+        TextView waveMark = createWaveMark(
+                98,
+                Color.WHITE,
+                Gravity.CENTER
+        );
         root.addView(waveMark, new LinearLayout.LayoutParams(-1, dp(112)));
 
         TextView brand = new TextView(this);
@@ -636,12 +636,33 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout brand = new LinearLayout(this);
         brand.setOrientation(LinearLayout.VERTICAL);
         brand.setPadding(dp(12), 0, 0, 0);
+
+        LinearLayout brandTitle = row();
+        brandTitle.setGravity(
+                Gravity.START | Gravity.CENTER_VERTICAL
+        );
+
+        TextView headerWave = createWaveMark(
+                30,
+                Color.WHITE,
+                Gravity.CENTER
+        );
+        brandTitle.addView(
+                headerWave,
+                new LinearLayout.LayoutParams(dp(36), dp(34))
+        );
+
         TextView h = new TextView(this);
-        h.setText("⚓ BluePath");
+        h.setText("BluePath");
         h.setTextColor(Color.WHITE);
         h.setTextSize(22);
         h.setTypeface(Typeface.DEFAULT_BOLD);
-        brand.addView(h);
+        h.setPadding(dp(4), 0, 0, 0);
+        brandTitle.addView(
+                h,
+                new LinearLayout.LayoutParams(-2, -2)
+        );
+        brand.addView(brandTitle);
         TextView sub = new TextView(this);
         sub.setText(tabTitle(tab) + " · 데이터 기반 해양 항로");
         sub.setTextColor(Color.parseColor("#C9FFFF"));
@@ -2429,12 +2450,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private TextView authWaveMark() {
+        return createWaveMark(
+                72,
+                Color.WHITE,
+                Gravity.CENTER
+        );
+    }
+
+    private TextView createWaveMark(
+            float textSizeSp,
+            int color,
+            int gravity
+    ) {
         TextView mark = new TextView(this);
-        mark.setText("∿");
-        mark.setTextColor(Color.WHITE);
-        mark.setTextSize(72);
+        mark.setText(WAVE_MARK);
+        mark.setTextColor(color);
+        mark.setTextSize(textSizeSp);
         mark.setTypeface(Typeface.DEFAULT_BOLD);
-        mark.setGravity(Gravity.CENTER);
+        mark.setGravity(gravity);
         mark.setIncludeFontPadding(false);
         return mark;
     }
