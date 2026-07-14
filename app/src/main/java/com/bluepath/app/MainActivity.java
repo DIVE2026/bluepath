@@ -900,7 +900,6 @@ public class MainActivity extends AppCompatActivity {
         heatmapScroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
         heatmapScroll.addView(heatmap, new FrameLayout.LayoutParams(-2, -2));
         heatCard.addView(heatmapScroll, new LinearLayout.LayoutParams(-1, dp(188)));
-        heatCard.addView(label("적음  ▫  ▪  ▪  ▪  ■  많음"));
         heatCard.addView(label("연도별 보기 · 가입 연도부터"));
 
         HorizontalScrollView yearScroll = new HorizontalScrollView(this);
