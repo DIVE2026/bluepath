@@ -1759,7 +1759,7 @@ public class MainActivity extends AppCompatActivity {
         report.addView(manual);
         content.addView(report);
 
-        content.addView(sectionTitle("검증된 학습 기록"));
+        content.addView(sectionTitle("학습 기록"));
         addIdListCard("완료한 영상", store.getCompletedContentIds());
         addIdListCard("찜한 항목", store.getBookmarks());
 
