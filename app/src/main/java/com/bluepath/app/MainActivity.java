@@ -973,7 +973,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderLearning() {
-        addTabIntro("", "LEARNING LIBRARY", "학습 자료 · 맞춤 콘텐츠", "자연어로 필요한 자료를 검색하고 영상과 논문을 구분해 탐색합니다.");
+        addTabIntro("", "LEARNING LIBRARY", "학습 자료 · 맞춤 콘텐츠", "필요한 자료를 검색하고 영상과 논문을 구분해 탐색합니다.");
         addAiSearchBox(learningSubTab, "예: 해양환경 입문자가 20분 안에 볼 만한 영상이나 논문 찾아줘", learningSearchLoading, learningSearchResponse);
 
         LinearLayout tabs = row();
@@ -1296,7 +1296,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderSchedule() {
-        addTabIntro("", "LIVE & ARCHIVE", "일정 · 교육 탐색", "자연어로 원하는 일정 조건을 입력하면 관련 교육·행사 자료를 우선 추려 보여줍니다.");
+        addTabIntro("", "LIVE & ARCHIVE", "일정 · 교육 탐색", "조건을 입력하면 관련 교육·행사 자료를 우선 추려 보여줍니다.");
         addAiSearchBox("schedule", "예: 부산에서 고등학생이 여름방학에 참여할 해양 안전 교육이 있을까?", scheduleSearchLoading, scheduleSearchResponse);
         if (scheduleSearchResponse != null && scheduleSearchResponse.items != null && !scheduleSearchResponse.items.isEmpty()) {
             content.addView(sectionTitle("AI 일정 검색 결과"));
@@ -2794,7 +2794,7 @@ public class MainActivity extends AppCompatActivity {
     private void requestAiSearch(String resourceType, String query) {
         String value = query == null ? "" : query.trim();
         if (value.isEmpty()) {
-            toast("찾고 싶은 자료를 자연어로 입력해 주세요.");
+            toast("찾고 싶은 자료를 입력해 주세요.");
             return;
         }
         boolean schedule = "schedule".equals(resourceType);
