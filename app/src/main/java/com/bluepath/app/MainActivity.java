@@ -1864,23 +1864,9 @@ public class MainActivity extends AppCompatActivity {
         }
         content.addView(diamondCard);
 
-        content.addView(sectionTitle("개인정보와 보호자 동의"));
-        LinearLayout privacyCard = card();
-        privacyCard.addView(big(store.requiresGuardianConsent()
-                ? (store.hasGuardianConsent() ? "🛡️ 보호자 동의 완료" : "🛡️ 보호자 동의 필요")
-                : "🛡️ 개인정보 보호"));
-        privacyCard.addView(body("BluePath는 로그인 계정으로 프로필과 학습 증거를 동기화하며, 인증 토큰은 Android Keystore 기반 저장소로 보호합니다."));
-        if (store.requiresGuardianConsent()) {
-            Button consent = outlineButton(store.hasGuardianConsent() ? "보호자 동의 정보 확인" : "보호자 동의 진행");
-            consent.setOnClickListener(v -> showGuardianConsentDialog(false));
-            privacyCard.addView(consent);
-        }
-        Button privacy = outlineButton("개인정보 안내 보기");
-        privacy.setOnClickListener(v -> showPrivacyNotice());
-        privacyCard.addView(privacy);
-        content.addView(privacyCard);
 
-        content.addView(sectionTitle("앱 관리"));
+
+        content.addView(sectionTitle("프로필 초기화"));
         LinearLayout account = card();
         account.addView(body("초기화하면 이 기기의 프로필, XP, 티어, 역량 증거, 퀴즈 결과와 찜 목록이 삭제되고 로그인 화면으로 돌아갑니다."));
         Button reset = outlineButton("프로필과 학습 기록 초기화");
