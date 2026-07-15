@@ -992,7 +992,6 @@ public class MainActivity extends AppCompatActivity {
         if ("paper".equals(learningSubTab)) {
             LinearLayout empty = card();
             empty.addView(big("논문 자료 준비 중"));
-            empty.addView(body("논문 하위 탭은 먼저 생성해 두었습니다. 검증된 논문 데이터가 등록되면 자연어 검색 결과와 함께 표시됩니다."));
             content.addView(empty);
             return;
         }
