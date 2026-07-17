@@ -1004,14 +1004,6 @@ public class MainActivity extends AppCompatActivity {
         List<ContentItem> items = RecommendationEngine.recommendedContents(p, tier, store);
         for (int i = 0; i < Math.min(3, items.size()); i++) addContentCard(items.get(i), true);
 
-        content.addView(sectionTitle("승급 체크포인트"));
-        LinearLayout ruleCard = card();
-        ruleCard.addView(big(plainTierCopy(PromotionRules.quizRule(tier))));
-        ruleCard.addView(body("티어는 하나만 표시되며 학습 XP, 퀴즈 성과와 인증 조건을 종합해 결정됩니다."));
-        Button goQuiz = primaryButton("승급 퀴즈로 이동");
-        goQuiz.setOnClickListener(v -> showApp(2));
-        ruleCard.addView(goQuiz, new LinearLayout.LayoutParams(-1, dp(46)));
-        content.addView(ruleCard);
 
         content.addView(sectionTitle("추천 교육 일정"));
         List<ProgramItem> programs = RecommendationEngine.recommendedPrograms(p, store);
