@@ -5,6 +5,7 @@
 
     <application android:theme="@style/AppTheme" android:label="BluePath" android:icon="@mipmap/ic_bluepath_wave" android:allowBackup="false" android:supportsRtl="true" android:roundIcon="@mipmap/ic_bluepath_wave_round">
 
+        <activity android:name=".CommunityPostActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true" android:theme="@style/Theme.BluePath.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
