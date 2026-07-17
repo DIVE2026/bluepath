@@ -10,6 +10,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.SystemClock;
 import android.provider.CalendarContract;
 import android.text.InputType;
 import android.view.Gravity;
@@ -69,6 +71,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private static final String WAVE_MARK = "∿";
+    private static final long QUIZ_TIME_LIMIT_MS = 30_000L;
 
     private final int NAVY = Color.parseColor("#06223F");
     private final int OCEAN = Color.parseColor("#0E7490");
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private BluePathViewModel viewModel;
     private BluePathRepository cloudRepository;
     private ActivityResultLauncher<String[]> profileImagePicker;
+    private ActivityResultLauncher<Intent> communityPostLauncher;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private LinearLayout root;
     private LinearLayout content;
@@ -113,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
     private String quizNotice = "";
     private int quizCorrect = 0;
     private int quizAwardedXp = 0;
+    private long quizDeadlineElapsedRealtime = 0L;
+    private CountDownTimer quizCountDownTimer;
+    private TextView quizTimerText;
+    private boolean quizTimedOut = false;
 
     private boolean agentLoading = false;
     private String agentLastAnswer = "질문을 입력하면 BluePath AI가 상세한 답변을 제공합니다. 온라인 정보를 활용한 답변에는 참고한 근거 자료도 함께 표시됩니다.";
@@ -203,6 +211,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
+        communityPostLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        communityPosts.clear();
+                        communityError = "";
+                        requestCommunityRefresh();
+                    }
+                });
         viewModel.operation().observe(this, state -> {
             if (state == null || "처리 중…".equals(state.message)) return;
             toast(state.message);
@@ -231,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        cancelQuizTimer();
         executor.shutdownNow();
         super.onDestroy();
     }
@@ -610,6 +628,8 @@ public class MainActivity extends AppCompatActivity {
             showOnboarding();
             return;
         }
+        cancelQuizTimer();
+        quizTimerText = null;
         currentTab = tab;
         applyAppWindow();
         appRoot = new FrameLayout(this);
@@ -1106,10 +1126,15 @@ public class MainActivity extends AppCompatActivity {
                 quizAttemptTier,
                 plainTierText(quizAttemptTier) + " 승급 세션",
                 activeQuiz.size() + "문제 · 합격선 " + PromotionRules.passCount(quizAttemptTier)
-                        + "문제 · 출제: " + quizSource,
+                        + "문제 · 제한 시간 30초 · 출제: " + quizSource,
                 dp(68),
                 dp(80)
         ));
+        if (!quizSubmitted) {
+            quizTimerText = note("남은 시간 00:30", OCEAN);
+            session.addView(quizTimerText);
+        }
+        if (quizTimedOut) session.addView(note("제한 시간이 종료되어 미응답 문항은 오답으로 자동 제출되었습니다.", DANGER));
         if (!quizNotice.isEmpty()) session.addView(note(quizNotice, MUTED));
         content.addView(session);
 
@@ -1123,6 +1148,7 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(54));
             lp.setMargins(0, dp(6), 0, dp(12));
             content.addView(submit, lp);
+            startOrResumeQuizTimer();
         } else {
             Button retry = primaryButton("현재 티어 새 퀴즈 생성");
             retry.setOnClickListener(v -> {
@@ -1170,10 +1196,14 @@ public class MainActivity extends AppCompatActivity {
                 Arrays.fill(selectedAnswers, -1);
                 quizSource = finalSource;
                 quizNotice = finalNotice;
+                quizTimedOut = false;
                 if (activeQuiz.size() != PromotionRules.questionCount(tier)) {
                     activeQuiz.clear();
                     selectedAnswers = new int[0];
+                    quizDeadlineElapsedRealtime = 0L;
                     quizNotice = "필요한 문제 수를 충족하지 못해 세션을 시작하지 않았습니다. 다시 생성해 주세요.";
+                } else {
+                    quizDeadlineElapsedRealtime = SystemClock.elapsedRealtime() + QUIZ_TIME_LIMIT_MS;
                 }
                 showApp(2);
             });
@@ -1205,7 +1235,10 @@ public class MainActivity extends AppCompatActivity {
         if (quizSubmitted) {
             boolean correct = selectedAnswers[questionIndex] == q.answerIndex;
             card.addView(note(correct ? "정답" : "오답", correct ? SUCCESS : DANGER));
-            card.addView(body("내 답: " + q.options[selectedAnswers[questionIndex]]));
+            int selectedAnswer = selectedAnswers[questionIndex];
+            card.addView(body(selectedAnswer < 0
+                    ? "내 답: 미응답"
+                    : "내 답: " + q.options[selectedAnswer]));
             card.addView(body("정답: " + (q.answerIndex + 1) + ". " + q.options[q.answerIndex]));
             card.addView(body("해설: " + q.explanation));
         }
@@ -1213,17 +1246,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void submitQuiz() {
+        submitQuiz(false);
+    }
+
+    private void submitQuiz(boolean timedOut) {
+        if (quizSubmitted) return;
         if (activeQuiz.isEmpty() || selectedAnswers.length != activeQuiz.size()) {
             toast("퀴즈를 다시 생성해 주세요.");
             return;
         }
-        for (int i = 0; i < selectedAnswers.length; i++) {
-            if (selectedAnswers[i] < 0) {
-                toast((i + 1) + "번 문제의 답을 선택해 주세요. 모든 문항을 답한 뒤 채점합니다.");
-                return;
+        if (!timedOut) {
+            for (int i = 0; i < selectedAnswers.length; i++) {
+                if (selectedAnswers[i] < 0) {
+                    toast((i + 1) + "번 문제의 답을 선택해 주세요. 모든 문항을 답한 뒤 채점합니다.");
+                    return;
+                }
             }
         }
 
+        cancelQuizTimer();
         int correct = 0;
         for (int i = 0; i < activeQuiz.size(); i++) {
             boolean isCorrect = selectedAnswers[i] == activeQuiz.get(i).answerIndex;
@@ -1240,6 +1281,8 @@ public class MainActivity extends AppCompatActivity {
         if (quizAwardedXp > 0) store.addXp(quizAwardedXp);
         if (passed) store.promoteByQuiz(quizAttemptTier);
         quizSubmitted = true;
+        quizTimedOut = timedOut;
+        quizDeadlineElapsedRealtime = 0L;
         String promotedTier = store.getTier();
         showApp(2);
         if (PromotionRules.rank(promotedTier) > PromotionRules.rank(previousTier)) {
@@ -1292,6 +1335,45 @@ public class MainActivity extends AppCompatActivity {
         quizNotice = "";
         quizCorrect = 0;
         quizAwardedXp = 0;
+        quizTimedOut = false;
+        quizDeadlineElapsedRealtime = 0L;
+        cancelQuizTimer();
+    }
+
+    private void startOrResumeQuizTimer() {
+        if (quizSubmitted || activeQuiz.isEmpty() || quizDeadlineElapsedRealtime <= 0L) return;
+        long remaining = quizDeadlineElapsedRealtime - SystemClock.elapsedRealtime();
+        if (remaining <= 0L) {
+            submitQuiz(true);
+            return;
+        }
+        updateQuizTimerText(remaining);
+        quizCountDownTimer = new CountDownTimer(remaining, 250L) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                updateQuizTimerText(millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                updateQuizTimerText(0L);
+                submitQuiz(true);
+            }
+        }.start();
+    }
+
+    private void updateQuizTimerText(long remainingMillis) {
+        if (quizTimerText == null) return;
+        long seconds = Math.max(0L, (remainingMillis + 999L) / 1_000L);
+        quizTimerText.setText(String.format(Locale.KOREA, "남은 시간 00:%02d", seconds));
+        quizTimerText.setTextColor(seconds <= 10L ? DANGER : OCEAN);
+    }
+
+    private void cancelQuizTimer() {
+        if (quizCountDownTimer != null) {
+            quizCountDownTimer.cancel();
+            quizCountDownTimer = null;
+        }
     }
 
     private void renderSchedule() {
@@ -1443,7 +1525,7 @@ public class MainActivity extends AppCompatActivity {
         label.setPadding(dp(10), 0, 0, 0);
         writeFab.addView(label, new LinearLayout.LayoutParams(-2, -1));
 
-        writeFab.setOnClickListener(v -> showCommunityPostDialog());
+        writeFab.setOnClickListener(v -> openCommunityPostScreen());
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 dp(132), dp(58), Gravity.END | Gravity.BOTTOM);
@@ -1509,49 +1591,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void showCommunityPostDialog() {
-        LinearLayout form = new LinearLayout(this);
-        form.setOrientation(LinearLayout.VERTICAL);
-        form.setPadding(dp(18), dp(8), dp(18), 0);
-        EditText title = inputField("제목", "");
-        EditText bodyInput = inputField("내용", "");
-        bodyInput.setSingleLine(false);
-        bodyInput.setMinLines(5);
-        form.addView(title);
-        form.addView(bodyInput);
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("free".equals(communityCategory) ? "자유 게시판 글쓰기" : "질문 게시판 글쓰기")
-                .setView(form)
-                .setNegativeButton("취소", null)
-                .setPositiveButton("등록", null)
-                .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String titleValue = title.getText().toString().trim();
-            String bodyValue = bodyInput.getText().toString().trim();
-            if (titleValue.length() < 2 || bodyValue.length() < 2) {
-                toast("제목과 내용을 2자 이상 입력해 주세요.");
-                return;
-            }
-            dialog.dismiss();
-            communityLoading = true;
-            showApp(5);
-            executor.execute(() -> {
-                try {
-                    cloudRepository.createCommunityPost(communityCategory, titleValue, bodyValue);
-                    runOnUiThread(() -> {
-                        communityLoading = false;
-                        requestCommunityRefresh();
-                    });
-                } catch (Exception e) {
-                    runOnUiThread(() -> {
-                        communityLoading = false;
-                        communityError = "글 작성 실패: " + safeMessage(e);
-                        showApp(5);
-                    });
-                }
-            });
-        }));
-        dialog.show();
+    private void openCommunityPostScreen() {
+        Intent intent = new Intent(this, CommunityPostActivity.class);
+        intent.putExtra(CommunityPostActivity.EXTRA_CATEGORY, communityCategory);
+        communityPostLauncher.launch(intent);
     }
 
     private void addCommunityPostCard(ApiModels.CommunityPostDto post) {
