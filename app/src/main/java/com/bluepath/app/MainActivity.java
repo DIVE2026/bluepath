@@ -698,6 +698,11 @@ public class MainActivity extends AppCompatActivity {
         header.addView(headerRow);
         main.addView(header);
 
+        if (tab == 2 && !quizSubmitted && !activeQuiz.isEmpty()
+                && quizDeadlineElapsedRealtime > 0L) {
+            addPinnedQuizTimer(main);
+        }
+
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         // 커뮤니티에서는 우측 하단 글쓰기 버튼과 게시글이 겹치지 않도록 여백을 확보합니다.
@@ -757,6 +762,36 @@ public class MainActivity extends AppCompatActivity {
         sidebar.addView(sideNote);
 
         renderTab(tab);
+    }
+
+    private void addPinnedQuizTimer(LinearLayout main) {
+        LinearLayout timerBar = row();
+        timerBar.setGravity(Gravity.CENTER_VERTICAL);
+        timerBar.setPadding(dp(18), dp(10), dp(18), dp(10));
+        timerBar.setElevation(dp(6));
+
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#E8FBFC"));
+        background.setStroke(dp(1), Color.parseColor("#8DE4E1"));
+        timerBar.setBackground(background);
+
+        TextView label = new TextView(this);
+        label.setText("퀴즈 제한 시간");
+        label.setTextColor(NAVY);
+        label.setTextSize(14);
+        label.setTypeface(Typeface.DEFAULT_BOLD);
+        timerBar.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
+
+        quizTimerText = new TextView(this);
+        quizTimerText.setTextColor(OCEAN);
+        quizTimerText.setTextSize(26);
+        quizTimerText.setTypeface(Typeface.DEFAULT_BOLD);
+        quizTimerText.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        timerBar.addView(quizTimerText, new LinearLayout.LayoutParams(-2, -1));
+
+        long remaining = Math.max(0L, quizDeadlineElapsedRealtime - SystemClock.elapsedRealtime());
+        updateQuizTimerText(remaining);
+        main.addView(timerBar, new LinearLayout.LayoutParams(-1, dp(68)));
     }
 
     private String tabTitle(int tab) {
@@ -1130,10 +1165,6 @@ public class MainActivity extends AppCompatActivity {
                 dp(68),
                 dp(80)
         ));
-        if (!quizSubmitted) {
-            quizTimerText = note("남은 시간 00:30", OCEAN);
-            session.addView(quizTimerText);
-        }
         if (quizTimedOut) session.addView(note("제한 시간이 종료되어 미응답 문항은 오답으로 자동 제출되었습니다.", DANGER));
         if (!quizNotice.isEmpty()) session.addView(note(quizNotice, MUTED));
         content.addView(session);
