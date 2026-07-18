@@ -103,4 +103,41 @@ public interface BluePathApi {
 
     @GET("api/v1/diamond/status")
     Call<ApiModels.DiamondStatus> diamondStatus(@Header("Authorization") String authorization);
+
+    @POST("api/v1/routes/plan")
+    Call<ApiModels.RoutePlanResponse> planRoute(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RoutePlanRequest request
+    );
+
+    @POST("api/v1/routes/simulate")
+    Call<ApiModels.RouteSimulationResponse> simulateRoute(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RouteSimulationRequest request
+    );
+
+    @POST("api/v1/routes/reroute")
+    Call<ApiModels.RoutePlanResponse> reroute(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RouteRerouteRequest request
+    );
+
+    @POST("api/v1/routes/outcomes")
+    Call<ApiModels.GenericResponse> routeOutcome(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RouteOutcomeRequest request
+    );
+
+    @POST("api/v1/missions/generate")
+    Call<ApiModels.FamilyMissionResponse> generateMission(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.MissionGenerateRequest request
+    );
+
+    @POST("api/v1/missions/verify")
+    Call<ApiModels.MissionVerifyResponse> verifyMission(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.MissionVerifyRequest request
+    );
+
 }
