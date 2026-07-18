@@ -1041,7 +1041,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addVoyageTwinSection(UserProfile profile) {
-        content.addView(sectionTitle("BLUEPATH VOYAGE TWIN · 나의 해양인재 항로"));
+        content.addView(sectionTitle("PERSONAL OCEAN CAREER ROUTE · 나의 해양인재 항로"));
         LinearLayout voyage = card();
         voyage.addView(label("AI SMART NAUTICAL CHART"));
         voyage.addView(big("목표 직무와 현재 실력, 활동 기록에 맞춰 AI가 학습·체험·퀴즈 순서를 만들고 새롭게 갱신해볼 수 있습니다."));
