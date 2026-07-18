@@ -22,7 +22,21 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import CommunityComment, CommunityPost, CommunityReaction, Content, DiamondEvidence, Follow, LearningRecord, PasswordResetToken, QuizBankItem, Reminder, User, UserProfile
+from .models import (
+    CommunityComment,
+    CommunityPost,
+    CommunityReaction,
+    Content,
+    DiamondEvidence,
+    Follow,
+    LearningRecord,
+    PasswordResetToken,
+    QuizBankItem,
+    Reminder,
+    RoutePlan,
+    User,
+    UserProfile,
+)
 from .schemas import (
     AdminContentItem,
     AdminQuizItem,
@@ -58,6 +72,18 @@ from .schemas import (
     SyncRequest,
     SyncResponse,
     YouTubeSyncRequest,
+    FamilyMissionResponse,
+    MissionGenerateRequest,
+    MissionVerifyRequest,
+    MissionVerifyResponse,
+    ProgramDraftRequest,
+    ProgramDraftResponse,
+    RouteOutcomeEventRequest,
+    RoutePlanRequest,
+    RoutePlanResponse,
+    RouteRerouteRequest,
+    RouteSimulationRequest,
+    RouteSimulationResponse,
 )
 from .security import create_access_token, get_current_user, hash_password, require_admin, verify_password
 from .services import (
@@ -72,6 +98,15 @@ from .services import (
     search_resources,
     seed_quizzes,
     sync_youtube,
+)
+from .voyage import (
+    create_route_plan,
+    generate_family_mission,
+    generate_program_draft,
+    outcome_analytics,
+    record_route_outcome,
+    simulate_route_node,
+    verify_family_mission,
 )
 
 settings = get_settings()
@@ -138,7 +173,7 @@ async def lifespan(_: FastAPI):
             pass
 
 
-app = FastAPI(title=settings.app_name, version="1.3.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="1.4.0", lifespan=lifespan)
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 app.add_middleware(
     CORSMiddleware,
@@ -295,6 +330,108 @@ def ai_search(
     _: User = Depends(get_current_user),
 ) -> AiSearchResponse:
     return search_resources(db, request)
+
+
+@app.post("/api/v1/routes/plan", response_model=RoutePlanResponse)
+def plan_route(
+    request: RoutePlanRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse:
+    return create_route_plan(db, user, request)
+
+
+@app.post("/api/v1/routes/simulate", response_model=RouteSimulationResponse)
+def simulate_route(
+    request: RouteSimulationRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RouteSimulationResponse:
+    return simulate_route_node(db, user, request)
+
+
+@app.post("/api/v1/routes/reroute", response_model=RoutePlanResponse)
+def reroute(
+    request: RouteRerouteRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse:
+    plan = None
+    if request.routeId:
+        plan = db.scalar(select(RoutePlan).where(RoutePlan.id == request.routeId, RoutePlan.user_id == user.id))
+    if plan is None:
+        plan = db.scalar(
+            select(RoutePlan)
+            .where(RoutePlan.user_id == user.id)
+            .order_by(RoutePlan.created_at.desc())
+        )
+    if plan is None:
+        raise HTTPException(status_code=404, detail="No route is available to recalculate")
+    excluded = set()
+    if request.blockedNodeId:
+        blocked = next((node for node in plan.nodes if node.id == request.blockedNodeId), None)
+        if blocked and blocked.target_id:
+            excluded.add(blocked.target_id)
+    profile = dict((plan.context_json or {}).get("profile", {}))
+    profile.update(request.profile or {})
+    constraints = dict((plan.context_json or {}).get("constraints", {}))
+    constraints.update(request.constraints or {})
+    route_type = plan.route_type
+    max_nodes = max(3, min(7, len(plan.nodes) or 5))
+    if request.reason == "time_shortage":
+        route_type = "fastest"
+        max_nodes = min(max_nodes, 4)
+        constraints["maxMinutesPerNode"] = 35
+    elif request.reason == "weekend_only":
+        route_type = "weekend"
+    elif request.reason == "free_only":
+        route_type = "free"
+    elif request.reason == "too_difficult":
+        constraints["maxDifficulty"] = "하"
+    next_request = RoutePlanRequest(
+        targetCareer=plan.target_career,
+        routeType=route_type,
+        profile=profile,
+        constraints=constraints,
+        maxNodes=max_nodes,
+    )
+    response = create_route_plan(db, user, next_request, excluded, request.reason)
+    record_route_outcome(db, user, response.routeId, None, "rerouted", 1.0, {"reason": request.reason})
+    return response
+
+
+@app.post("/api/v1/routes/outcomes", response_model=GenericResponse)
+def save_route_outcome(
+    request: RouteOutcomeEventRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> GenericResponse:
+    try:
+        record_route_outcome(db, user, request.routeId, request.nodeId, request.eventType, request.value, request.metadata)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return GenericResponse(message="항로 활동을 기록했습니다.")
+
+
+@app.post("/api/v1/missions/generate", response_model=FamilyMissionResponse)
+def generate_mission(
+    request: MissionGenerateRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> FamilyMissionResponse:
+    return generate_family_mission(db, user, request)
+
+
+@app.post("/api/v1/missions/verify", response_model=MissionVerifyResponse)
+def verify_mission(
+    request: MissionVerifyRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MissionVerifyResponse:
+    try:
+        return verify_family_mission(db, user, request.missionId, request.completionNote, request.participantCount)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/catalog", response_model=list[AdminContentItem])
@@ -694,6 +831,23 @@ def build_demand_recommendations(
     if not recommendations:
         recommendations.append("학습 기록이 쌓이면 관심 분야, 역량 갭, 공급 부족을 바탕으로 과정 개설 우선순위를 제안합니다.")
     return recommendations
+
+
+@app.get("/api/v1/admin/analytics/outcomes")
+def education_outcomes(
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> dict:
+    return outcome_analytics(db)
+
+
+@app.post("/api/v1/admin/program-draft", response_model=ProgramDraftResponse)
+def ai_program_draft(
+    request: ProgramDraftRequest,
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> ProgramDraftResponse:
+    return generate_program_draft(db, request)
 
 
 @app.get("/api/v1/admin/content", response_model=list[AdminContentItem])
