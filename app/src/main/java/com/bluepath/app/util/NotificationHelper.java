@@ -2,7 +2,9 @@ package com.bluepath.app.util;
 
 import android.content.Context;
 
+import androidx.work.Constraints;
 import androidx.work.Data;
+import androidx.work.NetworkType;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
@@ -10,12 +12,14 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.bluepath.app.worker.LearningReminderWorker;
+import com.bluepath.app.worker.VoyageRerouteWorker;
 
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public final class NotificationHelper {
     private static final String DAILY_WORK = "bluepath_daily_learning_reminder";
+    private static final String VOYAGE_REROUTE_WORK = "bluepath_voyage_auto_reroute";
 
     private NotificationHelper() {}
 
@@ -51,6 +55,18 @@ public final class NotificationHelper {
                         .build())
                 .build();
         WorkManager.getInstance(context).enqueueUniqueWork(workName, ExistingWorkPolicy.REPLACE, request);
+    }
+
+    public static void scheduleVoyageAutoReroute(Context context) {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(
+                VoyageRerouteWorker.class, 24, TimeUnit.HOURS)
+                .setConstraints(constraints)
+                .build();
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                VOYAGE_REROUTE_WORK, ExistingPeriodicWorkPolicy.UPDATE, request);
     }
 
     public static void cancelDaily(Context context) {

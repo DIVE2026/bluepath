@@ -391,6 +391,14 @@ public final class ApiModels {
         }
     }
 
+    public static class RouteActivationRequest {
+        public String routeId;
+
+        public RouteActivationRequest(String routeId) {
+            this.routeId = routeId;
+        }
+    }
+
     public static class RouteOutcomeRequest {
         public String routeId;
         public String nodeId;
@@ -407,17 +415,29 @@ public final class ApiModels {
         }
     }
 
+    public static class MissionQrPayload {
+        public String exhibitCode;
+        public String exhibitTitle;
+        public String sessionId;
+        public String issuedAt;
+        public String expiresAt;
+        public String nonce;
+        public String signature;
+    }
+
     public static class MissionGenerateRequest {
         public String exhibitCode;
         public String exhibitTitle;
         public int participantCount;
+        public MissionQrPayload qrPayload;
         public Map<String, Object> profile;
 
         public MissionGenerateRequest(String exhibitCode, String exhibitTitle, int participantCount,
-                                      Map<String, Object> profile) {
+                                      MissionQrPayload qrPayload, Map<String, Object> profile) {
             this.exhibitCode = exhibitCode;
             this.exhibitTitle = exhibitTitle;
             this.participantCount = participantCount;
+            this.qrPayload = qrPayload;
             this.profile = profile;
         }
     }
@@ -446,16 +466,20 @@ public final class ApiModels {
         public String missionId;
         public String completionNote;
         public int participantCount;
+        public MissionQrPayload qrPayload;
 
-        public MissionVerifyRequest(String missionId, String completionNote, int participantCount) {
+        public MissionVerifyRequest(String missionId, String completionNote, int participantCount,
+                                    MissionQrPayload qrPayload) {
             this.missionId = missionId;
             this.completionNote = completionNote;
             this.participantCount = participantCount;
+            this.qrPayload = qrPayload;
         }
     }
 
     public static class MissionVerifyResponse {
         public boolean verified;
+        public boolean newlyVerified;
         public String message;
         public String badge;
         public Map<String, Integer> acquiredCompetencies;

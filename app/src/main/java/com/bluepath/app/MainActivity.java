@@ -49,6 +49,8 @@ import com.bluepath.app.repository.BluePathRepository;
 import com.bluepath.app.storage.UserStore;
 import com.bluepath.app.util.MarineLlmClient;
 import com.bluepath.app.util.NotificationHelper;
+import com.bluepath.app.util.MissionQrParser;
+import com.bluepath.app.util.MissionVerificationPolicy;
 import com.bluepath.app.util.PromotionRules;
 import com.bluepath.app.util.RecommendationEngine;
 import com.bluepath.app.view.ActivityHeatmapView;
@@ -57,6 +59,10 @@ import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
 import com.bluepath.app.viewmodel.BluePathViewModel;
 import com.bumptech.glide.Glide;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanIntentResult;
+import com.journeyapps.barcodescanner.ScanOptions;
+
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private BluePathRepository cloudRepository;
     private ActivityResultLauncher<String[]> profileImagePicker;
     private ActivityResultLauncher<Intent> communityPostLauncher;
+    private ActivityResultLauncher<ScanOptions> qrScanner;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private LinearLayout root;
     private LinearLayout content;
@@ -133,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean missionLoading = false;
     private String missionError = "";
     private ApiModels.FamilyMissionResponse currentMission;
+    private ApiModels.MissionQrPayload currentQrPayload;
 
     /**
      * 커뮤니티 화면 전용 당겨서 새로고침 스크롤뷰입니다.
@@ -220,6 +228,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
+        qrScanner = registerForActivityResult(new ScanContract(), this::handleMissionQrResult);
+        NotificationHelper.scheduleVoyageAutoReroute(this);
         communityPostLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -1095,11 +1105,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            if (store.daysSinceRouteActivity() >= 3) {
-                voyage.addView(note("자동 재항해 신호 · 최근 " + store.daysSinceRouteActivity()
-                        + "일 동안 항로 활동이 없습니다. 40분 과정 대신 짧은 영상과 미니 퀴즈로 바꿀 수 있습니다.", DANGER));
+            if (store.hasPendingReroute()) {
+                voyage.addView(note("자동 재항해 준비 완료 · " + safeOr(store.getPendingRerouteSummary(),
+                        "최근 활동을 반영한 짧은 대체 항로가 준비되었습니다."), SUCCESS));
+                Button acceptPending = primaryButton(routeRerouting ? "대체 항로 적용 중…" : "준비된 대체 항로 적용");
+                acceptPending.setEnabled(!routeLoading && !routeRerouting);
+                acceptPending.setOnClickListener(v -> acceptPendingReroute());
+                voyage.addView(acceptPending, new LinearLayout.LayoutParams(-1, dp(48)));
+            } else if (store.daysSinceRouteActivity() >= 3) {
+                voyage.addView(note("자동 재항해 확인 중 · 최근 " + store.daysSinceRouteActivity()
+                        + "일 동안 활동이 없어 백그라운드에서 대체 항로를 준비합니다.", DANGER));
             }
-            Button reroute = outlineButton(routeRerouting ? "재항해 중…" : "마감·시간 부족으로 자동 재항해");
+            Button reroute = outlineButton(routeRerouting ? "재항해 중…" : "마감·시간 부족으로 수동 재항해");
             reroute.setEnabled(!routeLoading && !routeRerouting);
             reroute.setOnClickListener(v -> showRerouteDialog());
             voyage.addView(reroute);
@@ -1231,6 +1248,32 @@ public class MainActivity extends AppCompatActivity {
                 }).show();
     }
 
+    private void acceptPendingReroute() {
+        String pendingId = store.getPendingRerouteId();
+        if (pendingId == null || pendingId.trim().isEmpty()) return;
+        routeRerouting = true;
+        routeError = "";
+        if (currentTab == 0) renderTab(0);
+        executor.execute(() -> {
+            try {
+                ApiModels.RoutePlanResponse response = cloudRepository.activateRoute(pendingId);
+                runOnUiThread(() -> {
+                    currentRoute = response;
+                    store.clearPendingReroute();
+                    store.touchRouteActivity();
+                    routeRerouting = false;
+                    if (currentTab != 0) showApp(0); else renderTab(0);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    routeRerouting = false;
+                    routeError = safeMessage(e);
+                    if (currentTab == 0) renderTab(0);
+                });
+            }
+        });
+    }
+
     private void showRerouteDialog() {
         if (currentRoute == null) return;
         String[] labels = {"신청 마감", "시간 부족", "난이도가 높음", "주말에만 가능", "무료 활동 우선"};
@@ -1291,7 +1334,8 @@ public class MainActivity extends AppCompatActivity {
             store.markContentStarted(node.targetId);
             if (!safe(node.actionUrl).isEmpty()) openUrl(node.actionUrl); else showApp(1);
         } else if ("event".equals(node.nodeType)) {
-            requestFamilyMission("museum-route", node.title, 2);
+            toast("현장 전시 QR을 스캔해 미션을 시작해 주세요.");
+            launchMissionQrScanner();
         } else if ("program".equals(node.nodeType) || "schedule".equals(node.nodeType)) {
             showApp(3);
         } else if ("quiz".equals(node.nodeType)) {
@@ -1306,7 +1350,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout mission = card();
         mission.addView(label("QR EXHIBIT MISSION"));
         mission.addView(big("전시 앞에서 가족 역할을 나누고 Skill Passport 증거 획득"));
-        mission.addView(body("연령·관심·숙련도와 참여 인원에 맞춰 LLM이 15분 이내의 안전한 역할별 미션을 생성합니다. 인증 후 관련 영상과 다음 교육이 자동 연결됩니다."));
+        mission.addView(body("현장 QR의 전시 코드·세션·만료시각·일회용 nonce·서명을 서버가 검증한 뒤 역할별 미션을 생성합니다. 최초 인증 때만 역량과 배지가 지급됩니다."));
         if (missionLoading) {
             mission.addView(new ProgressBar(this), new LinearLayout.LayoutParams(-1, dp(42)));
             mission.addView(body("전시 맥락과 가족 구성에 맞는 역할을 설계하고 있습니다."));
@@ -1314,11 +1358,11 @@ public class MainActivity extends AppCompatActivity {
         if (!missionError.isEmpty()) mission.addView(note("미션 불러오기: " + missionError, DANGER));
 
         if (currentMission == null) {
-            Button generate = primaryButton(missionLoading ? "미션 생성 중…" : "잠수정 전시 QR 미션 생성");
+            Button generate = primaryButton(missionLoading ? "QR 확인 중…" : "현장 QR 스캔");
             generate.setEnabled(!missionLoading);
-            generate.setOnClickListener(v -> requestFamilyMission("submersible", "잠수정 전시", 2));
+            generate.setOnClickListener(v -> launchMissionQrScanner());
             mission.addView(generate, new LinearLayout.LayoutParams(-1, dp(48)));
-            mission.addView(body("예시 · 어린이 탐험가, 보호자 항해사, 공동 잠수정 설계, 선박·해양안전 역량 증거"));
+            mission.addView(body("카메라로 박물관이 발급한 서명 QR을 스캔해야 미션이 생성됩니다. 텍스트 입력이나 하드코딩 전시 코드는 인증에 사용할 수 없습니다."));
         } else {
             mission.addView(big(currentMission.title));
             mission.addView(body(currentMission.story));
@@ -1339,10 +1383,15 @@ public class MainActivity extends AppCompatActivity {
             }
             mission.addView(body("안전 안내 · " + currentMission.safetyNote));
             Button verify = primaryButton("QR 미션 완료 인증");
+            verify.setEnabled(currentQrPayload != null && !missionLoading);
             verify.setOnClickListener(v -> showMissionVerificationDialog());
             mission.addView(verify, new LinearLayout.LayoutParams(-1, dp(48)));
-            Button regenerate = outlineButton("다른 역할로 미션 다시 만들기");
-            regenerate.setOnClickListener(v -> requestFamilyMission(currentMission.exhibitCode, "잠수정 전시", 3));
+            Button regenerate = outlineButton("새 현장 QR 스캔");
+            regenerate.setOnClickListener(v -> {
+                currentMission = null;
+                currentQrPayload = null;
+                launchMissionQrScanner();
+            });
             mission.addView(regenerate);
         }
         if (!store.getMissionBadges().isEmpty()) {
@@ -1352,7 +1401,31 @@ public class MainActivity extends AppCompatActivity {
         content.addView(mission);
     }
 
-    private void requestFamilyMission(String exhibitCode, String exhibitTitle, int participants) {
+    private void launchMissionQrScanner() {
+        ScanOptions options = new ScanOptions();
+        options.setPrompt("박물관 전시 QR을 사각형 안에 맞춰 주세요.");
+        options.setBeepEnabled(false);
+        options.setOrientationLocked(true);
+        options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
+        qrScanner.launch(options);
+    }
+
+    private void handleMissionQrResult(ScanIntentResult result) {
+        if (result == null || result.getContents() == null) return;
+        try {
+            ApiModels.MissionQrPayload payload = MissionQrParser.parse(result.getContents());
+            currentQrPayload = payload;
+            currentMission = null;
+            requestFamilyMission(payload, 2);
+        } catch (Exception exception) {
+            currentQrPayload = null;
+            currentMission = null;
+            missionError = "유효한 BluePath 현장 QR이 아닙니다.";
+            if (currentTab == 0) renderTab(0);
+        }
+    }
+
+    private void requestFamilyMission(ApiModels.MissionQrPayload qrPayload, int participants) {
         if (!viewModel.isCloudConfigured()) {
             missionError = "서버 연결 설정이 필요합니다.";
             if (currentTab == 0) renderTab(0);
@@ -1363,7 +1436,7 @@ public class MainActivity extends AppCompatActivity {
         if (currentTab == 0) renderTab(0);
         executor.execute(() -> {
             try {
-                ApiModels.FamilyMissionResponse response = cloudRepository.generateMission(exhibitCode, exhibitTitle, participants);
+                ApiModels.FamilyMissionResponse response = cloudRepository.generateMission(qrPayload, participants);
                 runOnUiThread(() -> {
                     currentMission = response;
                     missionLoading = false;
@@ -1385,7 +1458,7 @@ public class MainActivity extends AppCompatActivity {
         note.setMinLines(3);
         new AlertDialog.Builder(this)
                 .setTitle("현장 미션 완료 인증")
-                .setMessage("현장 QR을 스캔한 뒤 가족 활동 결과를 기록하면 Ocean Skill Passport에 검증 증거가 추가됩니다.")
+                .setMessage("스캔한 QR의 일회용 nonce와 서버 서명을 다시 검증합니다. 활동 결과는 공백 제외 10자 이상 기록해 주세요.")
                 .setView(note)
                 .setNegativeButton("취소", null)
                 .setPositiveButton("인증하기", (dialog, which) -> verifyCurrentMission(note.getText().toString(), 2))
@@ -1393,26 +1466,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void verifyCurrentMission(String completionNote, int participants) {
-        if (currentMission == null) return;
+        if (currentMission == null || currentQrPayload == null) return;
+        if (!MissionVerificationPolicy.isCompletionNoteValid(completionNote)) {
+            toast("활동 결과를 공백 제외 10자 이상 입력해 주세요.");
+            return;
+        }
         missionLoading = true;
         if (currentTab == 0) renderTab(0);
         executor.execute(() -> {
             try {
                 ApiModels.MissionVerifyResponse response = cloudRepository.verifyMission(
-                        currentMission.missionId, completionNote, participants);
+                        currentMission.missionId, completionNote, participants, currentQrPayload);
                 runOnUiThread(() -> {
                     missionLoading = false;
-                    if (response.acquiredCompetencies != null) {
-                        for (Map.Entry<String, Integer> entry : response.acquiredCompetencies.entrySet()) {
-                            store.applySkillGain(entry.getKey(), entry.getValue());
+                    if (MissionVerificationPolicy.shouldAward(response.newlyVerified)) {
+                        if (response.acquiredCompetencies != null) {
+                            for (Map.Entry<String, Integer> entry : response.acquiredCompetencies.entrySet()) {
+                                store.applySkillGain(entry.getKey(), entry.getValue());
+                            }
                         }
+                        store.addMissionBadge(response.badge);
+                        store.touchRouteActivity();
+                        viewModel.recordLearning("museum_mission", currentMission.missionId, currentMission.title, "completed_verified");
+                        recordCurrentMissionRouteCompletion();
                     }
-                    store.addMissionBadge(response.badge);
-                    store.touchRouteActivity();
-                    viewModel.recordLearning("museum_mission", currentMission.missionId, currentMission.title, "completed_verified");
-                    recordCurrentMissionRouteCompletion();
                     new AlertDialog.Builder(this)
-                            .setTitle("Skill Passport 인증 완료 · " + response.badge)
+                            .setTitle((response.newlyVerified ? "Skill Passport 인증 완료 · " : "이미 인증된 미션 · ") + response.badge)
                             .setMessage(response.message + "\n\n획득 역량 · "
                                     + competencyText(response.acquiredCompetencies)
                                     + "\n\n다음 추천 · " + response.nextRecommendation)
@@ -1463,6 +1542,7 @@ public class MainActivity extends AppCompatActivity {
     private void clearVoyageSession() {
         currentRoute = null;
         currentMission = null;
+        currentQrPayload = null;
         routeLoading = false;
         routeRerouting = false;
         routeAttempted = false;

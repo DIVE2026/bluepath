@@ -548,9 +548,32 @@ public class UserStore {
     public void addMissionBadge(String badge) {
         if (badge == null || badge.trim().isEmpty()) return;
         Set<String> values = getMissionBadges();
-        values.add(badge.trim());
+        boolean added = values.add(badge.trim());
         prefs.edit().putStringSet("missionBadges", values).apply();
-        recordActivity("mission", 1);
+        if (added) recordActivity("mission", 1);
+    }
+
+    public void savePendingReroute(String routeId, String summary) {
+        prefs.edit()
+                .putString("pendingRerouteId", routeId == null ? "" : routeId)
+                .putString("pendingRerouteSummary", summary == null ? "" : summary)
+                .apply();
+    }
+
+    public String getPendingRerouteId() {
+        return prefs.getString("pendingRerouteId", "");
+    }
+
+    public String getPendingRerouteSummary() {
+        return prefs.getString("pendingRerouteSummary", "");
+    }
+
+    public boolean hasPendingReroute() {
+        return !getPendingRerouteId().trim().isEmpty();
+    }
+
+    public void clearPendingReroute() {
+        prefs.edit().remove("pendingRerouteId").remove("pendingRerouteSummary").apply();
     }
 
     public Map<String, Object> toCloudSnapshot() {

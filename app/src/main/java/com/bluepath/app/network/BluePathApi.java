@@ -122,6 +122,21 @@ public interface BluePathApi {
             @Body ApiModels.RouteRerouteRequest request
     );
 
+    @POST("api/v1/routes/reroute/preview")
+    Call<ApiModels.RoutePlanResponse> previewReroute(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RouteRerouteRequest request
+    );
+
+    @GET("api/v1/routes/pending")
+    Call<ApiModels.RoutePlanResponse> pendingRoute(@Header("Authorization") String authorization);
+
+    @POST("api/v1/routes/activate")
+    Call<ApiModels.RoutePlanResponse> activateRoute(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.RouteActivationRequest request
+    );
+
     @POST("api/v1/routes/outcomes")
     Call<ApiModels.GenericResponse> routeOutcome(
             @Header("Authorization") String authorization,

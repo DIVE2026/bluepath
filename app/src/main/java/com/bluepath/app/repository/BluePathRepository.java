@@ -145,6 +145,31 @@ public class BluePathRepository {
         ).execute(), "자동 재항해");
     }
 
+    public ApiModels.RoutePlanResponse previewReroute(String routeId, String reason) throws IOException {
+        requireAuthenticated();
+        java.util.Map<String, Object> constraints = new java.util.HashMap<>();
+        constraints.put("reason", reason);
+        return requireBody(api.previewReroute(
+                bearer(),
+                new ApiModels.RouteRerouteRequest(routeId, null, reason, store.toCloudSnapshot(), constraints)
+        ).execute(), "자동 재항해 미리 생성");
+    }
+
+    public ApiModels.RoutePlanResponse pendingRoute() throws IOException {
+        requireAuthenticated();
+        retrofit2.Response<ApiModels.RoutePlanResponse> response = api.pendingRoute(bearer()).execute();
+        if (response.code() == 204) return null;
+        if (!response.isSuccessful()) return requireBody(response, "대기 중 항로 확인");
+        return response.body();
+    }
+
+    public ApiModels.RoutePlanResponse activateRoute(String routeId) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.activateRoute(
+                bearer(), new ApiModels.RouteActivationRequest(routeId)
+        ).execute(), "대체 항로 적용");
+    }
+
     public void recordRouteOutcome(String routeId, String nodeId, String eventType) throws IOException {
         requireAuthenticated();
         java.util.Map<String, Object> metadata = new java.util.HashMap<>();
@@ -154,18 +179,20 @@ public class BluePathRepository {
         ).execute(), "항로 활동 기록");
     }
 
-    public ApiModels.FamilyMissionResponse generateMission(String exhibitCode, String exhibitTitle, int participantCount) throws IOException {
+    public ApiModels.FamilyMissionResponse generateMission(ApiModels.MissionQrPayload qrPayload, int participantCount) throws IOException {
         requireAuthenticated();
         return requireBody(api.generateMission(
                 bearer(),
-                new ApiModels.MissionGenerateRequest(exhibitCode, exhibitTitle, participantCount, store.toCloudSnapshot())
+                new ApiModels.MissionGenerateRequest(
+                        qrPayload.exhibitCode, qrPayload.exhibitTitle, participantCount, qrPayload, store.toCloudSnapshot())
         ).execute(), "가족 협동 미션 생성");
     }
 
-    public ApiModels.MissionVerifyResponse verifyMission(String missionId, String completionNote, int participantCount) throws IOException {
+    public ApiModels.MissionVerifyResponse verifyMission(String missionId, String completionNote, int participantCount,
+                                                          ApiModels.MissionQrPayload qrPayload) throws IOException {
         requireAuthenticated();
         return requireBody(api.verifyMission(
-                bearer(), new ApiModels.MissionVerifyRequest(missionId, completionNote, participantCount)
+                bearer(), new ApiModels.MissionVerifyRequest(missionId, completionNote, participantCount, qrPayload)
         ).execute(), "현장 미션 인증");
     }
 
