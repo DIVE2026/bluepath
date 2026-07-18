@@ -279,4 +279,188 @@ public final class ApiModels {
     public static class GenericResponse {
         public String message;
     }
+
+    public static class RoutePlanRequest {
+        public String targetCareer;
+        public String routeType;
+        public Map<String, Object> profile;
+        public Map<String, Object> constraints;
+        public int maxNodes;
+
+        public RoutePlanRequest(String targetCareer, String routeType, Map<String, Object> profile,
+                                Map<String, Object> constraints, int maxNodes) {
+            this.targetCareer = targetCareer;
+            this.routeType = routeType;
+            this.profile = profile;
+            this.constraints = constraints;
+            this.maxNodes = maxNodes;
+        }
+    }
+
+    public static class RouteNodeDto {
+        public String id;
+        public int order;
+        public String nodeType;
+        public String targetId;
+        public String title;
+        public String description;
+        public String source;
+        public String topic;
+        public int minutes;
+        public int expectedSkillGain;
+        public int readinessGain;
+        public String scheduleStatus;
+        public String availabilityLabel;
+        public List<String> ncsCompetencies = new ArrayList<>();
+        public String whyThisOrder;
+        public List<String> recommendationReasons = new ArrayList<>();
+        public List<String> evidenceBasis = new ArrayList<>();
+        public String actionLabel;
+        public String actionUrl;
+        public boolean completed;
+    }
+
+    public static class RoutePlanResponse {
+        public String routeId;
+        public String targetCareer;
+        public String routeType;
+        public String summary;
+        public String coachMessage;
+        public String currentSkillTopic;
+        public int currentMastery;
+        public String tier;
+        public int readinessBefore;
+        public int readinessAfter;
+        public int estimatedMinutes;
+        public int estimatedDays;
+        public String generatedBy;
+        public List<RouteNodeDto> nodes = new ArrayList<>();
+        public List<String> alternatives = new ArrayList<>();
+        public List<SourceDto> sources = new ArrayList<>();
+    }
+
+    public static class RouteSimulationRequest {
+        public String routeId;
+        public String nodeId;
+        public String activityTitle;
+        public String skillTopic;
+        public int expectedSkillGain;
+        public int readinessGain;
+        public Map<String, Object> profile;
+
+        public RouteSimulationRequest(String routeId, RouteNodeDto node, Map<String, Object> profile) {
+            this.routeId = routeId;
+            this.nodeId = node == null ? null : node.id;
+            this.activityTitle = node == null ? "" : node.title;
+            this.skillTopic = node == null ? "해양교육" : node.topic;
+            this.expectedSkillGain = node == null ? 5 : node.expectedSkillGain;
+            this.readinessGain = node == null ? 4 : node.readinessGain;
+            this.profile = profile;
+        }
+    }
+
+    public static class RouteSimulationResponse {
+        public String activityTitle;
+        public String skillTopic;
+        public int masteryBefore;
+        public int masteryAfter;
+        public int readinessBefore;
+        public int readinessAfter;
+        public int weakItemsBefore;
+        public int weakItemsAfter;
+        public String nextRecommendation;
+        public String explanation;
+        public int confidence;
+        public List<String> evidenceBasis = new ArrayList<>();
+    }
+
+    public static class RouteRerouteRequest {
+        public String routeId;
+        public String blockedNodeId;
+        public String reason;
+        public Map<String, Object> profile;
+        public Map<String, Object> constraints;
+
+        public RouteRerouteRequest(String routeId, String blockedNodeId, String reason,
+                                   Map<String, Object> profile, Map<String, Object> constraints) {
+            this.routeId = routeId;
+            this.blockedNodeId = blockedNodeId;
+            this.reason = reason;
+            this.profile = profile;
+            this.constraints = constraints;
+        }
+    }
+
+    public static class RouteOutcomeRequest {
+        public String routeId;
+        public String nodeId;
+        public String eventType;
+        public double value;
+        public Map<String, Object> metadata;
+
+        public RouteOutcomeRequest(String routeId, String nodeId, String eventType, Map<String, Object> metadata) {
+            this.routeId = routeId;
+            this.nodeId = nodeId;
+            this.eventType = eventType;
+            this.value = 1.0;
+            this.metadata = metadata;
+        }
+    }
+
+    public static class MissionGenerateRequest {
+        public String exhibitCode;
+        public String exhibitTitle;
+        public int participantCount;
+        public Map<String, Object> profile;
+
+        public MissionGenerateRequest(String exhibitCode, String exhibitTitle, int participantCount,
+                                      Map<String, Object> profile) {
+            this.exhibitCode = exhibitCode;
+            this.exhibitTitle = exhibitTitle;
+            this.participantCount = participantCount;
+            this.profile = profile;
+        }
+    }
+
+    public static class MissionRole {
+        public String name;
+        public String audience;
+        public String task;
+    }
+
+    public static class FamilyMissionResponse {
+        public String missionId;
+        public String exhibitCode;
+        public String title;
+        public String story;
+        public List<MissionRole> roles = new ArrayList<>();
+        public String jointTask;
+        public Map<String, Integer> expectedSkillGains;
+        public String badge;
+        public String safetyNote;
+        public String followUpRecommendation;
+        public String generatedBy;
+    }
+
+    public static class MissionVerifyRequest {
+        public String missionId;
+        public String completionNote;
+        public int participantCount;
+
+        public MissionVerifyRequest(String missionId, String completionNote, int participantCount) {
+            this.missionId = missionId;
+            this.completionNote = completionNote;
+            this.participantCount = participantCount;
+        }
+    }
+
+    public static class MissionVerifyResponse {
+        public boolean verified;
+        public String message;
+        public String badge;
+        public Map<String, Integer> acquiredCompetencies;
+        public String verifiedAt;
+        public String nextRecommendation;
+    }
+
 }
