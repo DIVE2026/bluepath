@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .config import get_settings
@@ -157,6 +157,90 @@ class Reminder(Base):
     reminder_type: Mapped[str] = mapped_column(String(40), default="learning")
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+
+class RoutePlan(Base):
+    __tablename__ = "route_plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    target_career: Mapped[str] = mapped_column(String(200), index=True)
+    route_type: Mapped[str] = mapped_column(String(40), default="balanced", index=True)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    coach_message: Mapped[str] = mapped_column(Text, default="")
+    readiness_before: Mapped[int] = mapped_column(Integer, default=0)
+    readiness_after: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=0)
+    estimated_days: Mapped[int] = mapped_column(Integer, default=0)
+    generated_by: Mapped[str] = mapped_column(String(40), default="rules")
+    status: Mapped[str] = mapped_column(String(40), default="active", index=True)
+    context_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
+
+    nodes: Mapped[list[RouteNode]] = relationship(
+        back_populates="plan", cascade="all, delete-orphan", order_by="RouteNode.order_index"
+    )
+
+
+class RouteNode(Base):
+    __tablename__ = "route_nodes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    plan_id: Mapped[str] = mapped_column(ForeignKey("route_plans.id", ondelete="CASCADE"), index=True)
+    order_index: Mapped[int] = mapped_column(Integer, default=0)
+    node_type: Mapped[str] = mapped_column(String(40), index=True)
+    target_id: Mapped[str] = mapped_column(String(160), default="", index=True)
+    title: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text, default="")
+    source: Mapped[str] = mapped_column(String(240), default="")
+    topic: Mapped[str] = mapped_column(String(120), default="해양교육", index=True)
+    minutes: Mapped[int] = mapped_column(Integer, default=0)
+    expected_skill_gain: Mapped[int] = mapped_column(Integer, default=0)
+    readiness_gain: Mapped[int] = mapped_column(Integer, default=0)
+    schedule_status: Mapped[str] = mapped_column(String(40), default="available")
+    action_url: Mapped[str] = mapped_column(Text, default="")
+    why_this_order: Mapped[str] = mapped_column(Text, default="")
+    reasons_json: Mapped[list] = mapped_column(JSON, default=list)
+    evidence_json: Mapped[list] = mapped_column(JSON, default=list)
+    competencies_json: Mapped[list] = mapped_column(JSON, default=list)
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    plan: Mapped[RoutePlan] = relationship(back_populates="nodes")
+
+
+class MissionEvidence(Base):
+    __tablename__ = "mission_evidence"
+    __table_args__ = (UniqueConstraint("user_id", "mission_key", name="uq_mission_evidence_user_key"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    mission_key: Mapped[str] = mapped_column(String(120), index=True)
+    exhibit_code: Mapped[str] = mapped_column(String(120), default="", index=True)
+    title: Mapped[str] = mapped_column(Text)
+    badge: Mapped[str] = mapped_column(String(160), default="")
+    participants: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(40), default="generated", index=True)
+    completion_note: Mapped[str] = mapped_column(Text, default="")
+    skill_gains_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    mission_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
+
+
+class RouteOutcomeEvent(Base):
+    __tablename__ = "route_outcome_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    route_plan_id: Mapped[str | None] = mapped_column(ForeignKey("route_plans.id", ondelete="SET NULL"), nullable=True, index=True)
+    node_id: Mapped[str | None] = mapped_column(ForeignKey("route_nodes.id", ondelete="SET NULL"), nullable=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(60), index=True)
+    value: Mapped[float] = mapped_column(Float, default=1.0)
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
 
 
 class Follow(Base):
