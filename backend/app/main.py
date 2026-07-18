@@ -74,11 +74,16 @@ from .schemas import (
     YouTubeSyncRequest,
     FamilyMissionResponse,
     MissionGenerateRequest,
+    MissionQrIssueRequest,
+    MissionQrIssueResponse,
     MissionVerifyRequest,
     MissionVerifyResponse,
     ProgramDraftRequest,
     ProgramDraftResponse,
+    ProgramParticipationRequest,
+    ProgramParticipationResponse,
     RouteOutcomeEventRequest,
+    RouteActivationRequest,
     RoutePlanRequest,
     RoutePlanResponse,
     RouteRerouteRequest,
@@ -103,9 +108,12 @@ from .voyage import (
     create_route_plan,
     generate_family_mission,
     generate_program_draft,
+    issue_mission_qr,
     outcome_analytics,
     record_route_outcome,
+    route_plan_response,
     simulate_route_node,
+    upsert_program_participation,
     verify_family_mission,
 )
 
@@ -173,7 +181,7 @@ async def lifespan(_: FastAPI):
             pass
 
 
-app = FastAPI(title=settings.app_name, version="1.4.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="1.4.1", lifespan=lifespan)
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 app.add_middleware(
     CORSMiddleware,
@@ -193,6 +201,14 @@ def health() -> dict:
         "embeddingEnabled": bool(settings.embedding_model),
         "liveWebSearchEnabled": settings.web_search_enabled,
         "liveWebSearchProvider": settings.web_search_provider if settings.web_search_enabled else "",
+        "aiRequirements": {
+            "llmRequired": settings.require_llm,
+            "embeddingsRequired": settings.require_embeddings,
+            "webSearchRequired": settings.require_web_search,
+        },
+        "aiReady": (not settings.require_llm or settings.llm_enabled)
+        and (not settings.require_embeddings or bool(settings.embedding_model.strip()))
+        and (not settings.require_web_search or settings.web_search_enabled),
     }
 
 
@@ -347,22 +363,34 @@ def simulate_route(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> RouteSimulationResponse:
-    return simulate_route_node(db, user, request)
+    try:
+        return simulate_route_node(db, user, request)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@app.post("/api/v1/routes/reroute", response_model=RoutePlanResponse)
-def reroute(
+def _reroute_response(
+    db: Session,
+    user: User,
     request: RouteRerouteRequest,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    *,
+    activate: bool,
 ) -> RoutePlanResponse:
+    if not activate:
+        pending = db.scalar(
+            select(RoutePlan)
+            .where(RoutePlan.user_id == user.id, RoutePlan.status == "pending")
+            .order_by(RoutePlan.created_at.desc())
+        )
+        if pending is not None:
+            return route_plan_response(pending)
     plan = None
     if request.routeId:
         plan = db.scalar(select(RoutePlan).where(RoutePlan.id == request.routeId, RoutePlan.user_id == user.id))
     if plan is None:
         plan = db.scalar(
             select(RoutePlan)
-            .where(RoutePlan.user_id == user.id)
+            .where(RoutePlan.user_id == user.id, RoutePlan.status == "active")
             .order_by(RoutePlan.created_at.desc())
         )
     if plan is None:
@@ -378,7 +406,7 @@ def reroute(
     constraints.update(request.constraints or {})
     route_type = plan.route_type
     max_nodes = max(3, min(7, len(plan.nodes) or 5))
-    if request.reason == "time_shortage":
+    if request.reason in {"time_shortage", "inactivity"}:
         route_type = "fastest"
         max_nodes = min(max_nodes, 4)
         constraints["maxMinutesPerNode"] = 35
@@ -395,9 +423,66 @@ def reroute(
         constraints=constraints,
         maxNodes=max_nodes,
     )
-    response = create_route_plan(db, user, next_request, excluded, request.reason)
+    return create_route_plan(db, user, next_request, excluded, request.reason, activate=activate)
+
+
+@app.post("/api/v1/routes/reroute", response_model=RoutePlanResponse)
+def reroute(
+    request: RouteRerouteRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse:
+    response = _reroute_response(db, user, request, activate=True)
     record_route_outcome(db, user, response.routeId, None, "rerouted", 1.0, {"reason": request.reason})
     return response
+
+
+@app.post("/api/v1/routes/reroute/preview", response_model=RoutePlanResponse)
+def preview_automatic_reroute(
+    request: RouteRerouteRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse:
+    return _reroute_response(db, user, request, activate=False)
+
+
+@app.get("/api/v1/routes/pending", response_model=RoutePlanResponse | None)
+def pending_route(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse | None:
+    plan = db.scalar(
+        select(RoutePlan)
+        .where(RoutePlan.user_id == user.id, RoutePlan.status == "pending")
+        .order_by(RoutePlan.created_at.desc())
+    )
+    return route_plan_response(plan) if plan else None
+
+
+@app.post("/api/v1/routes/activate", response_model=RoutePlanResponse)
+def activate_pending_route(
+    request: RouteActivationRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> RoutePlanResponse:
+    plan = db.scalar(
+        select(RoutePlan).where(
+            RoutePlan.id == request.routeId,
+            RoutePlan.user_id == user.id,
+            RoutePlan.status == "pending",
+        )
+    )
+    if plan is None:
+        raise HTTPException(status_code=404, detail="Pending route not found")
+    for active in db.scalars(
+        select(RoutePlan).where(RoutePlan.user_id == user.id, RoutePlan.status == "active")
+    ):
+        active.status = "rerouted"
+    plan.status = "active"
+    db.commit()
+    record_route_outcome(db, user, plan.id, None, "rerouted", 1.0, {"reason": "automatic_preview_accepted"})
+    db.refresh(plan)
+    return route_plan_response(plan)
 
 
 @app.post("/api/v1/routes/outcomes", response_model=GenericResponse)
@@ -413,13 +498,25 @@ def save_route_outcome(
     return GenericResponse(message="항로 활동을 기록했습니다.")
 
 
+@app.post("/api/v1/admin/missions/qr-token", response_model=MissionQrIssueResponse)
+def create_mission_qr_token(
+    request: MissionQrIssueRequest,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> MissionQrIssueResponse:
+    return issue_mission_qr(db, admin, request)
+
+
 @app.post("/api/v1/missions/generate", response_model=FamilyMissionResponse)
 def generate_mission(
     request: MissionGenerateRequest,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> FamilyMissionResponse:
-    return generate_family_mission(db, user, request)
+    try:
+        return generate_family_mission(db, user, request)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/v1/missions/verify", response_model=MissionVerifyResponse)
@@ -429,9 +526,21 @@ def verify_mission(
     db: Session = Depends(get_db),
 ) -> MissionVerifyResponse:
     try:
-        return verify_family_mission(db, user, request.missionId, request.completionNote, request.participantCount)
+        return verify_family_mission(
+            db, user, request.missionId, request.completionNote, request.participantCount, request.qrPayload
+        )
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        status = 404 if str(exc) == "Mission not found" else 400
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/program-participation", response_model=ProgramParticipationResponse)
+def save_program_participation(
+    request: ProgramParticipationRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ProgramParticipationResponse:
+    return upsert_program_participation(db, user, request)
 
 
 @app.get("/api/v1/catalog", response_model=list[AdminContentItem])

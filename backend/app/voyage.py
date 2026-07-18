@@ -1,25 +1,44 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import math
 import re
+import secrets
 import uuid
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from .config import get_settings
-from .models import Content, LearningRecord, MissionEvidence, RouteNode, RouteOutcomeEvent, RoutePlan, User, UserProfile
+from .models import (
+    Content,
+    LearningRecord,
+    MissionEvidence,
+    MissionQrNonce,
+    ProgramParticipation,
+    RouteNode,
+    RouteOutcomeEvent,
+    RoutePlan,
+    User,
+    UserProfile,
+)
 from .schemas import (
     FamilyMissionResponse,
     MissionGenerateRequest,
+    MissionQrIssueRequest,
+    MissionQrIssueResponse,
+    MissionQrPayload,
     MissionRole,
     MissionVerifyResponse,
     ProgramDraftRequest,
     ProgramDraftResponse,
+    ProgramParticipationRequest,
+    ProgramParticipationResponse,
     RouteNodeItem,
     RoutePlanRequest,
     RoutePlanResponse,
@@ -71,6 +90,76 @@ def _clean_json(raw: str) -> dict[str, Any]:
         cleaned = cleaned[start : end + 1]
     value = json.loads(cleaned)
     return value if isinstance(value, dict) else {}
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _iso_utc(value: datetime) -> str:
+    return _as_utc(value).isoformat().replace("+00:00", "Z")
+
+
+def _qr_signature(exhibit_code: str, session_id: str, issued_at: datetime, expires_at: datetime, nonce: str) -> str:
+    canonical = "|".join([exhibit_code, session_id, _iso_utc(issued_at), _iso_utc(expires_at), nonce])
+    return hmac.new(
+        settings.qr_signing_secret.encode("utf-8"),
+        canonical.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def issue_mission_qr(db: Session, issuer: User, request: MissionQrIssueRequest) -> MissionQrIssueResponse:
+    issued_at = datetime.now(timezone.utc)
+    expires_at = issued_at + timedelta(minutes=request.validMinutes or settings.qr_token_minutes)
+    session_id = request.sessionId or f"museum-{issued_at:%Y%m%d}-{secrets.token_hex(6)}"
+    nonce = secrets.token_urlsafe(24)
+    signature = _qr_signature(request.exhibitCode, session_id, issued_at, expires_at, nonce)
+    record = MissionQrNonce(
+        nonce=nonce,
+        exhibit_code=request.exhibitCode,
+        exhibit_title=request.exhibitTitle,
+        session_id=session_id,
+        issued_at=issued_at,
+        expires_at=expires_at,
+        signature=signature,
+        issued_by=issuer.id,
+    )
+    db.add(record)
+    db.commit()
+    payload = MissionQrPayload(
+        exhibitCode=request.exhibitCode,
+        exhibitTitle=request.exhibitTitle,
+        sessionId=session_id,
+        issuedAt=issued_at,
+        expiresAt=expires_at,
+        nonce=nonce,
+        signature=signature,
+    )
+    return MissionQrIssueResponse(**payload.model_dump(), qrJson=json.dumps(payload.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")))
+
+
+def _validated_qr_nonce(db: Session, payload: MissionQrPayload, *, allow_used: bool = False) -> MissionQrNonce:
+    record = db.scalar(select(MissionQrNonce).where(MissionQrNonce.nonce == payload.nonce))
+    if record is None:
+        raise ValueError("QR nonce not found")
+    expected = _qr_signature(payload.exhibitCode, payload.sessionId, payload.issuedAt, payload.expiresAt, payload.nonce)
+    if not hmac.compare_digest(expected, payload.signature) or not hmac.compare_digest(record.signature, payload.signature):
+        raise ValueError("QR signature is invalid")
+    if record.exhibit_code != payload.exhibitCode or record.session_id != payload.sessionId:
+        raise ValueError("QR payload does not match the issued token")
+    if _iso_utc(record.issued_at) != _iso_utc(payload.issuedAt) or _iso_utc(record.expires_at) != _iso_utc(payload.expiresAt):
+        raise ValueError("QR timestamp does not match the issued token")
+    now = datetime.now(timezone.utc)
+    if _as_utc(record.issued_at) > now + timedelta(minutes=1):
+        raise ValueError("QR token is not active yet")
+    if _as_utc(record.expires_at) <= now:
+        raise ValueError("QR token has expired")
+    if record.used_at is not None and not allow_used:
+        raise ValueError("QR nonce has already been used")
+    return record
 
 
 def _profile_snapshot(db: Session, user: User, supplied: dict[str, Any]) -> dict[str, Any]:
@@ -291,6 +380,7 @@ def create_route_plan(
     request: RoutePlanRequest,
     excluded_target_ids: set[str] | None = None,
     reroute_reason: str = "",
+    activate: bool = True,
 ) -> RoutePlanResponse:
     snapshot = _profile_snapshot(db, user, request.profile)
     target_career = request.targetCareer.strip()
@@ -355,8 +445,9 @@ def create_route_plan(
     estimated_minutes = sum(max(0, int(node["minutes"])) for node in nodes)
     estimated_days = max(1, math.ceil(estimated_minutes / (45 if request.routeType == "fastest" else 30)))
 
-    for old in db.scalars(select(RoutePlan).where(RoutePlan.user_id == user.id, RoutePlan.status == "active")):
-        old.status = "rerouted" if reroute_reason else "superseded"
+    if activate:
+        for old in db.scalars(select(RoutePlan).where(RoutePlan.user_id == user.id, RoutePlan.status == "active")):
+            old.status = "rerouted" if reroute_reason else "superseded"
 
     plan = RoutePlan(
         user_id=user.id,
@@ -369,8 +460,8 @@ def create_route_plan(
         estimated_minutes=estimated_minutes,
         estimated_days=estimated_days,
         generated_by=generated_by,
-        status="active",
-        context_json={"profile": snapshot, "constraints": request.constraints, "topics": topics, "rerouteReason": reroute_reason},
+        status="active" if activate else "pending",
+        context_json={"profile": snapshot, "constraints": request.constraints, "topics": topics, "rerouteReason": reroute_reason, "preparedAutomatically": not activate},
     )
     db.add(plan)
     db.flush()
@@ -398,7 +489,7 @@ def create_route_plan(
                 metadata_json={**node.get("metadata", {}), "availabilityLabel": node["availabilityLabel"], "actionLabel": node["actionLabel"], "completed": node["targetId"] in completed},
             )
         )
-    db.add(RouteOutcomeEvent(user_id=user.id, route_plan_id=plan.id, event_type="viewed", metadata_json={"source": "route_created"}))
+    db.add(RouteOutcomeEvent(user_id=user.id, route_plan_id=plan.id, event_type="viewed", metadata_json={"source": "route_created" if activate else "auto_reroute_preview"}))
     db.commit()
     db.refresh(plan)
     return route_plan_response(plan, sources)
@@ -464,8 +555,25 @@ def route_plan_response(plan: RoutePlan, sources: list[Any] | None = None) -> Ro
 
 def simulate_route_node(db: Session, user: User, request: RouteSimulationRequest) -> RouteSimulationResponse:
     snapshot = _profile_snapshot(db, user, request.profile)
-    node = db.get(RouteNode, request.nodeId) if request.nodeId else None
-    plan = db.get(RoutePlan, request.routeId) if request.routeId else (node.plan if node else None)
+    plan = None
+    node = None
+    if request.routeId:
+        plan = db.scalar(select(RoutePlan).where(RoutePlan.id == request.routeId, RoutePlan.user_id == user.id))
+        if plan is None:
+            raise ValueError("Route not found")
+    if request.nodeId:
+        node = db.scalar(
+            select(RouteNode)
+            .join(RoutePlan, RoutePlan.id == RouteNode.plan_id)
+            .where(RouteNode.id == request.nodeId, RoutePlan.user_id == user.id)
+        )
+        if node is None:
+            raise ValueError("Route node not found")
+        if plan is not None and node.plan_id != plan.id:
+            raise ValueError("Route node does not belong to the requested route")
+        if plan is None:
+            plan = db.scalar(select(RoutePlan).where(RoutePlan.id == node.plan_id, RoutePlan.user_id == user.id))
+
     title = node.title if node else request.activityTitle or "선택한 해양교육 활동"
     topic = node.topic if node else request.skillTopic
     skill_gain = node.expected_skill_gain if node else request.expectedSkillGain
@@ -521,12 +629,39 @@ JSON: {{"explanation":"...","nextRecommendation":"..."}}
         evidenceBasis=evidence,
     )
 
+def _family_mission_response(evidence: MissionEvidence) -> FamilyMissionResponse:
+    mission = evidence.mission_json or {}
+    roles = [MissionRole(**item) for item in mission.get("roles", []) if isinstance(item, dict)]
+    return FamilyMissionResponse(
+        missionId=evidence.id,
+        exhibitCode=evidence.exhibit_code,
+        title=evidence.title,
+        story=str(mission.get("story", "")),
+        roles=roles,
+        jointTask=str(mission.get("jointTask", "")),
+        expectedSkillGains=dict(evidence.skill_gains_json or {}),
+        badge=evidence.badge,
+        safetyNote=str(mission.get("safetyNote", "")),
+        followUpRecommendation=str(mission.get("followUpRecommendation", "")),
+        generatedBy=str(mission.get("generatedBy", "rules")),
+    )
+
 
 def generate_family_mission(db: Session, user: User, request: MissionGenerateRequest) -> FamilyMissionResponse:
+    qr_record = _validated_qr_nonce(db, request.qrPayload)
+    if request.exhibitCode != request.qrPayload.exhibitCode or request.exhibitCode != qr_record.exhibit_code:
+        raise ValueError("Scanned QR exhibit does not match the mission request")
+    if qr_record.mission_id:
+        existing = db.get(MissionEvidence, qr_record.mission_id)
+        if existing is None or existing.user_id != user.id:
+            raise ValueError("QR nonce is already bound to another mission")
+        return _family_mission_response(existing)
+
     snapshot = _profile_snapshot(db, user, request.profile)
     interest = str(snapshot.get("interest", "해양생물"))
     age = str(snapshot.get("ageGroup", "전 연령"))
-    title = f"{request.exhibitTitle} 가족 협동 미션"
+    exhibit_title = request.exhibitTitle.strip() or qr_record.exhibit_title or request.exhibitCode
+    title = f"{exhibit_title} 가족 협동 미션"
     story = "가족 탐사대가 전시 속 단서를 찾아 심해 탐사선의 안전한 귀환 계획을 완성합니다."
     roles = [
         MissionRole(name="탐험가", audience="어린이·입문자", task="전시에서 압력이나 부력과 관련된 단서 한 가지를 찾아 설명합니다."),
@@ -543,7 +678,7 @@ def generate_family_mission(db: Session, user: User, request: MissionGenerateReq
     if settings.llm_enabled:
         prompt = f"""
 국립해양박물관 현장에서 수행할 가족 협동 미션을 설계하세요.
-전시: {request.exhibitTitle} ({request.exhibitCode})
+전시: {exhibit_title} ({request.exhibitCode})
 참여자 수: {request.participantCount}
 연령: {age}
 관심: {interest}
@@ -570,10 +705,9 @@ def generate_family_mission(db: Session, user: User, request: MissionGenerateReq
         except Exception:
             generated_by = "rules_fallback"
 
-    mission_key = f"{request.exhibitCode}-{uuid.uuid4().hex[:16]}"
     evidence = MissionEvidence(
         user_id=user.id,
-        mission_key=mission_key,
+        mission_key=f"qr-{request.qrPayload.nonce}",
         exhibit_code=request.exhibitCode,
         title=title,
         badge=badge,
@@ -587,47 +721,95 @@ def generate_family_mission(db: Session, user: User, request: MissionGenerateReq
             "safetyNote": safety,
             "followUpRecommendation": follow_up,
             "generatedBy": generated_by,
+            "qrNonce": request.qrPayload.nonce,
+            "qrSessionId": request.qrPayload.sessionId,
         },
     )
     db.add(evidence)
+    db.flush()
+    qr_record.mission_id = evidence.id
     db.commit()
     db.refresh(evidence)
-    return FamilyMissionResponse(
-        missionId=evidence.id,
-        exhibitCode=evidence.exhibit_code,
-        title=title,
-        story=story,
-        roles=roles,
-        jointTask=joint_task,
-        expectedSkillGains=gains,
-        badge=badge,
-        safetyNote=safety,
-        followUpRecommendation=follow_up,
-        generatedBy=generated_by,
-    )
+    return _family_mission_response(evidence)
 
 
-def verify_family_mission(db: Session, user: User, mission_id: str, completion_note: str, participant_count: int) -> MissionVerifyResponse:
+def verify_family_mission(
+    db: Session,
+    user: User,
+    mission_id: str,
+    completion_note: str,
+    participant_count: int,
+    qr_payload: MissionQrPayload,
+) -> MissionVerifyResponse:
     evidence = db.scalar(select(MissionEvidence).where(MissionEvidence.id == mission_id, MissionEvidence.user_id == user.id))
     if not evidence:
         raise ValueError("Mission not found")
-    evidence.status = "verified"
-    evidence.completion_note = completion_note.strip()
-    evidence.participants = participant_count
-    evidence.verified_at = datetime.now(timezone.utc)
     mission = evidence.mission_json or {}
     next_recommendation = str(mission.get("followUpRecommendation", "관련 입문 영상과 미니 퀴즈를 이어서 학습하세요."))
-    db.add(RouteOutcomeEvent(user_id=user.id, event_type="completed", metadata_json={"kind": "family_mission", "missionId": evidence.id, "badge": evidence.badge}))
+    if evidence.status == "verified" and evidence.verified_at is not None:
+        return MissionVerifyResponse(
+            verified=True,
+            newlyVerified=False,
+            message="이미 인증된 미션입니다. 기존 Skill Passport 결과를 반환합니다.",
+            badge=evidence.badge,
+            acquiredCompetencies=dict(evidence.skill_gains_json or {}),
+            verifiedAt=evidence.verified_at,
+            nextRecommendation=next_recommendation,
+        )
+
+    note = completion_note.strip()
+    if len(note) < 10:
+        raise ValueError("Completion note must contain at least 10 non-space characters")
+    if mission.get("qrNonce") != qr_payload.nonce or mission.get("qrSessionId") != qr_payload.sessionId:
+        raise ValueError("QR payload does not belong to this mission")
+    qr_record = _validated_qr_nonce(db, qr_payload)
+    if qr_record.mission_id != evidence.id or qr_record.exhibit_code != evidence.exhibit_code:
+        raise ValueError("QR token is not bound to this mission")
+
+    verified_at = datetime.now(timezone.utc)
+    consumed = db.execute(
+        update(MissionQrNonce)
+        .where(
+            MissionQrNonce.nonce == qr_payload.nonce,
+            MissionQrNonce.mission_id == evidence.id,
+            MissionQrNonce.used_at.is_(None),
+        )
+        .values(used_at=verified_at)
+    )
+    if consumed.rowcount != 1:
+        db.rollback()
+        fresh = db.scalar(select(MissionEvidence).where(MissionEvidence.id == mission_id, MissionEvidence.user_id == user.id))
+        if fresh and fresh.status == "verified" and fresh.verified_at:
+            return MissionVerifyResponse(
+                verified=True,
+                newlyVerified=False,
+                message="이미 인증된 미션입니다. 기존 Skill Passport 결과를 반환합니다.",
+                badge=fresh.badge,
+                acquiredCompetencies=dict(fresh.skill_gains_json or {}),
+                verifiedAt=fresh.verified_at,
+                nextRecommendation=str((fresh.mission_json or {}).get("followUpRecommendation", next_recommendation)),
+            )
+        raise ValueError("QR nonce has already been used")
+
+    evidence.status = "verified"
+    evidence.completion_note = note
+    evidence.participants = participant_count
+    evidence.verified_at = verified_at
+    db.add(RouteOutcomeEvent(
+        user_id=user.id,
+        event_type="completed",
+        metadata_json={"kind": "family_mission", "missionId": evidence.id, "badge": evidence.badge, "qrNonce": qr_payload.nonce},
+    ))
     db.commit()
     return MissionVerifyResponse(
         verified=True,
+        newlyVerified=True,
         message="현장 협동 미션을 Ocean Skill Passport 증거로 기록했습니다.",
         badge=evidence.badge,
         acquiredCompetencies=dict(evidence.skill_gains_json or {}),
         verifiedAt=evidence.verified_at,
         nextRecommendation=next_recommendation,
     )
-
 
 def record_route_outcome(db: Session, user: User, route_id: str | None, node_id: str | None, event_type: str, value: float, metadata: dict[str, Any]) -> None:
     if route_id and not db.scalar(select(RoutePlan.id).where(RoutePlan.id == route_id, RoutePlan.user_id == user.id)):
@@ -638,39 +820,105 @@ def record_route_outcome(db: Session, user: User, route_id: str | None, node_id:
     db.commit()
 
 
+def upsert_program_participation(
+    db: Session, user: User, request: ProgramParticipationRequest
+) -> ProgramParticipationResponse:
+    record = db.scalar(
+        select(ProgramParticipation).where(
+            ProgramParticipation.user_id == user.id,
+            ProgramParticipation.program_id == request.programId,
+        )
+    )
+    now = datetime.now(timezone.utc)
+    if record is None:
+        record = ProgramParticipation(
+            user_id=user.id,
+            program_id=request.programId,
+            program_title=request.programTitle,
+            status="enrolled",
+            enrolled_at=now,
+        )
+        db.add(record)
+    rank = {"enrolled": 1, "attended": 2, "completed": 3}
+    if rank[request.status] >= rank.get(record.status, 1):
+        record.status = request.status
+    if request.programTitle:
+        record.program_title = request.programTitle
+    if request.status in {"attended", "completed"} and record.attended_at is None:
+        record.attended_at = now
+    if request.status == "completed" and record.completed_at is None:
+        record.completed_at = now
+    if request.preAssessment is not None:
+        record.pre_assessment = request.preAssessment
+    if request.postAssessment is not None:
+        record.post_assessment = request.postAssessment
+    record.metadata_json = {**(record.metadata_json or {}), **(request.metadata or {})}
+    db.commit()
+    db.refresh(record)
+    return ProgramParticipationResponse(
+        programId=record.program_id,
+        status=record.status,
+        enrolledAt=record.enrolled_at,
+        attendedAt=record.attended_at,
+        completedAt=record.completed_at,
+        preAssessment=record.pre_assessment,
+        postAssessment=record.post_assessment,
+    )
+
+
 def outcome_analytics(db: Session) -> dict[str, Any]:
     plans = list(db.scalars(select(RoutePlan)))
     nodes = list(db.scalars(select(RouteNode)))
     missions = list(db.scalars(select(MissionEvidence)))
     events = list(db.scalars(select(RouteOutcomeEvent)))
+    participations = list(db.scalars(select(ProgramParticipation)))
     event_counts = Counter(event.event_type for event in events)
+    node_lookup = {node.id: node for node in nodes}
+
+    participation_groups: defaultdict[str, list[ProgramParticipation]] = defaultdict(list)
+    for item in participations:
+        participation_groups[item.program_id].append(item)
+    followups_by_program: Counter[str] = Counter(
+        str((event.metadata_json or {}).get("programId"))
+        for event in events
+        if event.event_type == "followup" and (event.metadata_json or {}).get("programId")
+    )
+    program_outcomes = []
+    for program_id, rows in participation_groups.items():
+        participants = len({row.user_id for row in rows})
+        completed = sum(1 for row in rows if row.completed_at is not None or row.status == "completed")
+        attended = sum(1 for row in rows if row.attended_at is not None or row.status in {"attended", "completed"})
+        gains = [
+            row.post_assessment - row.pre_assessment
+            for row in rows
+            if row.pre_assessment is not None and row.post_assessment is not None
+        ]
+        title = next((row.program_title for row in rows if row.program_title), program_id)
+        program_outcomes.append({
+            "programId": program_id,
+            "title": title,
+            "participants": participants,
+            "attendanceRate": round(attended * 100 / max(1, participants)),
+            "completionRate": round(completed * 100 / max(1, participants)),
+            "nextLearningRate": round(followups_by_program[program_id] * 100 / max(1, participants)),
+            "averageSkillGain": round(sum(gains) / len(gains), 1) if gains else None,
+            "assessmentPairs": len(gains),
+        })
+    program_outcomes.sort(key=lambda item: (item["participants"], item["completionRate"]), reverse=True)
+
     completed_by_node: Counter[str] = Counter(event.node_id for event in events if event.event_type == "completed" and event.node_id)
     started_by_node: Counter[str] = Counter(event.node_id for event in events if event.event_type == "started" and event.node_id)
-    node_lookup = {node.id: node for node in nodes}
-    program_stats: defaultdict[str, dict[str, Any]] = defaultdict(lambda: {"participants": 0, "starts": 0, "completions": 0, "skillGain": 0, "nextLearning": 0})
+    prototype_signals = []
     for node in nodes:
         if node.node_type not in {"program", "event"}:
             continue
-        stats = program_stats[node.title]
-        stats["participants"] += 1
-        stats["starts"] += started_by_node[node.id]
-        stats["completions"] += completed_by_node[node.id]
-        stats["skillGain"] += node.expected_skill_gain * completed_by_node[node.id]
-    for event in events:
-        if event.event_type == "followup" and event.node_id in node_lookup:
-            program_stats[node_lookup[event.node_id].title]["nextLearning"] += 1
-
-    program_outcomes = []
-    for title, stats in program_stats.items():
-        participants = max(stats["participants"], stats["starts"], stats["completions"], 1)
-        program_outcomes.append({
-            "title": title,
-            "participants": participants,
-            "completionRate": round(stats["completions"] * 100 / participants),
-            "nextLearningRate": round(stats["nextLearning"] * 100 / participants),
-            "averageSkillGain": round(stats["skillGain"] / max(1, stats["completions"])),
+        prototype_signals.append({
+            "title": node.title,
+            "routeNodeCreated": 1,
+            "startEvents": started_by_node[node.id],
+            "completionEvents": completed_by_node[node.id],
+            "label": "prototype_proxy_not_unique_participants",
         })
-    program_outcomes.sort(key=lambda item: (item["participants"], item["completionRate"]), reverse=True)
 
     verified_missions = [item for item in missions if item.status == "verified"]
     family_rate = round(len(verified_missions) * 100 / max(1, len(missions)))
@@ -686,13 +934,14 @@ def outcome_analytics(db: Session) -> dict[str, Any]:
 
     suggestions = []
     if family_rate < 70:
-        suggestions.append("현장 미션 완료 직후 QR 인증 절차를 한 단계로 줄이고 보호자 역할 안내를 먼저 보여 주세요.")
-    suggestions.append("체험 종료 24시간 후 8분 입문 콘텐츠와 미니 퀴즈를 자동 제안해 다음 학습 전환을 측정하세요.")
-    if program_outcomes:
-        weakest = min(program_outcomes, key=lambda item: item["completionRate"])
-        suggestions.append(f"‘{weakest['title']}’의 중간 활동을 15분 단위로 나누고 난이도별 우회 항로를 제공하세요.")
+        suggestions.append("현장 미션 완료 직후 QR 인증 절차와 보호자 역할 안내를 점검하세요.")
+    suggestions.append("체험 종료 24시간 후 후속 콘텐츠를 제안하고 programId 기반 전환 이벤트를 기록하세요.")
+    if not program_outcomes:
+        suggestions.append("운영 성과를 보려면 enrollment, attendance, pre/post assessment 데이터를 먼저 수집하세요.")
 
     return {
+        "metricScope": "operational_enrollment_attendance_assessment",
+        "dataQuality": "participants는 고유 등록 사용자, attendance는 실제 참석 시각, averageSkillGain은 사전·사후 평가 쌍만 집계합니다.",
         "routePlanCount": len(plans),
         "activeRouteCount": sum(1 for plan in plans if plan.status == "active"),
         "routeCompletionEvents": event_counts.get("completed", 0),
@@ -702,11 +951,11 @@ def outcome_analytics(db: Session) -> dict[str, Any]:
         "familyMissionCompletionRate": family_rate,
         "careerExplorationCount": career_opens,
         "programOutcomes": program_outcomes[:12],
+        "prototypeProgramSignals": prototype_signals[:50],
         "dropOffs": dropoffs,
         "aiSuggestions": suggestions,
         "eventDistribution": dict(event_counts),
     }
-
 
 def generate_program_draft(db: Session, request: ProgramDraftRequest) -> ProgramDraftResponse:
     title = f"{request.topic} 스마트 항로 체험"

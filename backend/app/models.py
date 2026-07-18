@@ -230,6 +230,40 @@ class MissionEvidence(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 
 
+class MissionQrNonce(Base):
+    __tablename__ = "mission_qr_nonces"
+
+    nonce: Mapped[str] = mapped_column(String(64), primary_key=True)
+    exhibit_code: Mapped[str] = mapped_column(String(120), index=True)
+    exhibit_title: Mapped[str] = mapped_column(String(240), default="")
+    session_id: Mapped[str] = mapped_column(String(80), index=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    signature: Mapped[str] = mapped_column(String(128))
+    mission_id: Mapped[str | None] = mapped_column(ForeignKey("mission_evidence.id", ondelete="SET NULL"), nullable=True, unique=True, index=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    issued_by: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+
+class ProgramParticipation(Base):
+    __tablename__ = "program_participation"
+    __table_args__ = (UniqueConstraint("user_id", "program_id", name="uq_program_participation_user_program"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_str)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    program_id: Mapped[str] = mapped_column(String(160), index=True)
+    program_title: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(40), default="enrolled", index=True)
+    enrolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
+    attended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    pre_assessment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    post_assessment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
+
+
 class RouteOutcomeEvent(Base):
     __tablename__ = "route_outcome_events"
 

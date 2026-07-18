@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     llm_model: str = ""
     embedding_model: str = ""
     embedding_dimensions: int = 1536
+    require_llm: bool = False
+    require_embeddings: bool = False
+    require_web_search: bool = False
+
+    qr_signing_secret: str = "change-me-before-production"
+    qr_token_minutes: int = 10
 
     web_search_provider: str = ""
     web_search_api_key: str = ""
@@ -54,8 +60,16 @@ class Settings(BaseSettings):
             problems.append("ADMIN_PASSWORD must contain at least 12 characters")
         if self.llm_base_url and not self.llm_model:
             problems.append("LLM_MODEL is required when LLM_BASE_URL is configured")
+        if self.require_llm and not self.llm_enabled:
+            problems.append("LLM_BASE_URL and LLM_MODEL are required when REQUIRE_LLM=true")
+        if self.require_embeddings and not self.embedding_model.strip():
+            problems.append("EMBEDDING_MODEL is required when REQUIRE_EMBEDDINGS=true")
         if self.web_search_provider and not self.web_search_api_key:
             problems.append("WEB_SEARCH_API_KEY is required when WEB_SEARCH_PROVIDER is configured")
+        if self.require_web_search and not self.web_search_enabled:
+            problems.append("WEB_SEARCH_PROVIDER and WEB_SEARCH_API_KEY are required when REQUIRE_WEB_SEARCH=true")
+        if len(self.qr_signing_secret) < 32 or self.qr_signing_secret == "change-me-before-production":
+            problems.append("QR_SIGNING_SECRET must be a unique value of at least 32 characters")
         if not self.password_reset_base_url.startswith("https://"):
             problems.append("PASSWORD_RESET_BASE_URL must use HTTPS in production")
         if self.smtp_host and not self.smtp_from_email:

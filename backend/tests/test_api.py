@@ -16,6 +16,7 @@ os.environ['ADMIN_PASSWORD'] = 'AdminPassword123!'
 os.environ['YOUTUBE_SYNC_HOURS'] = '0'
 os.environ['LLM_BASE_URL'] = ''
 os.environ['LLM_MODEL'] = ''
+os.environ['QR_SIGNING_SECRET'] = 'test-qr-secret-that-is-more-than-thirty-two-bytes-long'
 
 from fastapi.testclient import TestClient
 
@@ -24,6 +25,24 @@ from backend.app.main import app
 
 def auth_header(token: str) -> dict[str, str]:
     return {'Authorization': f'Bearer {token}'}
+
+
+def issue_qr(client: TestClient, exhibit_code: str = 'submersible', exhibit_title: str = '잠수정 전시') -> dict:
+    login = client.post('/api/v1/auth/login', json={
+        'email': 'admin@bluepath.example.com',
+        'password': 'AdminPassword123!',
+        'guardianEmail': None,
+    })
+    assert login.status_code == 200, login.text
+    response = client.post('/api/v1/admin/missions/qr-token', headers=auth_header(login.json()['accessToken']), json={
+        'exhibitCode': exhibit_code,
+        'exhibitTitle': exhibit_title,
+        'validMinutes': 10,
+    })
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    payload.pop('qrJson', None)
+    return payload
 
 
 def test_registration_sync_quiz_and_diamond_pathway() -> None:
@@ -115,10 +134,12 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert rerouted.json()['routeType'] == 'fastest'
         assert rerouted.json()['nodes'][0]['targetId'] != first_node['targetId']
 
+        qr_payload = issue_qr(client)
         mission = client.post('/api/v1/missions/generate', headers=auth_header(token), json={
             'exhibitCode': 'submersible',
             'exhibitTitle': '잠수정 전시',
             'participantCount': 3,
+            'qrPayload': qr_payload,
             'profile': {'ageGroup': '초등학생', 'interest': '해양생물', 'level': '입문'},
         })
         assert mission.status_code == 200, mission.text
@@ -129,10 +150,30 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
             'missionId': mission_data['missionId'],
             'completionNote': '가족이 안전 장치와 압력 단서를 찾아 잠수정을 설계했다.',
             'participantCount': 3,
+            'qrPayload': qr_payload,
         })
         assert verified.status_code == 200, verified.text
         assert verified.json()['verified'] is True
+        assert verified.json()['newlyVerified'] is True
         assert verified.json()['badge'] == mission_data['badge']
+
+        duplicate = client.post('/api/v1/missions/verify', headers=auth_header(token), json={
+            'missionId': mission_data['missionId'],
+            'completionNote': '가족이 안전 장치와 압력 단서를 찾아 잠수정을 설계했다.',
+            'participantCount': 3,
+            'qrPayload': qr_payload,
+        })
+        assert duplicate.status_code == 200, duplicate.text
+        assert duplicate.json()['verified'] is True
+        assert duplicate.json()['newlyVerified'] is False
+
+        blank_note = client.post('/api/v1/missions/verify', headers=auth_header(token), json={
+            'missionId': mission_data['missionId'],
+            'completionNote': '   ',
+            'participantCount': 3,
+            'qrPayload': qr_payload,
+        })
+        assert blank_note.status_code == 422
 
         sync = client.post('/api/v1/sync', headers=auth_header(token), json={
             'snapshot': {
@@ -169,6 +210,93 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert status.status_code == 200
         assert status.json()['certificationStatus'] == 'pending'
         assert status.json()['projectStatus'] == 'pending'
+
+
+
+def test_route_ownership_pending_reroute_and_operational_outcomes() -> None:
+    with TestClient(app) as client:
+        def register(email: str, nickname: str) -> str:
+            response = client.post('/api/v1/auth/register', json={
+                'email': email,
+                'password': 'LearnerPassword123!',
+                'guardianEmail': None,
+                'nickname': nickname,
+            })
+            assert response.status_code == 200, response.text
+            return response.json()['accessToken']
+
+        owner_token = register('route-owner@bluepath.example.com', 'RouteOwner')
+        other_token = register('route-other@bluepath.example.com', 'RouteOther')
+        route = client.post('/api/v1/routes/plan', headers=auth_header(owner_token), json={
+            'targetCareer': '항해사',
+            'routeType': 'balanced',
+            'profile': {'interest': '항해', 'skillMastery': {'항해': 40}},
+            'constraints': {},
+            'maxNodes': 4,
+        })
+        assert route.status_code == 200, route.text
+        route_data = route.json()
+        node = route_data['nodes'][0]
+
+        foreign_route = client.post('/api/v1/routes/simulate', headers=auth_header(other_token), json={
+            'routeId': route_data['routeId'],
+            'activityTitle': 'foreign route',
+            'skillTopic': '항해',
+            'profile': {},
+        })
+        assert foreign_route.status_code == 404
+        foreign_node = client.post('/api/v1/routes/simulate', headers=auth_header(other_token), json={
+            'nodeId': node['id'],
+            'activityTitle': node['title'],
+            'skillTopic': node['topic'],
+            'profile': {},
+        })
+        assert foreign_node.status_code == 404
+
+        preview = client.post('/api/v1/routes/reroute/preview', headers=auth_header(owner_token), json={
+            'routeId': route_data['routeId'],
+            'reason': 'inactivity',
+            'profile': {},
+            'constraints': {},
+        })
+        assert preview.status_code == 200, preview.text
+        pending = preview.json()
+        assert pending['routeId'] != route_data['routeId']
+        other_activation = client.post('/api/v1/routes/activate', headers=auth_header(other_token), json={
+            'routeId': pending['routeId'],
+        })
+        assert other_activation.status_code == 404
+        activation = client.post('/api/v1/routes/activate', headers=auth_header(owner_token), json={
+            'routeId': pending['routeId'],
+        })
+        assert activation.status_code == 200, activation.text
+        assert activation.json()['routeId'] == pending['routeId']
+
+        for status, pre, post in [('enrolled', 42, None), ('attended', 42, None), ('completed', 42, 67)]:
+            participation = client.post('/api/v1/program-participation', headers=auth_header(owner_token), json={
+                'programId': 'museum-navigation-101',
+                'programTitle': '박물관 항해 입문',
+                'status': status,
+                'preAssessment': pre,
+                'postAssessment': post,
+                'metadata': {'source': 'test'},
+            })
+            assert participation.status_code == 200, participation.text
+
+        admin_login = client.post('/api/v1/auth/login', json={
+            'email': 'admin@bluepath.example.com',
+            'password': 'AdminPassword123!',
+            'guardianEmail': None,
+        })
+        analytics = client.get('/api/v1/admin/analytics/outcomes', headers=auth_header(admin_login.json()['accessToken']))
+        assert analytics.status_code == 200, analytics.text
+        body = analytics.json()
+        assert body['metricScope'] == 'operational_enrollment_attendance_assessment'
+        outcome = next(item for item in body['programOutcomes'] if item['programId'] == 'museum-navigation-101')
+        assert outcome['participants'] == 1
+        assert outcome['attendanceRate'] == 100
+        assert outcome['completionRate'] == 100
+        assert outcome['averageSkillGain'] == 25.0
 
 
 def test_admin_content_and_quiz_management() -> None:

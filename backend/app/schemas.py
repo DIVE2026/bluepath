@@ -361,10 +361,32 @@ class RouteRerouteRequest(CamelModel):
     constraints: dict[str, Any] = Field(default_factory=dict)
 
 
+class MissionQrPayload(CamelModel):
+    exhibitCode: str = Field(min_length=2, max_length=120)
+    exhibitTitle: str = Field(default="", max_length=240)
+    sessionId: str = Field(min_length=8, max_length=80)
+    issuedAt: datetime
+    expiresAt: datetime
+    nonce: str = Field(min_length=16, max_length=64)
+    signature: str = Field(min_length=32, max_length=128)
+
+
+class MissionQrIssueRequest(CamelModel):
+    exhibitCode: str = Field(min_length=2, max_length=120)
+    exhibitTitle: str = Field(min_length=2, max_length=240)
+    sessionId: str | None = Field(default=None, min_length=8, max_length=80)
+    validMinutes: int = Field(default=10, ge=1, le=120)
+
+
+class MissionQrIssueResponse(MissionQrPayload):
+    qrJson: str
+
+
 class MissionGenerateRequest(CamelModel):
-    exhibitCode: str = Field(default="submersible", min_length=2, max_length=120)
-    exhibitTitle: str = Field(default="잠수정 전시", min_length=2, max_length=240)
+    exhibitCode: str = Field(min_length=2, max_length=120)
+    exhibitTitle: str = Field(min_length=2, max_length=240)
     participantCount: int = Field(default=2, ge=1, le=8)
+    qrPayload: MissionQrPayload
     profile: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -390,17 +412,42 @@ class FamilyMissionResponse(CamelModel):
 
 class MissionVerifyRequest(CamelModel):
     missionId: str
-    completionNote: str = Field(default="", max_length=2000)
+    completionNote: str = Field(min_length=10, max_length=2000)
     participantCount: int = Field(default=1, ge=1, le=8)
+    qrPayload: MissionQrPayload
 
 
 class MissionVerifyResponse(CamelModel):
     verified: bool
+    newlyVerified: bool = False
     message: str
     badge: str
     acquiredCompetencies: dict[str, int] = Field(default_factory=dict)
     verifiedAt: datetime
     nextRecommendation: str
+
+
+class RouteActivationRequest(CamelModel):
+    routeId: str
+
+
+class ProgramParticipationRequest(CamelModel):
+    programId: str = Field(min_length=2, max_length=160)
+    programTitle: str = Field(default="", max_length=300)
+    status: str = Field(default="enrolled", pattern="^(enrolled|attended|completed)$")
+    preAssessment: int | None = Field(default=None, ge=0, le=100)
+    postAssessment: int | None = Field(default=None, ge=0, le=100)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProgramParticipationResponse(CamelModel):
+    programId: str
+    status: str
+    enrolledAt: datetime
+    attendedAt: datetime | None = None
+    completedAt: datetime | None = None
+    preAssessment: int | None = None
+    postAssessment: int | None = None
 
 
 class RouteOutcomeEventRequest(CamelModel):
