@@ -49,8 +49,6 @@ import com.bluepath.app.repository.BluePathRepository;
 import com.bluepath.app.storage.UserStore;
 import com.bluepath.app.util.MarineLlmClient;
 import com.bluepath.app.util.NotificationHelper;
-import com.bluepath.app.util.MissionQrParser;
-import com.bluepath.app.util.MissionVerificationPolicy;
 import com.bluepath.app.util.PromotionRules;
 import com.bluepath.app.util.RecommendationEngine;
 import com.bluepath.app.view.ActivityHeatmapView;
@@ -59,9 +57,6 @@ import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
 import com.bluepath.app.viewmodel.BluePathViewModel;
 import com.bumptech.glide.Glide;
-import com.journeyapps.barcodescanner.ScanContract;
-import com.journeyapps.barcodescanner.ScanIntentResult;
-import com.journeyapps.barcodescanner.ScanOptions;
 
 
 import java.util.ArrayList;
@@ -94,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private BluePathRepository cloudRepository;
     private ActivityResultLauncher<String[]> profileImagePicker;
     private ActivityResultLauncher<Intent> communityPostLauncher;
-    private ActivityResultLauncher<ScanOptions> qrScanner;
+    private ActivityResultLauncher<Object> qrScanner;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private LinearLayout root;
     private LinearLayout content;
@@ -228,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
-        qrScanner = registerForActivityResult(new ScanContract(), this::handleMissionQrResult);
+        registerMissionQrScanner();
         NotificationHelper.scheduleVoyageAutoReroute(this);
         communityPostLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -1401,19 +1396,51 @@ public class MainActivity extends AppCompatActivity {
         content.addView(mission);
     }
 
-    private void launchMissionQrScanner() {
-        ScanOptions options = new ScanOptions();
-        options.setPrompt("박물관 전시 QR을 사각형 안에 맞춰 주세요.");
-        options.setBeepEnabled(false);
-        options.setOrientationLocked(true);
-        options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
-        qrScanner.launch(options);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerMissionQrScanner() {
+        try {
+            Class<?> contractClass = Class.forName("com.journeyapps.barcodescanner.ScanContract");
+            Object contract = contractClass.getDeclaredConstructor().newInstance();
+            androidx.activity.result.contract.ActivityResultContract<Object, Object> typedContract =
+                    (androidx.activity.result.contract.ActivityResultContract<Object, Object>) contract;
+            qrScanner = registerForActivityResult(typedContract, this::handleMissionQrResult);
+        } catch (Exception exception) {
+            qrScanner = null;
+        }
     }
 
-    private void handleMissionQrResult(ScanIntentResult result) {
-        if (result == null || result.getContents() == null) return;
+    private void launchMissionQrScanner() {
+        if (qrScanner == null) {
+            toast("QR 스캐너를 초기화하지 못했습니다. Gradle 동기화 후 다시 실행해 주세요.");
+            return;
+        }
         try {
-            ApiModels.MissionQrPayload payload = MissionQrParser.parse(result.getContents());
+            Class<?> optionsClass = Class.forName("com.journeyapps.barcodescanner.ScanOptions");
+            Object options = optionsClass.getDeclaredConstructor().newInstance();
+            optionsClass.getMethod("setPrompt", String.class)
+                    .invoke(options, "박물관 전시 QR을 사각형 안에 맞춰 주세요.");
+            optionsClass.getMethod("setBeepEnabled", boolean.class).invoke(options, false);
+            optionsClass.getMethod("setOrientationLocked", boolean.class).invoke(options, true);
+            try {
+                optionsClass.getMethod("setDesiredBarcodeFormats", String[].class)
+                        .invoke(options, (Object) new String[]{"QR_CODE"});
+            } catch (NoSuchMethodException exception) {
+                optionsClass.getMethod("setDesiredBarcodeFormats", java.util.Collection.class)
+                        .invoke(options, java.util.Collections.singletonList("QR_CODE"));
+            }
+            qrScanner.launch(options);
+        } catch (Exception exception) {
+            toast("QR 스캐너 실행 실패: " + safeMessage(exception));
+        }
+    }
+
+    private void handleMissionQrResult(Object result) {
+        if (result == null) return;
+        try {
+            Object contentsValue = result.getClass().getMethod("getContents").invoke(result);
+            String contents = contentsValue == null ? "" : contentsValue.toString();
+            if (contents.trim().isEmpty()) return;
+            ApiModels.MissionQrPayload payload = parseMissionQrPayload(contents);
             currentQrPayload = payload;
             currentMission = null;
             requestFamilyMission(payload, 2);
@@ -1423,6 +1450,35 @@ public class MainActivity extends AppCompatActivity {
             missionError = "유효한 BluePath 현장 QR이 아닙니다.";
             if (currentTab == 0) renderTab(0);
         }
+    }
+
+    private ApiModels.MissionQrPayload parseMissionQrPayload(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            throw new IllegalArgumentException("QR payload is empty");
+        }
+        ApiModels.MissionQrPayload payload;
+        try {
+            payload = new com.google.gson.Gson().fromJson(raw, ApiModels.MissionQrPayload.class);
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException("QR payload is not valid JSON", exception);
+        }
+        if (payload == null
+                || trimmedLength(payload.exhibitCode) < 2
+                || trimmedLength(payload.sessionId) < 8
+                || trimmedLength(payload.issuedAt) < 10
+                || trimmedLength(payload.expiresAt) < 10
+                || trimmedLength(payload.nonce) < 16
+                || trimmedLength(payload.signature) < 32) {
+            throw new IllegalArgumentException("QR payload is missing required signed fields");
+        }
+        if (payload.exhibitTitle == null || payload.exhibitTitle.trim().isEmpty()) {
+            payload.exhibitTitle = payload.exhibitCode;
+        }
+        return payload;
+    }
+
+    private int trimmedLength(String value) {
+        return value == null ? 0 : value.trim().length();
     }
 
     private void requestFamilyMission(ApiModels.MissionQrPayload qrPayload, int participants) {
@@ -1467,7 +1523,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void verifyCurrentMission(String completionNote, int participants) {
         if (currentMission == null || currentQrPayload == null) return;
-        if (!MissionVerificationPolicy.isCompletionNoteValid(completionNote)) {
+        if (completionNote == null || completionNote.trim().length() < 10) {
             toast("활동 결과를 공백 제외 10자 이상 입력해 주세요.");
             return;
         }
@@ -1479,7 +1535,7 @@ public class MainActivity extends AppCompatActivity {
                         currentMission.missionId, completionNote, participants, currentQrPayload);
                 runOnUiThread(() -> {
                     missionLoading = false;
-                    if (MissionVerificationPolicy.shouldAward(response.newlyVerified)) {
+                    if (response.newlyVerified) {
                         if (response.acquiredCompetencies != null) {
                             for (Map.Entry<String, Integer> entry : response.acquiredCompetencies.entrySet()) {
                                 store.applySkillGain(entry.getKey(), entry.getValue());
