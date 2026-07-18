@@ -60,6 +60,34 @@
   </section>
 
   <section>
+    <h2>Education Outcome Control Center</h2>
+    <p>추천 수가 아니라 실제 항로 생성, 재항해, 현장 미션 인증, 다음 학습 전환과 프로그램별 역량 상승을 추적합니다.</p>
+    <button class="secondary" onclick="loadOutcomes()">교육 효과 새로고침</button>
+    <div id="outcomeMetrics" class="grid" style="margin-top:12px"></div>
+    <div class="grid">
+      <div><h3>프로그램 효과</h3><div id="programOutcomes" class="radar-list"></div></div>
+      <div><h3>주요 이탈 지점</h3><div id="routeDropoffs" class="radar-list"></div></div>
+    </div>
+    <h3>AI 운영 제안</h3>
+    <div id="outcomeSuggestions" class="radar-list"></div>
+    <pre id="outcomeOutput">Sign in to load route and mission outcome analytics.</pre>
+  </section>
+
+  <section>
+    <h2>AI Education Program Studio</h2>
+    <p>수요 레이더와 NCS 역량을 바탕으로 30·60·90분 운영안, 사전·사후 문항, 후속 온라인 학습과 측정 계획을 한 번에 설계합니다.</p>
+    <div class="grid">
+      <input id="draftTopic" value="해양안전" placeholder="Program topic" />
+      <input id="draftAudience" value="초등학생과 보호자" placeholder="Target audience" />
+      <input id="draftDuration" type="number" min="15" max="240" value="60" placeholder="Minutes" />
+      <input id="draftContext" value="국립해양박물관 잠수정 전시 연계" placeholder="Institution context" />
+    </div>
+    <textarea id="draftObjective" rows="3">가족 체험을 해양안전 학습과 장기 진로 탐색으로 연결</textarea>
+    <button onclick="generateProgramDraft()">AI 프로그램 초안 생성</button>
+    <pre id="draftOutput">The LLM will preserve data-derived objectives and return an editable grounded draft.</pre>
+  </section>
+
+  <section>
     <h2>Video, program, and event management</h2>
     <div class="grid">
       <input id="contentId" placeholder="Unique ID" />
@@ -169,7 +197,7 @@
       const data = await request('/api/v1/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:email.value,password:password.value,guardianEmail:null})});
       token = data.accessToken; localStorage.setItem('bluepathAdminToken', token);
       show('authOutput', `Signed in as ${data.displayName} (${data.email})`);
-      await Promise.all([loadContent(), loadQuizzes(), loadEvidence(), loadDemandRadar()]);
+      await Promise.all([loadContent(), loadQuizzes(), loadEvidence(), loadDemandRadar(), loadOutcomes()]);
     } catch (error) { show('authOutput', error.message); }
   }
 
@@ -198,6 +226,57 @@
       ).join('');
       show('radarOutput', {demandSupply:data.demandSupply, topCompleted:data.topCompleted, survey:data.survey});
     } catch (error) { show('radarOutput', error.message); }
+  }
+
+  async function loadOutcomes() {
+    try {
+      const data = await request('/api/v1/admin/analytics/outcomes',{headers:authHeaders()});
+      outcomeMetrics.innerHTML = [
+        ['Generated routes', data.routePlanCount || 0],
+        ['Active routes', data.activeRouteCount || 0],
+        ['Verified family missions', data.familyMissionVerified || 0],
+        ['Mission completion', `${data.familyMissionCompletionRate || 0}%`]
+      ].map(([label,value]) => `<div class="metric"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`).join('');
+      programOutcomes.innerHTML = (data.programOutcomes || []).length ? data.programOutcomes.map(item =>
+        `<div class="radar-item"><strong>${escapeHtml(item.title)}</strong><small> 참여 ${item.participants} · 완료 ${item.completionRate}% · 다음 학습 ${item.nextLearningRate}% · 평균 역량 +${item.averageSkillGain}</small><div class="bar"><span style="width:${Math.max(0,Math.min(100,item.completionRate))}%"></span></div></div>`
+      ).join('') : '<div class="radar-item">항로 활동 데이터가 쌓이면 프로그램별 효과가 표시됩니다.</div>';
+      routeDropoffs.innerHTML = (data.dropOffs || []).map(item =>
+        `<div class="radar-item"><strong>${escapeHtml(item.stage)}</strong><small> ${item.count}건</small><p>${escapeHtml(item.reason)}</p></div>`
+      ).join('');
+      outcomeSuggestions.innerHTML = (data.aiSuggestions || []).map(item =>
+        `<div class="radar-item">🧭 ${escapeHtml(item)}</div>`
+      ).join('');
+      show('outcomeOutput', {eventDistribution:data.eventDistribution, rerouteCount:data.rerouteCount, careerExplorationCount:data.careerExplorationCount});
+    } catch (error) { show('outcomeOutput', error.message); }
+  }
+
+  async function generateProgramDraft() {
+    const payload = {
+      topic:draftTopic.value.trim(),
+      targetAudience:draftAudience.value.trim(),
+      durationMinutes:Number(draftDuration.value || 60),
+      institutionContext:draftContext.value.trim(),
+      objective:draftObjective.value.trim()
+    };
+    try {
+      const data = await request('/api/v1/admin/program-draft',{method:'POST',headers:jsonHeaders(),body:JSON.stringify(payload)});
+      const section = (title, values) => [title, ...(values || []).map(value => `- ${value}`)].join('\n');
+      show('draftOutput', [
+        data.title,
+        data.rationale,
+        `target: ${data.targetAudience}`,
+        section('learning objectives', data.learningObjectives),
+        section('30 minute plan', data.agenda30),
+        section('60 minute plan', data.agenda60),
+        section('90 minute plan', data.agenda90),
+        section('ncs competencies', data.ncsCompetencies),
+        section('pre questions', data.preQuestions),
+        section('post questions', data.postQuestions),
+        section('follow up learning', data.followUpLearning),
+        section('measurement plan', data.measurementPlan),
+        `generated by: ${data.generatedBy}`
+      ].join('\n\n'));
+    } catch (error) { show('draftOutput', error.message); }
   }
 
   async function saveContent() {
