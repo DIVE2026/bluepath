@@ -170,3 +170,86 @@ CREATE TABLE IF NOT EXISTS community_reactions (
 );
 CREATE INDEX IF NOT EXISTS idx_community_reactions_target
   ON community_reactions(target_type, target_id);
+
+-- BluePath 1.4 voyage twin, family missions, and outcome analytics
+CREATE TABLE IF NOT EXISTS route_plans (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_career VARCHAR(200) NOT NULL,
+  route_type VARCHAR(40) NOT NULL DEFAULT 'balanced',
+  summary TEXT NOT NULL DEFAULT '',
+  coach_message TEXT NOT NULL DEFAULT '',
+  readiness_before INT NOT NULL DEFAULT 0,
+  readiness_after INT NOT NULL DEFAULT 0,
+  estimated_minutes INT NOT NULL DEFAULT 0,
+  estimated_days INT NOT NULL DEFAULT 0,
+  generated_by VARCHAR(40) NOT NULL DEFAULT 'rules',
+  status VARCHAR(40) NOT NULL DEFAULT 'active',
+  context_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_route_plans_user_status
+  ON route_plans(user_id, status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS route_nodes (
+  id VARCHAR(36) PRIMARY KEY,
+  plan_id VARCHAR(36) NOT NULL REFERENCES route_plans(id) ON DELETE CASCADE,
+  order_index INT NOT NULL DEFAULT 0,
+  node_type VARCHAR(40) NOT NULL,
+  target_id VARCHAR(160) NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  source VARCHAR(240) NOT NULL DEFAULT '',
+  topic VARCHAR(120) NOT NULL DEFAULT '해양교육',
+  minutes INT NOT NULL DEFAULT 0,
+  expected_skill_gain INT NOT NULL DEFAULT 0,
+  readiness_gain INT NOT NULL DEFAULT 0,
+  schedule_status VARCHAR(40) NOT NULL DEFAULT 'available',
+  action_url TEXT NOT NULL DEFAULT '',
+  why_this_order TEXT NOT NULL DEFAULT '',
+  reasons_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  evidence_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  competencies_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_route_nodes_plan_order
+  ON route_nodes(plan_id, order_index);
+CREATE INDEX IF NOT EXISTS idx_route_nodes_topic_type
+  ON route_nodes(topic, node_type);
+
+CREATE TABLE IF NOT EXISTS mission_evidence (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  mission_key VARCHAR(120) NOT NULL,
+  exhibit_code VARCHAR(120) NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  badge VARCHAR(160) NOT NULL DEFAULT '',
+  participants INT NOT NULL DEFAULT 1,
+  status VARCHAR(40) NOT NULL DEFAULT 'generated',
+  completion_note TEXT NOT NULL DEFAULT '',
+  skill_gains_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  mission_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  verified_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_mission_evidence_user_key UNIQUE (user_id, mission_key)
+);
+CREATE INDEX IF NOT EXISTS idx_mission_evidence_status
+  ON mission_evidence(status, verified_at DESC);
+
+CREATE TABLE IF NOT EXISTS route_outcome_events (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  route_plan_id VARCHAR(36) REFERENCES route_plans(id) ON DELETE SET NULL,
+  node_id VARCHAR(36) REFERENCES route_nodes(id) ON DELETE SET NULL,
+  event_type VARCHAR(60) NOT NULL,
+  value DOUBLE PRECISION NOT NULL DEFAULT 1,
+  metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_route_outcomes_type_created
+  ON route_outcome_events(event_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_route_outcomes_plan_node
+  ON route_outcome_events(route_plan_id, node_id);
