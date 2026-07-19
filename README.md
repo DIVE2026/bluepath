@@ -193,16 +193,7 @@ Production deployments must use HTTPS, trusted SMTP settings, rotated secrets, a
 
 ## Sidebar Navigation
 
-The app shell uses a closable left sidebar with these entries:
-
-- **AI 진로 상담**
-- 홈
-- 학습 자료 (영상 / 논문)
-- 퀴즈
-- 일정
-- 해양 커뮤니티 (자유 게시판 / 질문 게시판)
-- **MY**
-
+The app shell uses a closable left sidebar with 7 entries.
 The sidebar can be dismissed with the close button or background scrim.
 
 ## Promotion Rules
