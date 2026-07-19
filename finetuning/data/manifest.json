@@ -1,18 +1,66 @@
 {
+  "datasetVersion": "2.0",
   "seed": 20260711,
-  "total": 98,
-  "train": 74,
-  "validation": 14,
-  "evaluation": 10,
+  "totalExamples": 196,
+  "totalGroups": 108,
+  "splits": {
+    "train": {
+      "examples": 156,
+      "groups": 86,
+      "categories": {
+        "grounded_agent": 50,
+        "policy": 8,
+        "quiz": 90,
+        "safety": 8
+      }
+    },
+    "validation": {
+      "examples": 20,
+      "groups": 11,
+      "categories": {
+        "grounded_agent": 6,
+        "policy": 1,
+        "quiz": 12,
+        "safety": 1
+      }
+    },
+    "evaluation": {
+      "examples": 20,
+      "groups": 11,
+      "categories": {
+        "grounded_agent": 6,
+        "policy": 1,
+        "quiz": 12,
+        "safety": 1
+      }
+    }
+  },
   "categories": {
-    "grounded_agent": 31,
+    "grounded_agent": 62,
     "policy": 10,
-    "quiz": 57
+    "quiz": 114,
+    "safety": 10
   },
   "tiers": {
-    "브론즈": 10,
-    "실버": 12,
-    "골드": 15,
-    "플래티넘": 20
+    "브론즈": 20,
+    "실버": 24,
+    "골드": 30,
+    "플래티넘": 40
+  },
+  "quizAnswerIndexDistribution": {
+    "0": 28,
+    "1": 29,
+    "2": 28,
+    "3": 29
+  },
+  "files": {
+    "finetuning/data/train.jsonl": "bfa6a6fc7f91bdcd5379780b12ad0f9bc3d41a2d8abe3876ecd9f668ab7cbf00",
+    "finetuning/data/validation.jsonl": "9f6a888479de345d0c5031ef1362822bba7597291a766c47ba6572b7dee377c6",
+    "finetuning/data/eval_cases.json": "170c13573568924f45f5f96f61dba3d99a1673799f10c46890ea3de76f364fb4",
+    "app/src/main/assets/marine_finetune_dataset.jsonl": "22d51ee4b92df1ce6e9eae29dec11dd26b8628fe078617f73c6c5724aa8f1265"
+  },
+  "leakageChecks": {
+    "duplicateExamples": 0,
+    "crossSplitSourceGroups": 0
   }
 }
