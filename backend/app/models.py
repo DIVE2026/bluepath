@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .config import get_settings
@@ -81,7 +81,7 @@ class LearningRecord(Base):
     target_id: Mapped[str] = mapped_column(String(160), index=True)
     title: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(80), default="")
-    client_updated_at: Mapped[int] = mapped_column(Integer, default=0)
+    client_updated_at: Mapped[int] = mapped_column(BigInteger, default=0)
     synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
 
