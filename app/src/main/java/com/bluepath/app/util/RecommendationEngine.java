@@ -13,6 +13,7 @@ import com.bluepath.app.storage.UserStore;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -212,6 +213,72 @@ public final class RecommendationEngine {
             if (result.size() >= limit) break;
         }
         return result;
+    }
+
+    public static boolean isOnlineProgram(ProgramItem item) {
+        return item != null && item.method != null && item.method.contains("온라인");
+    }
+
+    public static boolean isOfflineProgram(ProgramItem item) {
+        if (item == null) return false;
+        // method가 비어 있으면 장소 기반 일정으로 간주해 달력에 남긴다.
+        return item.method == null || item.method.trim().isEmpty() || item.method.contains("오프라인");
+    }
+
+    public static boolean matchesProgramFilter(ProgramItem item, String query, Collection<String> tags, String statusFilter) {
+        if (item == null) return false;
+        String haystack = safeText(item.title) + " " + safeText(item.description) + " "
+                + safeText(item.topic) + " " + safeText(item.target) + " " + safeText(item.method);
+        return matchesQuery(haystack, query)
+                && matchesTags(haystack, tags)
+                && matchesStatusFilter(item.startDate, item.endDate, statusFilter);
+    }
+
+    public static boolean matchesEventFilter(EventItem item, String query, Collection<String> tags, String statusFilter) {
+        if (item == null) return false;
+        String haystack = safeText(item.title) + " " + safeText(item.description) + " "
+                + safeText(item.category) + " " + safeText(item.target);
+        return matchesQuery(haystack, query)
+                && matchesTags(haystack, tags)
+                && matchesStatusFilter(item.startDate, item.endDate, statusFilter);
+    }
+
+    public static boolean matchesStatusFilter(String startDate, String endDate, String statusFilter) {
+        if (statusFilter == null || statusFilter.trim().isEmpty() || "전체".equals(statusFilter)) return true;
+        String status = scheduleStatus(startDate, endDate);
+        if ("진행 중".equals(statusFilter)) return "진행 중".equals(status);
+        if ("진행 전".equals(statusFilter)) return "모집 예정".equals(status);
+        if ("진행 완료".equals(statusFilter)) return "종료·아카이브".equals(status);
+        return true;
+    }
+
+    public static boolean coversIsoDate(String startDate, String endDate, String isoDate) {
+        Date start = parseDate(startDate);
+        Date end = parseDate(endDate);
+        Date day = parseDate(isoDate);
+        if (start == null || end == null || day == null || end.before(start)) return false;
+        return !day.before(start) && !day.after(end);
+    }
+
+    private static boolean matchesQuery(String haystack, String query) {
+        if (query == null || query.trim().isEmpty()) return true;
+        for (String token : query.trim().split("\\s+")) {
+            if (!haystack.contains(token) && !textMatchesInterest(haystack, token)) return false;
+        }
+        return true;
+    }
+
+    private static boolean matchesTags(String haystack, Collection<String> tags) {
+        if (tags == null || tags.isEmpty()) return true;
+        for (String tag : tags) {
+            if (tag == null || tag.trim().isEmpty()) continue;
+            if (!haystack.contains(tag) && !textMatchesInterest(haystack, tag)) return false;
+        }
+        return true;
+    }
+
+    private static String safeText(String value) {
+        return value == null ? "" : value;
     }
 
     public static String scheduleStatus(String startDate, String endDate) {

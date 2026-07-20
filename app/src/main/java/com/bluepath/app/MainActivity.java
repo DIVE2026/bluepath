@@ -52,6 +52,7 @@ import com.bluepath.app.util.NotificationHelper;
 import com.bluepath.app.util.PromotionRules;
 import com.bluepath.app.util.RecommendationEngine;
 import com.bluepath.app.view.ActivityHeatmapView;
+import com.bluepath.app.view.MonthCalendarView;
 import com.bluepath.app.view.OceanBackgroundView;
 import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
@@ -65,6 +66,8 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -109,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
     private boolean scheduleSearchLoading = false;
     private ApiModels.AiSearchResponse learningSearchResponse;
     private ApiModels.AiSearchResponse scheduleSearchResponse;
+    private final Set<String> scheduleSelectedTags = new LinkedHashSet<>();
+    private String scheduleStatusFilter = "전체";
+    private String scheduleSelectedDate = "";
+    private int scheduleCalendarYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
+    private int scheduleCalendarMonth = Calendar.getInstance(Locale.KOREA).get(Calendar.MONTH);
+    private boolean scheduleOnlineExpanded = false;
 
     private List<QuizQuestion> activeQuiz = new ArrayList<>();
     private int[] selectedAnswers = new int[0];
@@ -2022,33 +2031,199 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderSchedule() {
-        addTabIntro("", "LIVE & ARCHIVE", "일정 · 교육 탐색", "조건을 입력하면 관련 교육·행사 자료를 우선 추려 보여줍니다.");
+        addTabIntro("", "LIVE & ARCHIVE", "일정 · 교육 탐색", "문장으로 물어보는 AI 검색과, 태그·모집 현황으로 좁혀보는 일정 둘러보기를 함께 제공합니다.");
+
+        content.addView(sectionTitle("AI로 활동 찾기"));
         addAiSearchBox("schedule", "예: 부산에서 고등학생이 여름방학에 참여할 해양 안전 교육이 있을까?", scheduleSearchLoading, scheduleSearchResponse);
+
         if (scheduleSearchResponse != null && scheduleSearchResponse.items != null && !scheduleSearchResponse.items.isEmpty()) {
-            content.addView(sectionTitle("AI 일정 검색 결과"));
             content.addView(body(scheduleSearchResponse.summary));
             for (ApiModels.ContentDto dto : scheduleSearchResponse.items) {
                 if ("event".equals(dto.contentType)) addEventCard(eventFromDto(dto));
                 else addProgramCard(programFromDto(dto));
             }
+            content.addView(note("AI 검색 결과는 위 영역에만 표시되며, 아래 일정 둘러보기에는 영향을 주지 않습니다.", MUTED));
+            Button closeResults = outlineButton("AI 검색 결과 닫기");
+            closeResults.setOnClickListener(v -> {
+                scheduleSearchResponse = null;
+                showApp(3);
+            });
+            LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(-1, dp(44));
+            closeParams.setMargins(0, 0, 0, dp(12));
+            content.addView(closeResults, closeParams);
         }
+
+        content.addView(sectionTitle("일정 둘러보기"));
+        content.addView(scheduleChipRow(
+                new String[]{"전체", "해양환경", "해양생물", "항해", "선박", "안전", "가족", "진로", "독도·해양문화"}, true));
+        content.addView(scheduleChipRow(new String[]{"전체", "진행 중", "진행 전", "진행 완료"}, false));
+
         UserProfile p = store.getProfile();
-        List<ProgramItem> programs = RecommendationEngine.recommendedPrograms(p, store);
-        List<EventItem> events = RecommendationEngine.recommendedEvents(p);
+        List<ProgramItem> offlinePrograms = new ArrayList<>();
+        List<ProgramItem> onlinePrograms = new ArrayList<>();
+        for (ProgramItem item : RecommendationEngine.recommendedPrograms(p, store)) {
+            if (!RecommendationEngine.matchesProgramFilter(item, "", scheduleSelectedTags, scheduleStatusFilter)) continue;
+            if (RecommendationEngine.isOnlineProgram(item)) onlinePrograms.add(item);
+            if (RecommendationEngine.isOfflineProgram(item)) offlinePrograms.add(item);
+        }
+        List<EventItem> offlineEvents = new ArrayList<>();
+        for (EventItem item : RecommendationEngine.recommendedEvents(p)) {
+            if (RecommendationEngine.matchesEventFilter(item, "", scheduleSelectedTags, scheduleStatusFilter)) {
+                offlineEvents.add(item);
+            }
+        }
 
-        LinearLayout dataCard = card();
-        dataCard.addView(big("교육 과정 " + programs.size() + "개 · 행사 " + events.size() + "개"));
-        content.addView(dataCard);
+        Set<String> markedDays = new HashSet<>();
+        Calendar monthCalendar = Calendar.getInstance(Locale.KOREA);
+        monthCalendar.clear();
+        monthCalendar.set(scheduleCalendarYear, scheduleCalendarMonth, 1);
+        int daysInMonth = monthCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        for (int day = 1; day <= daysInMonth; day++) {
+            String iso = String.format(Locale.KOREA, "%04d-%02d-%02d", scheduleCalendarYear, scheduleCalendarMonth + 1, day);
+            for (ProgramItem item : offlinePrograms) {
+                if (RecommendationEngine.coversIsoDate(item.startDate, item.endDate, iso)) {
+                    markedDays.add(iso);
+                    break;
+                }
+            }
+            if (markedDays.contains(iso)) continue;
+            for (EventItem item : offlineEvents) {
+                if (RecommendationEngine.coversIsoDate(item.startDate, item.endDate, iso)) {
+                    markedDays.add(iso);
+                    break;
+                }
+            }
+        }
 
-        content.addView(sectionTitle("교육 프로그램 스케줄"));
-        int shownPrograms = Math.min(20, programs.size());
-        for (int i = 0; i < shownPrograms; i++) addProgramCard(programs.get(i));
-        if (programs.size() > shownPrograms) content.addView(note("전체 " + programs.size() + "개 중 상위 " + shownPrograms + "개를 표시했습니다. 나머지 데이터도 추천 엔진과 AI 검색에 포함됩니다.", MUTED));
+        LinearLayout summaryCard = card();
+        summaryCard.addView(big("오프라인 일정 " + (offlinePrograms.size() + offlineEvents.size()) + "건 · 이번 달 " + markedDays.size()
+                + "일 · 온라인/상시 활동 " + onlinePrograms.size() + "개"));
+        if (!scheduleSelectedTags.isEmpty() || !"전체".equals(scheduleStatusFilter)) {
+            StringBuilder applied = new StringBuilder("적용된 조건:");
+            for (String tag : scheduleSelectedTags) applied.append(" #").append(tag);
+            if (!"전체".equals(scheduleStatusFilter)) applied.append(" · ").append(scheduleStatusFilter);
+            summaryCard.addView(note(applied.toString(), OCEAN));
+        }
+        content.addView(summaryCard);
 
-        content.addView(sectionTitle("이벤트·영화·공연 아카이브"));
-        int shownEvents = Math.min(12, events.size());
-        for (int i = 0; i < shownEvents; i++) addEventCard(events.get(i));
-        if (events.size() > shownEvents) content.addView(note("전체 " + events.size() + "개 중 상위 " + shownEvents + "개를 표시했습니다.", MUTED));
+        content.addView(sectionTitle("오프라인 일정"));
+        LinearLayout calendarCard = card();
+        LinearLayout monthRow = row();
+        Button previousMonth = outlineButton("〈");
+        previousMonth.setOnClickListener(v -> {
+            if (scheduleCalendarMonth == 0) {
+                scheduleCalendarMonth = 11;
+                scheduleCalendarYear--;
+            } else {
+                scheduleCalendarMonth--;
+            }
+            showApp(3);
+        });
+        Button nextMonth = outlineButton("〉");
+        nextMonth.setOnClickListener(v -> {
+            if (scheduleCalendarMonth == 11) {
+                scheduleCalendarMonth = 0;
+                scheduleCalendarYear++;
+            } else {
+                scheduleCalendarMonth++;
+            }
+            showApp(3);
+        });
+        TextView monthTitle = big(scheduleCalendarYear + "년 " + (scheduleCalendarMonth + 1) + "월");
+        monthTitle.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(dp(44), dp(40));
+        monthRow.addView(previousMonth, arrowParams);
+        monthRow.addView(monthTitle, new LinearLayout.LayoutParams(0, -2, 1));
+        monthRow.addView(nextMonth, arrowParams);
+        calendarCard.addView(monthRow);
+
+        MonthCalendarView calendarView = new MonthCalendarView(this);
+        calendarView.setMonth(scheduleCalendarYear, scheduleCalendarMonth);
+        calendarView.setMarkedDays(markedDays);
+        calendarView.setSelectedDay(scheduleSelectedDate);
+        calendarView.setOnDaySelectedListener(isoDate -> {
+            scheduleSelectedDate = isoDate;
+            showApp(3);
+        });
+        calendarCard.addView(calendarView, new LinearLayout.LayoutParams(-1, -2));
+        content.addView(calendarCard);
+
+        if (!scheduleSelectedDate.isEmpty()) {
+            content.addView(sectionTitle(scheduleDateLabel(scheduleSelectedDate) + " 일정"));
+            int shownForDate = 0;
+            for (ProgramItem item : offlinePrograms) {
+                if (RecommendationEngine.coversIsoDate(item.startDate, item.endDate, scheduleSelectedDate)) {
+                    addProgramCard(item);
+                    shownForDate++;
+                }
+            }
+            for (EventItem item : offlineEvents) {
+                if (RecommendationEngine.coversIsoDate(item.startDate, item.endDate, scheduleSelectedDate)) {
+                    addEventCard(item);
+                    shownForDate++;
+                }
+            }
+            if (shownForDate == 0) content.addView(note("선택한 날짜에는 조건에 맞는 오프라인 일정이 없습니다.", MUTED));
+        } else {
+            content.addView(note("달력에서 점이 표시된 날짜를 선택하면 해당 날짜의 오프라인 일정을 보여드립니다.", MUTED));
+        }
+
+        content.addView(sectionTitle("온라인/상시 활동 " + onlinePrograms.size() + "개"));
+        if (onlinePrograms.isEmpty()) {
+            content.addView(note("조건에 맞는 온라인/상시 활동이 없습니다.", MUTED));
+        } else {
+            int visibleOnline = scheduleOnlineExpanded ? onlinePrograms.size() : Math.min(4, onlinePrograms.size());
+            for (int i = 0; i < visibleOnline; i++) addProgramCard(onlinePrograms.get(i));
+            if (onlinePrograms.size() > 4) {
+                Button toggle = outlineButton(scheduleOnlineExpanded ? "접기" : "더보기 (" + (onlinePrograms.size() - 4) + "개 더)");
+                toggle.setOnClickListener(v -> {
+                    scheduleOnlineExpanded = !scheduleOnlineExpanded;
+                    showApp(3);
+                });
+                content.addView(toggle, new LinearLayout.LayoutParams(-1, dp(44)));
+            }
+        }
+    }
+
+    private View scheduleChipRow(String[] chips, boolean isTagRow) {
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout chipRow = new LinearLayout(this);
+        chipRow.setOrientation(LinearLayout.HORIZONTAL);
+        for (String chip : chips) {
+            boolean selected = isTagRow
+                    ? ("전체".equals(chip) ? scheduleSelectedTags.isEmpty() : scheduleSelectedTags.contains(chip))
+                    : scheduleStatusFilter.equals(chip);
+            Button chipButton = outlineButton(chip);
+            styleActivityYearButton(chipButton, selected);
+            chipButton.setOnClickListener(v -> {
+                if (isTagRow) {
+                    if ("전체".equals(chip)) scheduleSelectedTags.clear();
+                    else if (!scheduleSelectedTags.remove(chip)) scheduleSelectedTags.add(chip);
+                } else {
+                    scheduleStatusFilter = chip;
+                }
+                showApp(3);
+            });
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(-2, dp(38));
+            chipParams.setMargins(0, 0, dp(6), 0);
+            chipRow.addView(chipButton, chipParams);
+        }
+        scroll.addView(chipRow);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(-1, -2);
+        scrollParams.setMargins(0, 0, 0, dp(8));
+        scroll.setLayoutParams(scrollParams);
+        return scroll;
+    }
+
+    private String scheduleDateLabel(String isoDate) {
+        String[] parts = isoDate.split("-");
+        if (parts.length != 3) return isoDate;
+        try {
+            return Integer.parseInt(parts[1]) + "월 " + Integer.parseInt(parts[2]) + "일";
+        } catch (NumberFormatException ignored) {
+            return isoDate;
+        }
     }
 
     private void renderCareer() {
