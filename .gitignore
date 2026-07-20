@@ -12,6 +12,9 @@ backend/.env
 .idea/usage.statistics.xml
 .idea/dictionaries/
 .idea/shelf/
+.idea/.name
+.idea/caches/
+
 
 __pycache__/
 .pytest_cache/
