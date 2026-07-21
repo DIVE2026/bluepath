@@ -174,6 +174,7 @@ def seed_contents(db: Session) -> None:
         ("seed_videos.json", "video"),
         ("seed_programs.json", "program"),
         ("seed_events.json", "event"),
+        ("seed_papers.json", "paper"),
     ]
     changed = False
     for file_name, content_type in assets:
@@ -191,6 +192,9 @@ def seed_contents(db: Session) -> None:
                 "category": item.get("category", ""),
                 "description": item.get("description", ""),
                 "keyword": item.get("keyword", ""),
+                "authors": item.get("authors", ""),
+                "year": item.get("year", ""),
+                "doi": item.get("doi", ""),
             }
             db.add(
                 Content(
@@ -331,6 +335,7 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
             item.title, item.source, item.topic, item.career_tag,
             str(metadata.get("description", "")), str(metadata.get("target", "")),
             str(metadata.get("method", "")), str(metadata.get("category", "")),
+            str(metadata.get("authors", "")), str(metadata.get("year", "")), str(metadata.get("doi", "")),
         ])
         base = lexical_score(tokens, tokenize(document))
         exact = 1.0 if request.query.lower() in document.lower() else 0.0
@@ -477,6 +482,9 @@ def content_schema(item: Content) -> AdminContentItem:
         method=str(metadata.get("method", "")),
         category=str(metadata.get("category", "")),
         description=str(metadata.get("description", "")),
+        authors=str(metadata.get("authors", "")),
+        year=str(metadata.get("year", "")),
+        doi=str(metadata.get("doi", "")),
     )
 
 
@@ -530,7 +538,10 @@ def import_content_file(db: Session, upload: UploadFile) -> tuple[int, list[str]
         "target": ["target", "대상", "교육 대상"],
         "method": ["method", "방식", "참여 방법"],
         "category": ["category", "분류", "행사 유형"],
-        "description": ["description", "설명", "내용", "교육 내용"],
+        "description": ["description", "설명", "내용", "교육 내용", "초록"],
+        "authors": ["authors", "author", "저자"],
+        "year": ["year", "연도", "발행연도"],
+        "doi": ["doi", "DOI"],
     }
     errors: list[str] = []
     imported = 0
@@ -538,8 +549,8 @@ def import_content_file(db: Session, upload: UploadFile) -> tuple[int, list[str]
         normalized = {str(k).strip(): v for k, v in row.items()}
         values = {key: first_value(normalized, options) for key, options in aliases.items()}
         content_type = values["content_type"].lower() or "video"
-        if content_type not in {"video", "program", "event", "schedule"}:
-            errors.append(f"row {index}: content type must be video, program, event, or schedule")
+        if content_type not in {"video", "program", "event", "schedule", "paper"}:
+            errors.append(f"row {index}: content type must be video, program, event, schedule, or paper")
             continue
         if not values["title"]:
             errors.append(f"row {index}: title is required")
@@ -570,6 +581,9 @@ def import_content_file(db: Session, upload: UploadFile) -> tuple[int, list[str]
             "method": values["method"],
             "category": values["category"],
             "description": values["description"],
+            "authors": values["authors"],
+            "year": values["year"],
+            "doi": values["doi"],
             "uploadedFile": upload.filename or "",
             "row": index,
         }
