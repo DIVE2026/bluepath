@@ -43,6 +43,7 @@ import com.bluepath.app.data.DataRepository;
 import com.bluepath.app.model.CareerItem;
 import com.bluepath.app.model.ContentItem;
 import com.bluepath.app.model.EventItem;
+import com.bluepath.app.model.PaperItem;
 import com.bluepath.app.model.ProgramItem;
 import com.bluepath.app.model.QuizQuestion;
 import com.bluepath.app.model.UserProfile;
@@ -116,7 +117,12 @@ public class MainActivity extends AppCompatActivity {
     private boolean dashboardRefreshing = false;
     private long dashboardRefreshedAt = 0L;
     private boolean communityLoading = false;
+    private boolean communityInitialized = false;
     private String communityError = "";
+    private String communityQuery = "";
+    private int communityOffset = 0;
+    private boolean communityHasMore = true;
+    private static final int COMMUNITY_PAGE_SIZE = 20;
     private List<ApiModels.CommunityPostDto> communityPosts = new ArrayList<>();
     private boolean learningSearchLoading = false;
     private boolean scheduleSearchLoading = false;
@@ -155,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
     private String missionError = "";
     private ApiModels.FamilyMissionResponse currentMission;
     private ApiModels.MissionQrPayload currentQrPayload;
+    private int missionParticipantCount = 2;
 
     /**
      * 커뮤니티 화면 전용 당겨서 새로고침 스크롤뷰입니다.
@@ -279,6 +286,12 @@ public class MainActivity extends AppCompatActivity {
             if (store.hasCloudSession() && store.hasProfile()) showApp(currentTab);
         });
         showWelcomeScreen();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (store != null && appRoot != null && currentTab == 1) showApp(1);
     }
 
     @Override
@@ -1529,7 +1542,7 @@ public class MainActivity extends AppCompatActivity {
             ApiModels.MissionQrPayload payload = parseMissionQrPayload(contents);
             currentQrPayload = payload;
             currentMission = null;
-            requestFamilyMission(payload, 2);
+            showMissionParticipantDialog(payload);
         } catch (Exception exception) {
             currentQrPayload = null;
             currentMission = null;
@@ -1567,6 +1580,25 @@ public class MainActivity extends AppCompatActivity {
         return value == null ? 0 : value.trim().length();
     }
 
+    private void showMissionParticipantDialog(ApiModels.MissionQrPayload payload) {
+        String[] labels = {"2명", "3명", "4명", "5명", "6명"};
+        int selected = Math.max(0, Math.min(labels.length - 1, missionParticipantCount - 2));
+        new AlertDialog.Builder(this)
+                .setTitle("가족 미션 참여 인원")
+                .setSingleChoiceItems(labels, selected, null)
+                .setMessage("실제로 함께 수행할 인원을 선택하면 역할과 공동 과제가 인원수에 맞게 생성됩니다.")
+                .setNegativeButton("취소", (dialog, which) -> {
+                    currentQrPayload = null;
+                    currentMission = null;
+                })
+                .setPositiveButton("미션 생성", (dialog, which) -> {
+                    int checked = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                    missionParticipantCount = checked < 0 ? 2 : checked + 2;
+                    requestFamilyMission(payload, missionParticipantCount);
+                })
+                .show();
+    }
+
     private void requestFamilyMission(ApiModels.MissionQrPayload qrPayload, int participants) {
         if (!viewModel.isCloudConfigured()) {
             missionError = "서버 연결 설정이 필요합니다.";
@@ -1600,10 +1632,10 @@ public class MainActivity extends AppCompatActivity {
         note.setMinLines(3);
         new AlertDialog.Builder(this)
                 .setTitle("현장 미션 완료 인증")
-                .setMessage("스캔한 QR의 일회용 nonce와 서버 서명을 다시 검증합니다. 활동 결과는 공백 제외 10자 이상 기록해 주세요.")
+                .setMessage("참여 인원 " + missionParticipantCount + "명으로 생성된 미션입니다. 스캔한 QR의 일회용 nonce와 서버 서명을 다시 검증하며, 활동 결과는 공백 제외 10자 이상 기록해 주세요.")
                 .setView(note)
                 .setNegativeButton("취소", null)
-                .setPositiveButton("인증하기", (dialog, which) -> verifyCurrentMission(note.getText().toString(), 2))
+                .setPositiveButton("인증하기", (dialog, which) -> verifyCurrentMission(note.getText().toString(), missionParticipantCount))
                 .show();
     }
 
@@ -1738,7 +1770,7 @@ public class MainActivity extends AppCompatActivity {
                 "관심 분야, 현재 티어와 학습 목표에 맞는 해양 자료를 문장으로 검색하고, 영상과 논문 탭을 구분해 필요한 콘텐츠를 탐색해 보세요. "
                         + "AI 검색은 앱에 등록된 자료를 우선 활용하며, 가능한 경우 실시간 웹 근거까지 함께 검토해 결과와 요약을 보여줍니다.\n\n"
                         + "영상 탭에서는 입문·진로 탐색·직무 심화 난도별 라이브러리를 확인할 수 있습니다. 각 카드에서 권장 티어, 적합도, 출처, 소요 시간, 분야, 연결 진로와 추천 이유를 살펴보고, "
-                        + "영상을 시작하거나 이어서 시청하고 찜 목록에 저장할 수 있습니다. 시청 후에는 핵심 내용을 제출해 학습 완료를 인증하고 XP와 역량 기록에 반영할 수 있으며, 논문 탭에서는 별도로 분류된 자료의 준비 상태를 확인할 수 있습니다."
+                        + "영상을 시작하거나 이어서 시청하고 찜 목록에 저장할 수 있습니다. 시청 후에는 핵심 내용을 제출해 학습 완료를 인증하고 XP와 역량 기록에 반영할 수 있습니다. 논문 탭에서는 저자·연도·학술지·DOI·초록을 확인하고 원문을 읽은 뒤 요약을 학습 증거로 저장할 수 있습니다."
         );
         addAiSearchBox(learningSubTab, "예: 해양환경 입문자가 20분 안에 볼 만한 영상이나 논문 찾아줘", learningSearchLoading, learningSearchResponse);
 
@@ -1755,26 +1787,35 @@ public class MainActivity extends AppCompatActivity {
         tabs.addView(paperTab, tabRight);
         content.addView(tabs);
 
-        if ("paper".equals(learningSubTab)) {
-            LinearLayout empty = card();
-            empty.addView(big("논문 자료 준비 중"));
-            content.addView(empty);
-            return;
-        }
-
         if (learningSearchResponse != null && learningSearchResponse.items != null && !learningSearchResponse.items.isEmpty()) {
             content.addView(sectionTitle("AI 검색 결과"));
             content.addView(body(learningSearchResponse.summary));
+            int shown = 0;
             for (ApiModels.ContentDto dto : learningSearchResponse.items) {
-                if (!"video".equals(dto.contentType)) continue;
-                addContentCard(contentFromDto(dto), false);
+                if ("paper".equals(learningSubTab) && "paper".equals(dto.contentType)) {
+                    addPaperCard(paperFromDto(dto));
+                    shown++;
+                } else if ("video".equals(learningSubTab) && "video".equals(dto.contentType)) {
+                    addContentCard(contentFromDto(dto), false);
+                    shown++;
+                }
             }
+            if (shown == 0) content.addView(note("현재 하위 탭과 일치하는 검색 결과가 없습니다.", MUTED));
+        }
+
+        if ("paper".equals(learningSubTab)) {
+            content.addView(sectionTitle("해양 논문 · 연구 자료"));
+            content.addView(body("제목, 저자, 발행연도, 학술지, DOI와 초록 요약을 확인하고 원문 링크를 열거나 찜할 수 있습니다."));
+            List<PaperItem> papers = DataRepository.papers();
+            if (papers.isEmpty()) content.addView(note("등록된 논문이 없습니다. MY에서 최신 학습 자료를 불러와 주세요.", MUTED));
+            else for (PaperItem paper : papers) addPaperCard(paper);
+            return;
         }
 
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         content.addView(sectionTitle("난도별 해양 영상 라이브러리"));
-        content.addView(body("기존 영상 자료는 모두 영상 하위 탭에 유지되며, 관심 분야와 통합 티어에 맞춰 정렬됩니다."));
+        content.addView(body("관심 분야와 통합 티어에 맞춰 정렬되며, 앱 내 검증 플레이어가 실제 재생 시간과 진행률을 기록합니다."));
         List<ContentItem> all = RecommendationEngine.recommendedContents(p, tier, store);
         addDifficultySection("하", "입문", "브론즈", all);
         addDifficultySection("중", "진로 탐색", "실버", all);
@@ -2177,6 +2218,25 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        boolean hasCurrentSchedule = false;
+        for (ProgramItem item : DataRepository.programs()) {
+            if (!RecommendationEngine.isArchived(item.startDate, item.endDate)) { hasCurrentSchedule = true; break; }
+        }
+        if (!hasCurrentSchedule) {
+            for (EventItem item : DataRepository.events()) {
+                if (!RecommendationEngine.isArchived(item.startDate, item.endDate)) { hasCurrentSchedule = true; break; }
+            }
+        }
+        if (!hasCurrentSchedule) {
+            LinearLayout stale = card();
+            stale.addView(big("최신 모집 일정 확인 필요"));
+            stale.addView(note("기본 일정 카탈로그가 모두 종료된 자료입니다. 서버의 최신 카탈로그를 불러온 뒤 공식 신청 링크와 모집 상태를 다시 확인해 주세요.", DANGER));
+            Button refresh = primaryButton("최신 일정 카탈로그 불러오기");
+            refresh.setOnClickListener(v -> viewModel.refreshCatalog());
+            stale.addView(refresh);
+            content.addView(stale);
+        }
+
         Set<String> markedDays = new HashSet<>();
         Calendar monthCalendar = Calendar.getInstance(Locale.KOREA);
         monthCalendar.clear();
@@ -2475,17 +2535,15 @@ public class MainActivity extends AppCompatActivity {
                 "",
                 "OCEAN COMMUNITY",
                 "해양 커뮤니티",
-                "자유 게시판에서는 해양 학습과 활동 경험을 나누고, 질문 게시판에서는 궁금한 내용을 다른 사용자에게 묻고 답하며 함께 성장해 보세요. "
-                        + "화면 오른쪽 아래의 글쓰기 버튼으로 현재 게시판에 새 글을 등록하고, 목록 최상단에서 아래로 당기면 최신 게시글을 다시 불러올 수 있습니다.\n\n"
-                        + "게시글 카드에서 작성자의 프로필, 통합 티어, 팔로워 수와 작성 시각을 확인하고 원하는 사용자를 팔로우할 수 있습니다. 게시글과 댓글에는 여러 공감 이모지를 남기거나 취소할 수 있으며, 댓글 작성과 댓글에 대한 답글을 통해 대화를 이어갈 수 있습니다. "
-                        + "자유·질문 게시판을 전환하면 해당 분류의 글만 모아볼 수 있습니다."
+                "자유 게시판과 질문 게시판에서 해양 학습·활동 경험을 나누고 서로 답해 보세요. 검색과 더 보기를 지원하며, 작성자는 게시글과 댓글을 수정·삭제할 수 있습니다. "
+                        + "불편하거나 유해한 콘텐츠는 신고하고 작성자를 차단할 수 있으며, 차단한 사용자의 게시글과 댓글은 목록에서 제외됩니다."
         );
 
         LinearLayout tabs = row();
         Button free = "free".equals(communityCategory) ? primaryButton("자유 게시판") : outlineButton("자유 게시판");
         Button question = "question".equals(communityCategory) ? primaryButton("질문 게시판") : outlineButton("질문 게시판");
-        free.setOnClickListener(v -> { communityCategory = "free"; communityPosts.clear(); requestCommunityRefresh(); });
-        question.setOnClickListener(v -> { communityCategory = "question"; communityPosts.clear(); requestCommunityRefresh(); });
+        free.setOnClickListener(v -> { communityCategory = "free"; requestCommunityRefresh(); });
+        question.setOnClickListener(v -> { communityCategory = "question"; requestCommunityRefresh(); });
         LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, dp(46), 1);
         left.setMargins(0, 0, dp(5), 0);
         tabs.addView(free, left);
@@ -2494,41 +2552,90 @@ public class MainActivity extends AppCompatActivity {
         tabs.addView(question, right);
         content.addView(tabs);
 
-        if (communityLoading) {
+        LinearLayout searchCard = card();
+        LinearLayout searchRow = row();
+        EditText search = inputField("제목·본문·작성자 검색", communityQuery);
+        searchRow.addView(search, new LinearLayout.LayoutParams(0, dp(48), 1));
+        Button searchButton = primaryButton("검색");
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(dp(78), dp(48));
+        searchParams.setMargins(dp(8), 0, 0, 0);
+        searchRow.addView(searchButton, searchParams);
+        searchButton.setOnClickListener(v -> {
+            communityQuery = search.getText().toString().trim();
+            requestCommunityRefresh();
+        });
+        search.setOnEditorActionListener((v, actionId, event) -> {
+            communityQuery = search.getText().toString().trim();
+            requestCommunityRefresh();
+            return true;
+        });
+        searchCard.addView(searchRow);
+        if (!communityQuery.isEmpty()) {
+            Button clear = outlineButton("검색어 지우기");
+            clear.setOnClickListener(v -> { communityQuery = ""; requestCommunityRefresh(); });
+            searchCard.addView(clear, new LinearLayout.LayoutParams(-1, dp(42)));
+        }
+        content.addView(searchCard);
+
+        if (!communityError.isEmpty()) content.addView(note(communityError, DANGER));
+        if (communityPosts.isEmpty() && communityLoading) {
             LinearLayout loading = card();
             loading.addView(big("커뮤니티를 불러오고 있습니다"));
             loading.addView(new ProgressBar(this));
             content.addView(loading);
             return;
         }
-        if (!communityError.isEmpty()) content.addView(note(communityError, DANGER));
         if (communityPosts.isEmpty()) {
             LinearLayout empty = card();
-            empty.addView(big("아직 게시글이 없습니다"));
-            empty.addView(body("첫 번째 해양 이야기를 남겨 보세요."));
+            empty.addView(big(communityQuery.isEmpty() ? "아직 게시글이 없습니다" : "검색 결과가 없습니다"));
+            empty.addView(body(communityQuery.isEmpty() ? "첫 번째 해양 이야기를 남겨 보세요." : "다른 검색어를 입력해 보세요."));
             content.addView(empty);
-            if (communityError.isEmpty()) requestCommunityRefresh();
+            if (communityError.isEmpty() && !communityLoading && !communityInitialized) requestCommunityRefresh();
             return;
         }
         for (ApiModels.CommunityPostDto post : communityPosts) addCommunityPostCard(post);
+        if (communityLoading) {
+            ProgressBar progress = new ProgressBar(this);
+            content.addView(progress);
+        } else if (communityHasMore) {
+            Button more = outlineButton("게시글 더 보기");
+            more.setOnClickListener(v -> requestCommunityPage(true));
+            content.addView(more, new LinearLayout.LayoutParams(-1, dp(48)));
+        }
     }
 
     private void requestCommunityRefresh() {
+        communityInitialized = false;
+        communityOffset = 0;
+        communityHasMore = true;
+        communityPosts.clear();
+        requestCommunityPage(false);
+    }
+
+    private void requestCommunityPage(boolean append) {
         if (communityLoading) return;
         communityLoading = true;
         communityError = "";
         if (currentTab == 5) showApp(5);
+        final int requestedOffset = append ? communityOffset : 0;
         executor.execute(() -> {
             try {
-                List<ApiModels.CommunityPostDto> result = cloudRepository.communityPosts(communityCategory);
+                List<ApiModels.CommunityPostDto> result = cloudRepository.communityPosts(
+                        communityCategory, communityQuery, COMMUNITY_PAGE_SIZE, requestedOffset);
                 runOnUiThread(() -> {
-                    communityPosts = result == null ? new ArrayList<>() : result;
+                    List<ApiModels.CommunityPostDto> page = result == null ? new ArrayList<>() : result;
+                    if (!append) communityPosts = new ArrayList<>();
+                    communityPosts.addAll(page);
+                    communityOffset = requestedOffset + page.size();
+                    communityHasMore = page.size() == COMMUNITY_PAGE_SIZE;
                     communityLoading = false;
+                    communityInitialized = true;
                     if (currentTab == 5) showApp(5);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
                     communityLoading = false;
+                    communityInitialized = true;
                     communityError = "커뮤니티 연결 실패: " + safeMessage(e);
                     if (currentTab == 5) showApp(5);
                 });
@@ -2567,6 +2674,23 @@ public class MainActivity extends AppCompatActivity {
         card.addView(big(post.title));
         card.addView(body(post.body));
         card.addView(reactionBar("post", post.id, post.reactions));
+        LinearLayout postActions = row();
+        if (post.canEdit) {
+            Button edit = outlineButton("수정");
+            edit.setOnClickListener(v -> showEditPostDialog(post));
+            Button delete = outlineButton("삭제");
+            delete.setOnClickListener(v -> confirmDeletePost(post.id));
+            postActions.addView(edit, weightedButtonParams(true));
+            postActions.addView(delete, weightedButtonParams(false));
+        } else {
+            Button report = outlineButton("신고");
+            report.setOnClickListener(v -> showReportDialog("post", post.id));
+            Button block = outlineButton("작성자 차단");
+            block.setOnClickListener(v -> confirmBlockUser(post.author.userId, post.author.nickname));
+            postActions.addView(report, weightedButtonParams(true));
+            postActions.addView(block, weightedButtonParams(false));
+        }
+        card.addView(postActions);
         Button comment = outlineButton("댓글 작성 · " + (post.comments == null ? 0 : post.comments.size()));
         comment.setOnClickListener(v -> showCommunityCommentDialog(post.id, null, "댓글"));
         card.addView(comment, new LinearLayout.LayoutParams(-1, dp(44)));
@@ -2614,9 +2738,26 @@ public class MainActivity extends AppCompatActivity {
             box.addView(body(comment.body));
             box.addView(label(readableDate(comment.createdAt)));
             box.addView(reactionBar("comment", comment.id, comment.reactions));
+            LinearLayout commentActions = row();
             Button reply = outlineButton("답글");
             reply.setOnClickListener(v -> showCommunityCommentDialog(post.id, comment.id, comment.author.nickname + "에게 답글"));
-            box.addView(reply, new LinearLayout.LayoutParams(-1, dp(38)));
+            commentActions.addView(reply, weightedButtonParams(true));
+            if (comment.canEdit) {
+                Button edit = outlineButton("수정");
+                edit.setOnClickListener(v -> showEditCommentDialog(comment));
+                Button delete = outlineButton("삭제");
+                delete.setOnClickListener(v -> confirmDeleteComment(comment.id));
+                commentActions.addView(edit, weightedButtonParams(false));
+                commentActions.addView(delete, weightedButtonParams(false));
+            } else {
+                Button report = outlineButton("신고");
+                report.setOnClickListener(v -> showReportDialog("comment", comment.id));
+                Button block = outlineButton("차단");
+                block.setOnClickListener(v -> confirmBlockUser(comment.author.userId, comment.author.nickname));
+                commentActions.addView(report, weightedButtonParams(false));
+                commentActions.addView(block, weightedButtonParams(false));
+            }
+            box.addView(commentActions);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
             params.setMargins(0, dp(6), 0, dp(2));
             container.addView(box, params);
@@ -2670,6 +2811,156 @@ public class MainActivity extends AppCompatActivity {
             });
         }));
         dialog.show();
+    }
+
+    private LinearLayout.LayoutParams weightedButtonParams(boolean first) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(40), 1);
+        params.setMargins(first ? 0 : dp(4), dp(4), first ? dp(4) : 0, dp(4));
+        return params;
+    }
+
+    private void showEditPostDialog(ApiModels.CommunityPostDto post) {
+        LinearLayout fields = new LinearLayout(this);
+        fields.setOrientation(LinearLayout.VERTICAL);
+        fields.setPadding(dp(20), 0, dp(20), 0);
+        EditText title = inputField("제목", post.title);
+        EditText body = inputField("내용", post.body);
+        body.setSingleLine(false);
+        body.setMinLines(5);
+        fields.addView(title, new LinearLayout.LayoutParams(-1, dp(52)));
+        LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(-1, -2);
+        bodyParams.setMargins(0, dp(8), 0, 0);
+        fields.addView(body, bodyParams);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("게시글 수정")
+                .setView(fields)
+                .setNegativeButton("취소", null)
+                .setPositiveButton("저장", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String newTitle = title.getText().toString().trim();
+            String newBody = body.getText().toString().trim();
+            if (newTitle.length() < 2 || newBody.length() < 2) {
+                toast("제목과 내용을 두 글자 이상 입력해 주세요.");
+                return;
+            }
+            dialog.dismiss();
+            executor.execute(() -> {
+                try {
+                    cloudRepository.updateCommunityPost(post.id, newTitle, newBody);
+                    runOnUiThread(this::requestCommunityRefresh);
+                } catch (Exception e) {
+                    runOnUiThread(() -> toast("게시글 수정 실패: " + safeMessage(e)));
+                }
+            });
+        }));
+        dialog.show();
+    }
+
+    private void confirmDeletePost(String postId) {
+        new AlertDialog.Builder(this)
+                .setTitle("게시글 삭제")
+                .setMessage("게시글과 모든 댓글을 삭제할까요?")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제", (dialog, which) -> executor.execute(() -> {
+                    try {
+                        cloudRepository.deleteCommunityPost(postId);
+                        runOnUiThread(this::requestCommunityRefresh);
+                    } catch (Exception e) {
+                        runOnUiThread(() -> toast("게시글 삭제 실패: " + safeMessage(e)));
+                    }
+                }))
+                .show();
+    }
+
+    private void showEditCommentDialog(ApiModels.CommunityCommentDto comment) {
+        EditText input = inputField("댓글 내용", comment.body);
+        input.setSingleLine(false);
+        input.setMinLines(3);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("댓글 수정")
+                .setView(input)
+                .setNegativeButton("취소", null)
+                .setPositiveButton("저장", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String value = input.getText().toString().trim();
+            if (value.isEmpty()) return;
+            dialog.dismiss();
+            executor.execute(() -> {
+                try {
+                    cloudRepository.updateCommunityComment(comment.id, value);
+                    runOnUiThread(this::requestCommunityRefresh);
+                } catch (Exception e) {
+                    runOnUiThread(() -> toast("댓글 수정 실패: " + safeMessage(e)));
+                }
+            });
+        }));
+        dialog.show();
+    }
+
+    private void confirmDeleteComment(String commentId) {
+        new AlertDialog.Builder(this)
+                .setTitle("댓글 삭제")
+                .setMessage("댓글과 연결된 답글을 삭제할까요?")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제", (dialog, which) -> executor.execute(() -> {
+                    try {
+                        cloudRepository.deleteCommunityComment(commentId);
+                        runOnUiThread(this::requestCommunityRefresh);
+                    } catch (Exception e) {
+                        runOnUiThread(() -> toast("댓글 삭제 실패: " + safeMessage(e)));
+                    }
+                }))
+                .show();
+    }
+
+    private void showReportDialog(String targetType, String targetId) {
+        EditText input = inputField("신고 사유를 입력하세요", "");
+        input.setSingleLine(false);
+        input.setMinLines(3);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("콘텐츠 신고")
+                .setView(input)
+                .setNegativeButton("취소", null)
+                .setPositiveButton("신고", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String reason = input.getText().toString().trim();
+            if (reason.length() < 2) {
+                toast("신고 사유를 두 글자 이상 입력해 주세요.");
+                return;
+            }
+            dialog.dismiss();
+            executor.execute(() -> {
+                try {
+                    cloudRepository.reportCommunity(targetType, targetId, reason);
+                    runOnUiThread(() -> toast("신고가 접수되었습니다."));
+                } catch (Exception e) {
+                    runOnUiThread(() -> toast("신고 실패: " + safeMessage(e)));
+                }
+            });
+        }));
+        dialog.show();
+    }
+
+    private void confirmBlockUser(String userId, String nickname) {
+        new AlertDialog.Builder(this)
+                .setTitle("사용자 차단")
+                .setMessage(nickname + "님의 게시글과 댓글을 숨길까요? 다시 누르면 차단을 해제할 수 있습니다.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("차단", (dialog, which) -> executor.execute(() -> {
+                    try {
+                        boolean blocked = cloudRepository.toggleBlock(userId);
+                        runOnUiThread(() -> {
+                            toast(blocked ? "사용자를 차단했습니다." : "차단을 해제했습니다.");
+                            requestCommunityRefresh();
+                        });
+                    } catch (Exception e) {
+                        runOnUiThread(() -> toast("차단 처리 실패: " + safeMessage(e)));
+                    }
+                }))
+                .show();
     }
 
     private void toggleReaction(String targetType, String targetId, String emoji) {
@@ -3153,20 +3444,19 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!store.isContentStarted(item.id)) {
-            toast("먼저 영상 학습을 시작해 주세요.");
+            toast("먼저 앱 내 검증 플레이어에서 영상 학습을 시작해 주세요.");
             return;
         }
-        long elapsed = store.secondsSinceContentStarted(item.id);
-        long minimumSeconds = 45L;
-        if (elapsed < minimumSeconds) {
-            toast("완료 인증까지 최소 " + (minimumSeconds - elapsed) + "초의 학습 시간이 더 필요합니다.");
+        if (!store.hasVerifiedVideoCompletion(item.id, item.minutes)) {
+            toast("실제 재생 기준 70% 이상과 최소 학습 시간을 충족해야 합니다. 현재 "
+                    + store.getVideoProgressPercent(item.id) + "% · " + store.getVideoWatchSeconds(item.id) + "초입니다.");
             return;
         }
 
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(8), dp(18), 0);
-        form.addView(body("버튼 클릭만으로 완료 처리하지 않습니다. 영상에서 배운 핵심 내용을 한 문장 이상 기록하면 학습 증거와 XP가 인정됩니다."));
+        form.addView(body("앱 내 플레이어가 실제 재생 시간과 진행률을 확인했습니다. 영상에서 배운 핵심 내용을 한 문장 이상 기록하면 학습 증거와 XP가 인정됩니다."));
         EditText reflection = inputField("핵심 내용 또는 새롭게 알게 된 점", "");
         reflection.setSingleLine(false);
         reflection.setMinLines(3);
@@ -3217,6 +3507,7 @@ public class MainActivity extends AppCompatActivity {
         for (ContentItem item : DataRepository.contents()) if (item.id.equals(id)) return item.title;
         for (ProgramItem item : DataRepository.programs()) if (item.id.equals(id)) return item.title;
         for (EventItem item : DataRepository.events()) if (item.id.equals(id)) return item.title;
+        for (PaperItem item : DataRepository.papers()) if (item.id.equals(id)) return item.title;
         for (CareerItem item : DataRepository.careers()) if (item.id.equals(id)) return item.title;
         return id;
     }
@@ -3242,15 +3533,20 @@ public class MainActivity extends AppCompatActivity {
         card.addView(body("분야: " + item.topic + " · 연결 진로: " + item.careerTag));
         addReasonList(card, RecommendationEngine.contentReasons(item, p, tier, store));
         if (completed) card.addView(note("학습 완료 인증 · XP 반영됨", SUCCESS));
-        else if (started) card.addView(note("학습 시작 기록됨 · 시청 후 핵심 내용을 제출해 완료를 인증하세요.", OCEAN));
+        else if (started) card.addView(note("검증 시청 " + store.getVideoProgressPercent(item.id) + "% · "
+                + store.getVideoWatchSeconds(item.id) + "초 · 기준 충족 후 핵심 내용을 제출하세요.", OCEAN));
 
         LinearLayout actionRow = row();
         Button watch = primaryButton(compact ? "열기" : (started ? "영상 계속 보기" : "영상 학습 시작"));
         watch.setOnClickListener(v -> {
             store.markContentStarted(item.id);
             viewModel.recordLearning("video", item.id, item.title, "started");
-            showApp(currentTab);
-            openUrl(item.url);
+            Intent verified = new Intent(this, VerifiedVideoActivity.class);
+            verified.putExtra(VerifiedVideoActivity.EXTRA_CONTENT_ID, item.id);
+            verified.putExtra(VerifiedVideoActivity.EXTRA_TITLE, item.title);
+            verified.putExtra(VerifiedVideoActivity.EXTRA_URL, item.url);
+            verified.putExtra(VerifiedVideoActivity.EXTRA_MINUTES, item.minutes);
+            startActivity(verified);
         });
         Button save = outlineButton(store.isBookmarked(item.id) ? "찜 해제" : "찜");
         save.setOnClickListener(v -> {
@@ -3275,6 +3571,75 @@ public class MainActivity extends AppCompatActivity {
         content.addView(card);
     }
 
+    private void addPaperCard(PaperItem item) {
+        boolean completed = store.getCompletedContentIds().contains(item.id);
+        boolean started = store.isContentStarted(item.id);
+        LinearLayout card = card();
+        card.addView(label(item.topic + " · " + item.year + (item.doi.isEmpty() ? "" : " · DOI " + item.doi)));
+        card.addView(big("▤ " + item.title));
+        card.addView(body(item.authors + (item.source.isEmpty() ? "" : " · " + item.source)));
+        if (!item.abstractText.isEmpty()) card.addView(body(item.abstractText));
+        if (completed) card.addView(note("논문 학습 완료 · 요약 기록과 역량 증거가 저장되었습니다.", SUCCESS));
+        else if (started) card.addView(note("원문 열람 기록됨 · 핵심 주장과 배운 점을 제출해 완료할 수 있습니다.", OCEAN));
+
+        LinearLayout actions = row();
+        Button open = primaryButton("원문 열기");
+        open.setOnClickListener(v -> {
+            store.markContentStarted(item.id);
+            viewModel.recordLearning("paper", item.id, item.title, "opened");
+            openUrl(item.url);
+            showApp(1);
+        });
+        Button bookmark = outlineButton(store.isBookmarked(item.id) ? "찜 해제" : "찜");
+        bookmark.setOnClickListener(v -> {
+            store.toggleBookmark(item.id);
+            viewModel.recordLearning("bookmark", item.id, item.title, store.isBookmarked(item.id) ? "saved" : "removed");
+            showApp(1);
+        });
+        LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, dp(44), 1);
+        left.setMargins(0, 0, dp(6), 0);
+        actions.addView(open, left);
+        LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(0, dp(44), 1);
+        right.setMargins(dp(6), 0, 0, 0);
+        actions.addView(bookmark, right);
+        card.addView(actions);
+        if (started && !completed) {
+            Button complete = outlineButton("논문 학습 완료 기록");
+            complete.setOnClickListener(v -> showPaperCompletionDialog(item));
+            card.addView(complete, new LinearLayout.LayoutParams(-1, dp(46)));
+        }
+        content.addView(card);
+    }
+
+    private void showPaperCompletionDialog(PaperItem item) {
+        EditText reflection = inputField("핵심 주장, 근거와 새롭게 알게 된 점", store.getContentReflection(item.id));
+        reflection.setSingleLine(false);
+        reflection.setMinLines(4);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("논문 학습 완료")
+                .setMessage("원문의 핵심 주장과 근거를 포함해 20자 이상 기록해 주세요.")
+                .setView(reflection)
+                .setNegativeButton("취소", null)
+                .setPositiveButton("완료 기록", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String value = reflection.getText().toString().trim();
+            if (value.length() < 20) {
+                reflection.setError("20자 이상 작성해 주세요.");
+                return;
+            }
+            store.markCompleted(item.id);
+            store.saveContentReflection(item.id, value);
+            store.recordSkillEvidence(item.topic, true);
+            store.addXp(120);
+            viewModel.recordLearning("paper", item.id, item.title, "completed_with_reflection");
+            dialog.dismiss();
+            toast("논문 학습 증거를 저장했습니다. XP +120");
+            showApp(1);
+        }));
+        dialog.show();
+    }
+
     private void addProgramCard(ProgramItem item) {
         UserProfile p = store.getProfile();
         int score = RecommendationEngine.scoreProgram(item, p, store);
@@ -3295,6 +3660,11 @@ public class MainActivity extends AppCompatActivity {
             showApp(currentTab);
         });
         card.addView(b);
+        if (!archived && !item.applicationUrl.trim().isEmpty()) {
+            Button apply = primaryButton("공식 신청 페이지 열기");
+            apply.setOnClickListener(v -> openUrl(item.applicationUrl));
+            card.addView(apply);
+        }
         if (!archived && !"데이터 확인 필요".equals(status)) {
             Button calendar = outlineButton("내 캘린더에 추가");
             calendar.setOnClickListener(v -> addProgramToCalendar(item));
@@ -3313,6 +3683,11 @@ public class MainActivity extends AppCompatActivity {
         card.addView(body("출처: " + item.source));
         if (RecommendationEngine.isArchived(item.startDate, item.endDate)) {
             card.addView(note("종료된 행사입니다. 유사 프로그램 기획과 개인 관심 분석을 위한 아카이브로 제공합니다.", MUTED));
+        }
+        if (!RecommendationEngine.isArchived(item.startDate, item.endDate) && !item.applicationUrl.trim().isEmpty()) {
+            Button apply = primaryButton("공식 안내·신청 페이지 열기");
+            apply.setOnClickListener(v -> openUrl(item.applicationUrl));
+            card.addView(apply);
         }
         Button b = outlineButton(store.isBookmarked(item.id) ? "이벤트 찜 해제" : "이벤트 찜하기");
         b.setOnClickListener(v -> {
@@ -4018,12 +4393,17 @@ public class MainActivity extends AppCompatActivity {
     private ProgramItem programFromDto(ApiModels.ContentDto dto) {
         return new ProgramItem(safe(dto.id), safe(dto.title), safeOr(dto.target, "전체"),
                 safe(dto.startAt), safe(dto.endAt), safeOr(dto.method, "오프라인"),
-                safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.source));
+                safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.source), safe(dto.url));
     }
 
     private EventItem eventFromDto(ApiModels.ContentDto dto) {
         return new EventItem(safe(dto.id), safe(dto.title), safe(dto.startAt), safe(dto.endAt),
-                safeOr(dto.target, "전체"), safeOr(dto.category, "행사"), safe(dto.description), safe(dto.source));
+                safeOr(dto.target, "전체"), safeOr(dto.category, "행사"), safe(dto.description), safe(dto.source), safe(dto.url));
+    }
+
+    private PaperItem paperFromDto(ApiModels.ContentDto dto) {
+        return new PaperItem(safe(dto.id), safe(dto.title), safe(dto.authors), safe(dto.year),
+                safe(dto.source), safe(dto.url), safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.doi));
     }
 
     private String safe(String value) {
