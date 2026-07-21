@@ -155,6 +155,11 @@ public class UserStore {
         prefs.edit().putString("contentReflection_" + contentId, reflection == null ? "" : reflection.trim()).apply();
     }
 
+    public String getContentReflection(String contentId) {
+        if (contentId == null || contentId.trim().isEmpty()) return "";
+        return prefs.getString("contentReflection_" + contentId, "").trim();
+    }
+
     public Set<String> getBookmarks() {
         return new HashSet<>(prefs.getStringSet("bookmarks", new HashSet<>()));
     }
