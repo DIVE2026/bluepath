@@ -6,6 +6,7 @@ import com.bluepath.app.model.CareerItem;
 import com.bluepath.app.model.ContentItem;
 import com.bluepath.app.model.EventItem;
 import com.bluepath.app.model.InstitutionItem;
+import com.bluepath.app.model.PaperItem;
 import com.bluepath.app.model.ProgramItem;
 import com.bluepath.app.model.QuizQuestion;
 import com.bluepath.app.network.ApiModels;
@@ -27,6 +28,7 @@ public final class DataRepository {
     private static List<ContentItem> contentCache;
     private static List<ProgramItem> programCache;
     private static List<EventItem> eventCache;
+    private static List<PaperItem> paperCache;
     private static List<QuizQuestion> quizCache;
     private static List<InstitutionItem> institutionCache;
     private static List<String> surveyInsightCache;
@@ -60,6 +62,30 @@ public final class DataRepository {
                         item.optString("topic", "해양교육"),
                         item.optString("careerTag", "해양교육"),
                         item.optInt("minutes", 0)
+                ));
+            }
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public static synchronized List<PaperItem> papers() {
+        if (paperCache == null) paperCache = loadPapers();
+        return new ArrayList<>(paperCache);
+    }
+
+    private static List<PaperItem> loadPapers() {
+        if (appContext == null) return Collections.emptyList();
+        List<PaperItem> list = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(readAsset("seed_papers.json"));
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject item = array.getJSONObject(i);
+                list.add(new PaperItem(
+                        item.getString("id"), item.optString("title", ""), item.optString("authors", ""),
+                        item.optString("year", ""), item.optString("source", ""), item.optString("url", ""),
+                        item.optString("topic", "해양교육"), item.optString("abstract", ""), item.optString("doi", "")
                 ));
             }
         } catch (Exception ignored) {
@@ -126,7 +152,8 @@ public final class DataRepository {
                         item.getString("id"), item.getString("title"), item.optString("target", "전체"),
                         item.optString("startDate", ""), item.optString("endDate", ""),
                         item.optString("method", "오프라인"), item.optString("topic", "해양교육"),
-                        item.optString("description", ""), item.optString("source", "제공 데이터")
+                        item.optString("description", ""), item.optString("source", "제공 데이터"),
+                        item.optString("applicationUrl", item.optString("url", ""))
                 ));
             }
         } catch (Exception ignored) {
@@ -151,7 +178,7 @@ public final class DataRepository {
                         item.getString("id"), item.getString("title"), item.optString("startDate", ""),
                         item.optString("endDate", ""), item.optString("target", "전체"),
                         item.optString("category", "행사"), item.optString("description", ""),
-                        item.optString("source", "제공 데이터")
+                        item.optString("source", "제공 데이터"), item.optString("applicationUrl", item.optString("url", ""))
                 ));
             }
         } catch (Exception ignored) {
@@ -220,6 +247,7 @@ public final class DataRepository {
         if (contentCache == null) contentCache = loadContents();
         if (programCache == null) programCache = loadPrograms();
         if (eventCache == null) eventCache = loadEvents();
+        if (paperCache == null) paperCache = loadPapers();
         for (ApiModels.ContentDto item : remote) {
             if (item == null || item.id == null || item.id.trim().isEmpty()) continue;
             if ("video".equals(item.contentType)) {
@@ -229,10 +257,13 @@ public final class DataRepository {
             } else if ("program".equals(item.contentType) || "schedule".equals(item.contentType)) {
                 replaceProgram(new ProgramItem(item.id, safe(item.title), safeOr(item.target, "전체"),
                         safe(item.startAt), safe(item.endAt), safeOr(item.method, "오프라인"),
-                        safeOr(item.topic, "해양교육"), safe(item.description), safe(item.source)));
+                        safeOr(item.topic, "해양교육"), safe(item.description), safe(item.source), safe(item.url)));
             } else if ("event".equals(item.contentType)) {
                 replaceEvent(new EventItem(item.id, safe(item.title), safe(item.startAt), safe(item.endAt),
-                        safeOr(item.target, "전체"), safeOr(item.category, "행사"), safe(item.description), safe(item.source)));
+                        safeOr(item.target, "전체"), safeOr(item.category, "행사"), safe(item.description), safe(item.source), safe(item.url)));
+            } else if ("paper".equals(item.contentType)) {
+                replacePaper(new PaperItem(item.id, safe(item.title), safe(item.authors), safe(item.year),
+                        safe(item.source), safe(item.url), safeOr(item.topic, "해양교육"), safe(item.description), safe(item.doi)));
             }
         }
     }
@@ -250,6 +281,11 @@ public final class DataRepository {
     private static void replaceEvent(EventItem value) {
         for (int i = 0; i < eventCache.size(); i++) if (eventCache.get(i).id.equals(value.id)) { eventCache.set(i, value); return; }
         eventCache.add(value);
+    }
+
+    private static void replacePaper(PaperItem value) {
+        for (int i = 0; i < paperCache.size(); i++) if (paperCache.get(i).id.equals(value.id)) { paperCache.set(i, value); return; }
+        paperCache.add(value);
     }
 
     private static String safe(String value) { return value == null ? "" : value; }
