@@ -197,6 +197,8 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         cloud = client.get('/api/v1/sync', headers=auth_header(token))
         assert cloud.status_code == 200
         assert cloud.json()['snapshot']['tier'] == '플래티넘'
+        assert cloud.json()['learningRecords'][0]['id'] == 'local-1'
+        assert cloud.json()['learningRecords'][0]['status'] == 'passed'
 
         for evidence_type in ('certification', 'project'):
             submitted = client.post('/api/v1/diamond/evidence', headers=auth_header(token), json={
@@ -637,8 +639,51 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
         assert item['author']['isFollowing'] is True
         assert any(value['emoji'] == '🌊' and value['count'] == 1 for value in item['reactions'])
 
+        searched = client.get('/api/v1/community/posts?category=question&q=BlueWhale&limit=1&offset=0', headers=second_headers)
+        assert searched.status_code == 200, searched.text
+        assert searched.json()[0]['id'] == post_id
+
+        updated = client.put(f'/api/v1/community/posts/{post_id}', headers=first_headers, json={
+            'title': '수정된 해양 진로 질문',
+            'body': '항만 물류와 해양 데이터 진로를 함께 준비하려면 무엇부터 시작해야 하나요?',
+        })
+        assert updated.status_code == 200, updated.text
+        assert updated.json()['canEdit'] is True
+
+        updated_comment = client.put(f"/api/v1/community/comments/{comment.json()['id']}", headers=second_headers, json={
+            'body': '기초 물류 영상, 현장 교육, 데이터 기초부터 추천합니다.',
+        })
+        assert updated_comment.status_code == 200, updated_comment.text
+
+        reported = client.post('/api/v1/community/reports', headers=second_headers, json={
+            'targetType': 'post', 'targetId': post_id, 'reason': '관리자 검토 테스트',
+        })
+        assert reported.status_code == 200, reported.text
+
+        blocked = client.post(f'/api/v1/community/users/{author_id}/block', headers=second_headers)
+        assert blocked.status_code == 200 and blocked.json()['blocked'] is True
+        hidden = client.get('/api/v1/community/posts?category=question', headers=second_headers)
+        assert hidden.status_code == 200
+        assert all(value['id'] != post_id for value in hidden.json())
+        unblocked = client.post(f'/api/v1/community/users/{author_id}/block', headers=second_headers)
+        assert unblocked.status_code == 200 and unblocked.json()['blocked'] is False
+
+        admin_login = client.post('/api/v1/auth/login', json={
+            'email': 'admin@bluepath.example.com',
+            'password': 'AdminPassword123!',
+            'guardianEmail': None,
+        })
+        admin_headers = auth_header(admin_login.json()['accessToken'])
+        reports = client.get('/api/v1/admin/community/reports', headers=admin_headers)
+        assert reports.status_code == 200, reports.text
+        report_id = next(value['id'] for value in reports.json() if value['targetId'] == post_id)
+        reviewed = client.post(f'/api/v1/admin/community/reports/{report_id}/review', headers=admin_headers, json={
+            'status': 'dismissed', 'action': 'none', 'reviewNote': '테스트 신고 검토 완료',
+        })
+        assert reviewed.status_code == 200, reviewed.text
+
         dashboard = client.get('/api/v1/dashboard', headers=first_headers)
         assert dashboard.status_code == 200, dashboard.text
         assert dashboard.json()['profile']['nickname'] == 'BlueWhale'
-        assert dashboard.json()['profile']['followerCount'] == 1
+        assert dashboard.json()['profile']['followerCount'] == 0
         assert sum(dashboard.json()['activity'].values()) >= 2
