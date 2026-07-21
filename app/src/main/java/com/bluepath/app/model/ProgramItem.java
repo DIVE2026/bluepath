@@ -10,14 +10,20 @@ public class ProgramItem {
     public final String topic;
     public final String description;
     public final String source;
+    public final String applicationUrl;
 
     public ProgramItem(String id, String title, String target, String startDate, String endDate,
                        String method, String topic, String description) {
-        this(id, title, target, startDate, endDate, method, topic, description, "제공 데이터");
+        this(id, title, target, startDate, endDate, method, topic, description, "제공 데이터", "");
     }
 
     public ProgramItem(String id, String title, String target, String startDate, String endDate,
                        String method, String topic, String description, String source) {
+        this(id, title, target, startDate, endDate, method, topic, description, source, "");
+    }
+
+    public ProgramItem(String id, String title, String target, String startDate, String endDate,
+                       String method, String topic, String description, String source, String applicationUrl) {
         this.id = id;
         this.title = title;
         this.target = target;
@@ -27,5 +33,6 @@ public class ProgramItem {
         this.topic = topic;
         this.description = description;
         this.source = source == null ? "" : source;
+        this.applicationUrl = applicationUrl == null ? "" : applicationUrl;
     }
 }
