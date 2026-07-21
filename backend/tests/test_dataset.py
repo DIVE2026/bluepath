@@ -34,6 +34,12 @@ def test_program_event_and_finetuning_assets_are_complete() -> None:
     assert len(programs) >= 8
     assert len(events) >= 6
     assert all(item['id'] and item['title'] and item['description'] for item in programs + events)
-    assert manifest['total'] == manifest['train'] + manifest['validation'] + manifest['evaluation']
-    assert manifest['total'] == 98
-    assert manifest['categories'] == {'grounded_agent': 31, 'policy': 10, 'quiz': 57}
+    split_total = sum(item['examples'] for item in manifest['splits'].values())
+    category_total = sum(manifest['categories'].values())
+    assert manifest['totalExamples'] == split_total == category_total
+    assert manifest['totalExamples'] == 196
+    assert set(manifest['categories']) == {'grounded_agent', 'policy', 'quiz', 'safety'}
+
+    papers = json.loads((ROOT / 'app/src/main/assets/seed_papers.json').read_text(encoding='utf-8'))
+    assert len(papers) >= 5
+    assert all(item['id'] and item['title'] and item['authors'] and item['url'].startswith('http') for item in papers)
