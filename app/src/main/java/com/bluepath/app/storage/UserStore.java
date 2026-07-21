@@ -29,6 +29,7 @@ public class UserStore {
     public UserStore(Context context) {
         prefs = context.getSharedPreferences(PREF, Context.MODE_PRIVATE);
         secureTokenStore = new SecureTokenStore(prefs);
+        migrateLegacySkillState();
     }
 
     public boolean hasProfile() {
@@ -160,6 +161,42 @@ public class UserStore {
         return prefs.getString("contentReflection_" + contentId, "").trim();
     }
 
+    public void recordVerifiedPlayback(String contentId, int watchedSeconds, int progressPercent, boolean ended) {
+        if (contentId == null || contentId.trim().isEmpty()) return;
+        int safeSeconds = Math.max(0, watchedSeconds);
+        int safeProgress = clampPercent(progressPercent);
+        prefs.edit()
+                .putInt("videoWatchSeconds_" + contentId, Math.max(getVideoWatchSeconds(contentId), safeSeconds))
+                .putInt("videoProgress_" + contentId, Math.max(getVideoProgressPercent(contentId), safeProgress))
+                .putBoolean("videoEnded_" + contentId, hasVideoEnded(contentId) || ended)
+                .apply();
+    }
+
+    public int getVideoWatchSeconds(String contentId) {
+        return Math.max(0, prefs.getInt("videoWatchSeconds_" + contentId, 0));
+    }
+
+    public int getVideoProgressPercent(String contentId) {
+        return clampPercent(prefs.getInt("videoProgress_" + contentId, 0));
+    }
+
+    public boolean hasVideoEnded(String contentId) {
+        return prefs.getBoolean("videoEnded_" + contentId, false);
+    }
+
+    public boolean hasVerifiedVideoCompletion(String contentId, int expectedMinutes) {
+        int targetSeconds = expectedMinutes > 0
+                ? Math.max(45, Math.min(300, Math.round(expectedMinutes * 60f * 0.7f)))
+                : 90;
+        int endedMinimumSeconds = expectedMinutes > 0
+                ? Math.max(45, Math.min(180, Math.round(expectedMinutes * 60f * 0.5f)))
+                : 60;
+        int watchedSeconds = getVideoWatchSeconds(contentId);
+        int progressPercent = getVideoProgressPercent(contentId);
+        return (progressPercent >= 70 && watchedSeconds >= targetSeconds)
+                || (hasVideoEnded(contentId) && watchedSeconds >= endedMinimumSeconds);
+    }
+
     public Set<String> getBookmarks() {
         return new HashSet<>(prefs.getStringSet("bookmarks", new HashSet<>()));
     }
@@ -200,28 +237,57 @@ public class UserStore {
 
     public void recordSkillEvidence(String topic, boolean correct) {
         String key = normalizeSkillTopic(topic);
+        int evidence = getSkillEvidenceCount(key);
+        int mastery = getSkillMastery(key);
+        int nextEvidence = evidence + 1;
+        int nextMastery = Math.round((mastery * evidence + (correct ? 100f : 0f)) / nextEvidence);
         prefs.edit()
-                .putInt("skillTotal_" + key, prefs.getInt("skillTotal_" + key, 0) + 1)
-                .putInt("skillCorrect_" + key, prefs.getInt("skillCorrect_" + key, 0) + (correct ? 1 : 0))
+                .putInt("skillEvidence_" + key, nextEvidence)
+                .putInt("skillMastery_" + key, clampPercent(nextMastery))
                 .apply();
     }
 
     public int getSkillMastery(String topic) {
         String key = normalizeSkillTopic(topic);
-        int total = prefs.getInt("skillTotal_" + key, 0);
-        int correct = prefs.getInt("skillCorrect_" + key, 0);
-        if (total == 0) return 50;
-        return Math.max(0, Math.min(100, Math.round(correct * 100f / total)));
+        return clampPercent(prefs.getInt("skillMastery_" + key, 50));
     }
 
     public int getSkillEvidenceCount(String topic) {
-        return prefs.getInt("skillTotal_" + normalizeSkillTopic(topic), 0);
+        return Math.max(0, prefs.getInt("skillEvidence_" + normalizeSkillTopic(topic), 0));
     }
 
     public Map<String, Integer> getSkillMasteryMap() {
         Map<String, Integer> result = new HashMap<>();
         for (String topic : SKILL_TOPICS) result.put(topic, getSkillMastery(topic));
         return result;
+    }
+
+    public Map<String, Integer> getSkillEvidenceMap() {
+        Map<String, Integer> result = new HashMap<>();
+        for (String topic : SKILL_TOPICS) result.put(topic, getSkillEvidenceCount(topic));
+        return result;
+    }
+
+    private int clampPercent(int value) {
+        return Math.max(0, Math.min(100, value));
+    }
+
+    private void migrateLegacySkillState() {
+        SharedPreferences.Editor editor = prefs.edit();
+        boolean changed = false;
+        for (String topic : SKILL_TOPICS) {
+            String masteryKey = "skillMastery_" + topic;
+            String evidenceKey = "skillEvidence_" + topic;
+            if (prefs.contains(masteryKey) && prefs.contains(evidenceKey)) continue;
+            int legacyTotal = Math.max(0, prefs.getInt("skillTotal_" + topic, 0));
+            int legacyCorrect = Math.max(0, prefs.getInt("skillCorrect_" + topic, 0));
+            boolean syntheticPercentagePair = legacyTotal == 100 && legacyCorrect <= 100;
+            int mastery = legacyTotal == 0 ? 50 : clampPercent(Math.round(legacyCorrect * 100f / legacyTotal));
+            int evidence = syntheticPercentagePair ? 0 : legacyTotal;
+            editor.putInt(masteryKey, mastery).putInt(evidenceKey, evidence);
+            changed = true;
+        }
+        if (changed) editor.apply();
     }
 
     private String normalizeSkillTopic(String topic) {
@@ -539,10 +605,10 @@ public class UserStore {
 
     public void applySkillGain(String topic, int points) {
         String key = normalizeSkillTopic(topic);
-        int next = Math.max(0, Math.min(100, getSkillMastery(key) + Math.max(0, points)));
+        int next = clampPercent(getSkillMastery(key) + Math.max(0, points));
         prefs.edit()
-                .putInt("skillTotal_" + key, 100)
-                .putInt("skillCorrect_" + key, next)
+                .putInt("skillMastery_" + key, next)
+                .putInt("skillEvidence_" + key, getSkillEvidenceCount(key) + 1)
                 .apply();
     }
 
@@ -611,6 +677,13 @@ public class UserStore {
         snapshot.put("diamondCertificationStatus", getCertificationStatus());
         snapshot.put("diamondProjectStatus", getProjectStatus());
         snapshot.put("skillMastery", getSkillMasteryMap());
+        snapshot.put("skillEvidenceCounts", getSkillEvidenceMap());
+        snapshot.put("contentReflections", stringPreferencesWithPrefix("contentReflection_"));
+        snapshot.put("contentStartedAt", longPreferencesWithPrefix("contentStarted_"));
+        snapshot.put("videoWatchSeconds", intPreferencesWithPrefix("videoWatchSeconds_"));
+        snapshot.put("videoProgress", intPreferencesWithPrefix("videoProgress_"));
+        snapshot.put("videoEnded", booleanPreferencesWithPrefix("videoEnded_"));
+        snapshot.put("localActivity", prefs.getString("localActivity", "{}"));
         snapshot.put("targetCareer", getTargetCareer());
         snapshot.put("routeType", getRouteType());
         snapshot.put("missionBadges", new ArrayList<>(getMissionBadges()));
@@ -658,13 +731,88 @@ public class UserStore {
                 String topic = stringValue(entry.getKey());
                 Object value = entry.getValue();
                 if (!topic.isEmpty() && value instanceof Number) {
-                    int mastery = Math.max(0, Math.min(100, ((Number) value).intValue()));
-                    editor.putInt("skillTotal_" + normalizeSkillTopic(topic), 100)
-                            .putInt("skillCorrect_" + normalizeSkillTopic(topic), mastery);
+                    editor.putInt("skillMastery_" + normalizeSkillTopic(topic), clampPercent(((Number) value).intValue()));
                 }
             }
         }
+        applyNumberMap(editor, snapshot.get("skillEvidenceCounts"), "skillEvidence_", true);
+        applyStringMap(editor, snapshot.get("contentReflections"), "contentReflection_");
+        applyNumberMap(editor, snapshot.get("contentStartedAt"), "contentStarted_", false);
+        applyNumberMap(editor, snapshot.get("videoWatchSeconds"), "videoWatchSeconds_", true);
+        applyNumberMap(editor, snapshot.get("videoProgress"), "videoProgress_", true);
+        applyBooleanMap(editor, snapshot.get("videoEnded"), "videoEnded_");
+        String localActivity = stringValue(snapshot.get("localActivity"));
+        if (!localActivity.isEmpty()) editor.putString("localActivity", localActivity);
         editor.apply();
+    }
+
+    private Map<String, String> stringPreferencesWithPrefix(String prefix) {
+        Map<String, String> values = new HashMap<>();
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof String) {
+                values.put(entry.getKey().substring(prefix.length()), (String) entry.getValue());
+            }
+        }
+        return values;
+    }
+
+    private Map<String, Long> longPreferencesWithPrefix(String prefix) {
+        Map<String, Long> values = new HashMap<>();
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof Long) {
+                values.put(entry.getKey().substring(prefix.length()), (Long) entry.getValue());
+            }
+        }
+        return values;
+    }
+
+    private Map<String, Integer> intPreferencesWithPrefix(String prefix) {
+        Map<String, Integer> values = new HashMap<>();
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof Integer) {
+                values.put(entry.getKey().substring(prefix.length()), (Integer) entry.getValue());
+            }
+        }
+        return values;
+    }
+
+    private Map<String, Boolean> booleanPreferencesWithPrefix(String prefix) {
+        Map<String, Boolean> values = new HashMap<>();
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof Boolean) {
+                values.put(entry.getKey().substring(prefix.length()), (Boolean) entry.getValue());
+            }
+        }
+        return values;
+    }
+
+    private void applyStringMap(SharedPreferences.Editor editor, Object raw, String prefix) {
+        if (!(raw instanceof Map)) return;
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) raw).entrySet()) {
+            String key = stringValue(entry.getKey());
+            if (!key.isEmpty()) editor.putString(prefix + key, stringValue(entry.getValue()));
+        }
+    }
+
+    private void applyNumberMap(SharedPreferences.Editor editor, Object raw, String prefix, boolean asInt) {
+        if (!(raw instanceof Map)) return;
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) raw).entrySet()) {
+            String key = stringValue(entry.getKey());
+            if (key.isEmpty() || !(entry.getValue() instanceof Number)) continue;
+            Number number = (Number) entry.getValue();
+            if (asInt) editor.putInt(prefix + key, Math.max(0, number.intValue()));
+            else editor.putLong(prefix + key, Math.max(0L, number.longValue()));
+        }
+    }
+
+    private void applyBooleanMap(SharedPreferences.Editor editor, Object raw, String prefix) {
+        if (!(raw instanceof Map)) return;
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) raw).entrySet()) {
+            String key = stringValue(entry.getKey());
+            if (!key.isEmpty() && entry.getValue() instanceof Boolean) {
+                editor.putBoolean(prefix + key, (Boolean) entry.getValue());
+            }
+        }
     }
 
     private void putString(SharedPreferences.Editor editor, Map<String, Object> snapshot, String key) {
