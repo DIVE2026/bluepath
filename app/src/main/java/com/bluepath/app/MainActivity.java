@@ -2,6 +2,7 @@ package com.bluepath.app;
 
 import android.app.AlertDialog;
 import android.Manifest;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bluepath.app.data.DataRepository;
@@ -49,20 +51,27 @@ import com.bluepath.app.repository.BluePathRepository;
 import com.bluepath.app.storage.UserStore;
 import com.bluepath.app.util.MarineLlmClient;
 import com.bluepath.app.util.NotificationHelper;
+import com.bluepath.app.util.PortfolioPdfExporter;
 import com.bluepath.app.util.PromotionRules;
 import com.bluepath.app.util.RecommendationEngine;
+import com.bluepath.app.util.SkillProfileCatalog;
 import com.bluepath.app.view.ActivityHeatmapView;
 import com.bluepath.app.view.MonthCalendarView;
 import com.bluepath.app.view.OceanBackgroundView;
+import com.bluepath.app.view.OceanSkillMapView;
 import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
 import com.bluepath.app.viewmodel.BluePathViewModel;
 import com.bumptech.glide.Glide;
 
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
@@ -2609,12 +2618,34 @@ public class MainActivity extends AppCompatActivity {
         content.addView(stats);
 
         content.addView(sectionTitle("Ocean Skill Passport"));
+        Map<String, Integer> masteryMap = currentSkillMastery();
+        Map<String, Integer> evidenceMap = currentSkillEvidence();
         LinearLayout skillCard = card();
-        skillCard.addView(big("분야별 역량 숙련도"));
-        skillCard.addView(body("퀴즈 문항과 학습 완료 증거를 기반으로 계산합니다. 증거가 없는 분야는 진단 전 기준값 50점으로 표시됩니다."));
-        String[] topics = {"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류"};
-        for (String topic : topics) addSkillProgress(skillCard, topic);
+        skillCard.addView(big("인터랙티브 Ocean Skill Map"));
+        skillCard.addView(body("퀴즈 문항, 학습 완료와 현장 미션 증거를 분야별 노드로 연결합니다. 노드를 누르면 점수 근거, NCS 역량, 연결 진로와 다음 활동을 확인할 수 있습니다."));
+        String targetCareer = store.getTargetCareer();
+        int readiness = SkillProfileCatalog.careerReadiness(targetCareer, masteryMap);
+        skillCard.addView(note("목표 진로 " + targetCareer + " · 현재 준비도 " + readiness + "점", readiness >= 70 ? SUCCESS : OCEAN));
+
+        OceanSkillMapView skillMap = new OceanSkillMapView(this);
+        skillMap.setSkillData(masteryMap, evidenceMap);
+        LinearLayout.LayoutParams mapParams = new LinearLayout.LayoutParams(-1, dp(390));
+        mapParams.setMargins(0, dp(8), 0, dp(8));
+        skillCard.addView(skillMap, mapParams);
+
+        LinearLayout skillDetail = new LinearLayout(this);
+        skillDetail.setOrientation(LinearLayout.VERTICAL);
+        String initialTopic = SkillProfileCatalog.weakestTopics(masteryMap, 1).get(0);
+        renderSkillMapDetail(skillDetail, initialTopic, masteryMap, evidenceMap);
+        skillMap.setOnSkillSelectedListener(topic -> renderSkillMapDetail(skillDetail, topic, masteryMap, evidenceMap));
+        skillCard.addView(skillDetail);
+
+        skillCard.addView(label("전체 숙련도 목록"));
+        for (String topic : SkillProfileCatalog.TOPICS) addSkillProgress(skillCard, topic);
         content.addView(skillCard);
+
+        content.addView(sectionTitle("검증형 해양 역량 포트폴리오"));
+        addEvidencePortfolioCard();
 
         content.addView(sectionTitle("승급·학습 리포트"));
         LinearLayout report = card();
@@ -2752,6 +2783,188 @@ public class MainActivity extends AppCompatActivity {
                 }).show());
         account.addView(reset);
         content.addView(account);
+    }
+
+    private Map<String, Integer> currentSkillMastery() {
+        Map<String, Integer> values = new LinkedHashMap<>();
+        for (String topic : SkillProfileCatalog.TOPICS) values.put(topic, store.getSkillMastery(topic));
+        return values;
+    }
+
+    private Map<String, Integer> currentSkillEvidence() {
+        Map<String, Integer> values = new LinkedHashMap<>();
+        for (String topic : SkillProfileCatalog.TOPICS) values.put(topic, store.getSkillEvidenceCount(topic));
+        return values;
+    }
+
+    private void renderSkillMapDetail(LinearLayout parent, String topic, Map<String, Integer> masteryMap,
+                                      Map<String, Integer> evidenceMap) {
+        parent.removeAllViews();
+        SkillProfileCatalog.SkillDescriptor descriptor = SkillProfileCatalog.descriptor(topic);
+        int score = masteryMap.getOrDefault(topic, 50);
+        int evidence = evidenceMap.getOrDefault(topic, 0);
+        int predicted = SkillProfileCatalog.predictedNextScore(score, evidence);
+
+        parent.addView(big(topic + " · " + SkillProfileCatalog.scoreLevel(score) + " " + score + "점"));
+        parent.addView(body(evidence > 0
+                ? "점수 근거: 퀴즈 답변, 학습 완료 또는 미션 기록 " + evidence + "개를 반영했습니다."
+                : "점수 근거: 아직 분야별 증거가 없어 진단 전 기준값 50점으로 표시됩니다."));
+        parent.addView(body("하위 역량: " + descriptor.subSkills));
+        parent.addView(body("NCS 연계: " + descriptor.ncsCompetencies));
+        parent.addView(body("연결 진로: " + descriptor.career));
+        parent.addView(note("다음 활동 후 예상 " + predicted + "점 · " + descriptor.nextAction, predicted > score ? OCEAN : MUTED));
+        Button learning = outlineButton(topic + " 관련 학습 보기");
+        learning.setOnClickListener(v -> {
+            learningSubTab = "video";
+            showApp(1);
+        });
+        parent.addView(learning, new LinearLayout.LayoutParams(-1, dp(44)));
+    }
+
+    private void addEvidencePortfolioCard() {
+        PortfolioPdfExporter.PortfolioData data = buildPortfolioData();
+        int totalEvidence = 0;
+        for (int value : data.evidence.values()) totalEvidence += value;
+
+        LinearLayout portfolio = card();
+        portfolio.addView(big(data.targetCareer + " 준비도 " + data.careerReadiness + "점"));
+        portfolio.addView(body("완료 학습 " + data.learningEvidence.size() + "건 · 현장 미션 " + data.missionEvidence.size()
+                + "건 · 역량 증거 " + totalEvidence + "개를 공유 가능한 PDF로 정리합니다."));
+        portfolio.addView(note("문서 증거 코드 " + data.verificationCode, OCEAN));
+        portfolio.addView(body("포트폴리오는 앱에서 완료 조건이 확인된 기록과 현재 검토 상태만 포함합니다. 외부 기관 승인은 승인 완료 상태일 때만 표시됩니다."));
+
+        LinearLayout actions = row();
+        Button preview = outlineButton("미리보기");
+        preview.setOnClickListener(v -> showPortfolioPreview());
+        Button share = primaryButton("PDF 생성 및 공유");
+        share.setOnClickListener(v -> sharePortfolioPdf());
+        LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, dp(46), 1);
+        left.setMargins(0, 0, dp(6), 0);
+        actions.addView(preview, left);
+        LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(0, dp(46), 1);
+        right.setMargins(dp(6), 0, 0, 0);
+        actions.addView(share, right);
+        portfolio.addView(actions);
+        content.addView(portfolio);
+    }
+
+    private PortfolioPdfExporter.PortfolioData buildPortfolioData() {
+        UserProfile profile = store.getProfile();
+        Map<String, Integer> mastery = currentSkillMastery();
+        Map<String, Integer> evidence = currentSkillEvidence();
+        String targetCareer = store.getTargetCareer();
+
+        List<String> completedIds = new ArrayList<>(store.getCompletedContentIds());
+        completedIds.sort(String::compareTo);
+        List<String> learningEvidence = new ArrayList<>();
+        for (String id : completedIds) {
+            String reflection = store.getContentReflection(id);
+            String summary = displayNameForId(id);
+            if (!reflection.isEmpty()) summary += " · 학습 소감: " + reflection;
+            learningEvidence.add(summary);
+        }
+
+        List<String> missionEvidence = new ArrayList<>(store.getMissionBadges());
+        missionEvidence.sort(String::compareTo);
+
+        List<String> quizEvidence = new ArrayList<>();
+        if (store.getQuizAttempts() > 0) {
+            quizEvidence.add("최근 결과: " + plainTierCopy(store.getLastQuizSummary()));
+            quizEvidence.add("브론즈 최고 " + store.getBestQuizScore("브론즈") + "/10");
+            quizEvidence.add("실버 최고 " + store.getBestQuizScore("실버") + "/12");
+            quizEvidence.add("골드 최고 " + store.getBestQuizScore("골드") + "/15");
+            quizEvidence.add("플래티넘 최고 " + store.getBestQuizScore("플래티넘") + "/20");
+        }
+
+        List<String> diamondEvidence = new ArrayList<>();
+        diamondEvidence.add("고급 퀴즈: " + statusLabel(store.isDiamondAdvancedQuizPassed() ? "approved" : "not_submitted"));
+        diamondEvidence.add("자격 증빙: " + statusLabel(store.getCertificationStatus()));
+        diamondEvidence.add("해양 프로젝트: " + statusLabel(store.getProjectStatus()));
+
+        StringBuilder canonical = new StringBuilder();
+        canonical.append(store.getNickname()).append('|').append(store.getAccountEmail()).append('|')
+                .append(store.getTier()).append('|').append(profile.xp).append('|').append(targetCareer);
+        for (String topic : SkillProfileCatalog.TOPICS) {
+            canonical.append('|').append(topic).append(':').append(mastery.getOrDefault(topic, 50))
+                    .append(':').append(evidence.getOrDefault(topic, 0));
+        }
+        for (String item : learningEvidence) canonical.append("|learning:").append(item);
+        for (String item : missionEvidence) canonical.append("|mission:").append(item);
+        for (String item : quizEvidence) canonical.append("|quiz:").append(item);
+        for (String item : diamondEvidence) canonical.append("|diamond:").append(item);
+
+        return new PortfolioPdfExporter.PortfolioData(
+                store.getNickname(),
+                new SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.KOREA).format(new Date()),
+                PortfolioPdfExporter.verificationCode(canonical.toString()),
+                store.getTier(),
+                profile.xp,
+                targetCareer,
+                SkillProfileCatalog.careerReadiness(targetCareer, mastery),
+                profile.ageGroup,
+                profile.interest,
+                profile.goal,
+                profile.level,
+                mastery,
+                evidence,
+                learningEvidence,
+                missionEvidence,
+                quizEvidence,
+                diamondEvidence,
+                SkillProfileCatalog.strongestTopics(mastery, 3),
+                SkillProfileCatalog.weakestTopics(mastery, 2)
+        );
+    }
+
+    private void showPortfolioPreview() {
+        PortfolioPdfExporter.PortfolioData data = buildPortfolioData();
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout preview = new LinearLayout(this);
+        preview.setOrientation(LinearLayout.VERTICAL);
+        preview.setPadding(dp(20), dp(12), dp(20), dp(12));
+        preview.addView(big(data.nickname + " · " + data.tier));
+        preview.addView(body(data.targetCareer + " 준비도 " + data.careerReadiness + "점"));
+        preview.addView(note("문서 증거 코드 " + data.verificationCode, OCEAN));
+        preview.addView(label("역량 요약"));
+        for (String topic : SkillProfileCatalog.TOPICS) {
+            preview.addView(body("• " + topic + " " + data.mastery.getOrDefault(topic, 50) + "점 · 증거 "
+                    + data.evidence.getOrDefault(topic, 0) + "개"));
+        }
+        preview.addView(label("포함 증거"));
+        preview.addView(body("완료 학습 " + data.learningEvidence.size() + "건 · 현장 미션 " + data.missionEvidence.size()
+                + "건 · 퀴즈 응시 " + store.getQuizAttempts() + "회"));
+        preview.addView(body("자격 증빙 " + statusLabel(store.getCertificationStatus()) + " · 해양 프로젝트 "
+                + statusLabel(store.getProjectStatus())));
+        scroll.addView(preview);
+
+        new AlertDialog.Builder(this)
+                .setTitle("해양 역량 포트폴리오 미리보기")
+                .setView(scroll)
+                .setNegativeButton("닫기", null)
+                .setPositiveButton("PDF 공유", (dialog, which) -> sharePortfolioPdf())
+                .show();
+    }
+
+    private void sharePortfolioPdf() {
+        PortfolioPdfExporter.PortfolioData data = buildPortfolioData();
+        toast("포트폴리오 PDF를 생성하고 있습니다.");
+        executor.execute(() -> {
+            try {
+                File file = PortfolioPdfExporter.export(this, data);
+                Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+                runOnUiThread(() -> {
+                    Intent share = new Intent(Intent.ACTION_SEND);
+                    share.setType("application/pdf");
+                    share.putExtra(Intent.EXTRA_STREAM, uri);
+                    share.setClipData(ClipData.newRawUri("bluepath portfolio", uri));
+                    share.putExtra(Intent.EXTRA_SUBJECT, "BluePath 해양 역량 포트폴리오");
+                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(share, "포트폴리오 PDF 공유"));
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> toast("포트폴리오 생성 실패: " + safeMessage(e)));
+            }
+        });
     }
 
     private void addSkillSummaryCard() {
