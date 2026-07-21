@@ -1,0 +1,57 @@
+[
+  {
+    "id": "paper-ocean-literacy-survey",
+    "title": "Development of the International Ocean Literacy Survey: measuring knowledge across the world",
+    "authors": "Fauville et al.",
+    "year": "2019",
+    "source": "Environmental Education Research",
+    "url": "https://doi.org/10.1080/13504622.2018.1440381",
+    "doi": "10.1080/13504622.2018.1440381",
+    "topic": "해양교육",
+    "abstract": "국제적으로 활용할 수 있는 해양 문해력 측정 도구의 개발 과정과 지식 영역을 다룹니다."
+  },
+  {
+    "id": "paper-public-ocean-literacy",
+    "title": "The study of public ocean literacy in the United States",
+    "authors": "Steel et al.",
+    "year": "2005",
+    "source": "Ocean & Coastal Management",
+    "url": "https://doi.org/10.1016/j.ocecoaman.2005.01.002",
+    "doi": "10.1016/j.ocecoaman.2005.01.002",
+    "topic": "해양교육",
+    "abstract": "대중의 해양 지식, 태도와 정보 경험을 조사해 해양교육의 필요성과 과제를 분석합니다."
+  },
+  {
+    "id": "paper-marine-environment-understanding",
+    "title": "Public understanding of marine environmental issues in the UK",
+    "authors": "Guest et al.",
+    "year": "2015",
+    "source": "Marine Policy",
+    "url": "https://doi.org/10.1016/j.marpol.2015.06.014",
+    "doi": "10.1016/j.marpol.2015.06.014",
+    "topic": "해양환경",
+    "abstract": "해양환경 문제에 대한 대중의 인식과 지식 격차를 조사하고 효과적인 소통 방향을 제안합니다."
+  },
+  {
+    "id": "paper-ocean-literacy-sustainability",
+    "title": "Ocean literacy: a new socio-ecological concept for a sustainable use of the seas",
+    "authors": "Uyarra and Borja",
+    "year": "2016",
+    "source": "Marine Pollution Bulletin",
+    "url": "https://doi.org/10.1016/j.marpolbul.2016.02.060",
+    "doi": "10.1016/j.marpolbul.2016.02.060",
+    "topic": "해양환경",
+    "abstract": "지속가능한 바다 이용을 위한 사회생태적 개념으로서 해양 문해력의 역할을 설명합니다."
+  },
+  {
+    "id": "paper-marine-citizenship",
+    "title": "Improving marine environmental health through marine citizenship: a call for debate",
+    "authors": "McKinley and Fletcher",
+    "year": "2012",
+    "source": "Marine Policy",
+    "url": "https://doi.org/10.1016/j.marpol.2011.11.001",
+    "doi": "10.1016/j.marpol.2011.11.001",
+    "topic": "해양환경",
+    "abstract": "해양 시민성, 개인 행동과 정책 참여가 해양환경 건강 개선에 미치는 가능성을 논의합니다."
+  }
+]
