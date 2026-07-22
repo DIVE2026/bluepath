@@ -18,6 +18,7 @@ import retrofit2.Response;
 public class MarineLlmClient {
     private final UserStore store;
     private final BluePathApi api;
+    private String activeQuizSessionId = "";
 
     public MarineLlmClient(UserStore store) {
         this.store = store;
@@ -52,11 +53,13 @@ public class MarineLlmClient {
         }
 
         ApiModels.QuizResponse body = response.body();
+        activeQuizSessionId = safe(body.sessionId);
+        if (activeQuizSessionId.isEmpty()) throw new IllegalStateException("서버 퀴즈 세션이 생성되지 않았습니다.");
         List<QuizQuestion> result = new ArrayList<>();
         if (body.questions != null) {
             for (int i = 0; i < body.questions.size(); i++) {
                 ApiModels.QuizQuestionDto q = body.questions.get(i);
-                if (q.options == null || q.options.size() != 4 || q.answerIndex < 0 || q.answerIndex > 3) continue;
+                if (q.options == null || q.options.size() != 4) continue;
                 String question = safe(q.question);
                 String explanation = safe(q.explanation);
                 if (q.sources != null && !q.sources.isEmpty()) {
@@ -70,7 +73,7 @@ public class MarineLlmClient {
                     }
                     explanation = grounded.toString();
                 }
-                if (question.isEmpty() || explanation.isEmpty()) continue;
+                if (question.isEmpty()) continue;
                 result.add(new QuizQuestion(
                         safe(q.id).isEmpty() ? "gateway-" + System.currentTimeMillis() + "-" + i : q.id,
                         tier,
@@ -86,6 +89,26 @@ public class MarineLlmClient {
             throw new IllegalStateException("AI가 필요한 " + expectedCount + "문제를 완전한 형식으로 생성하지 못했습니다.");
         }
         return result;
+    }
+
+    public ApiModels.QuizSubmissionResponse submitQuiz(int[] selectedAnswers) throws Exception {
+        if (activeQuizSessionId.isEmpty()) throw new IllegalStateException("활성 서버 퀴즈 세션이 없습니다.");
+        List<Integer> answers = new ArrayList<>();
+        for (int value : selectedAnswers) answers.add(value);
+        Response<ApiModels.QuizSubmissionResponse> response = api.submitQuiz(
+                authorization(), new ApiModels.QuizSubmissionRequest(activeQuizSessionId, answers)).execute();
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new IllegalStateException("BluePath quiz submit HTTP " + response.code());
+        }
+        return response.body();
+    }
+
+    public String getActiveQuizSessionId() {
+        return activeQuizSessionId;
+    }
+
+    public void clearQuizSession() {
+        activeQuizSessionId = "";
     }
 
     public String answerAgent(String question, UserProfile profile, String tier,
