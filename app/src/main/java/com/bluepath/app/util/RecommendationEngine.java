@@ -308,7 +308,9 @@ public final class RecommendationEngine {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
         format.setLenient(false);
         try {
-            return format.parse(value.trim());
+            String normalized = value.trim();
+            if (normalized.length() >= 10) normalized = normalized.substring(0, 10);
+            return format.parse(normalized);
         } catch (ParseException ignored) {
             return null;
         }
