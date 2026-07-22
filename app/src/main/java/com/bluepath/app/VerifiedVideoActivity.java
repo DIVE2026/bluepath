@@ -17,17 +17,17 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bluepath.app.network.ApiModels;
+import com.bluepath.app.repository.BluePathRepository;
 import com.bluepath.app.storage.UserStore;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Plays supported YouTube learning videos inside the app and records actual player state,
- * cumulative playing time, progress and the ended event. External browser time is never
- * accepted as verified viewing evidence.
- */
+/** Records distinct, contiguous playback intervals and asks the server to verify coverage. */
 public class VerifiedVideoActivity extends AppCompatActivity {
     public static final String EXTRA_CONTENT_ID = "content_id";
     public static final String EXTRA_TITLE = "title";
@@ -37,11 +37,13 @@ public class VerifiedVideoActivity extends AppCompatActivity {
     private static final Pattern YOUTUBE_ID = Pattern.compile(
             "(?:youtu\\.be/|youtube(?:-nocookie)?\\.com/(?:watch\\?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})");
 
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private UserStore store;
+    private BluePathRepository repository;
     private String contentId;
-    private int baseWatchedSeconds;
     private TextView status;
     private ProgressBar progress;
+    private volatile boolean verificationRequested;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -55,10 +57,10 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         String url = value(EXTRA_URL);
         String videoId = extractYouTubeId(url);
         store = new UserStore(this);
-        baseWatchedSeconds = store.getVideoWatchSeconds(contentId);
+        repository = new BluePathRepository(this);
 
         if (contentId.isEmpty() || videoId.isEmpty()) {
-            Toast.makeText(this, "이 영상은 앱 내 검증 재생을 지원하지 않아 외부 링크로 엽니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "단일 YouTube 영상만 검증 재생할 수 있습니다. 재생목록이나 외부 영상은 학습 증거로 인정되지 않습니다.", Toast.LENGTH_LONG).show();
             if (!url.isEmpty()) startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             finish();
             return;
@@ -79,7 +81,7 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         status.setTextColor(Color.parseColor("#C9FFFF"));
         status.setTextSize(13);
         status.setPadding(dp(16), 0, dp(16), dp(10));
-        updateStatus(baseWatchedSeconds, store.getVideoProgressPercent(contentId), store.hasVideoEnded(contentId));
+        updateStatus();
         root.addView(status);
 
         progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
@@ -111,7 +113,7 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         root.addView(webView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         TextView guide = new TextView(this);
-        guide.setText("재생 상태와 실제 시청 구간만 기록됩니다. 70% 이상 시청하고 최소 학습 시간을 충족하면 완료 인증을 진행할 수 있습니다.");
+        guide.setText("탐색으로 건너뛴 구간과 중복 재생은 인정되지 않습니다. 서로 다른 구간을 70% 이상 실제 재생한 뒤 서버 검증이 완료되어야 학습 완료로 기록됩니다.");
         guide.setTextColor(Color.WHITE);
         guide.setTextSize(12);
         guide.setPadding(dp(16), dp(10), dp(16), dp(14));
@@ -125,7 +127,7 @@ public class VerifiedVideoActivity extends AppCompatActivity {
     }
 
     private String extractYouTubeId(String url) {
-        if (url == null) return "";
+        if (url == null || url.contains("/playlist?") || (!url.contains("v=") && url.contains("list="))) return "";
         Matcher matcher = YOUTUBE_ID.matcher(url);
         return matcher.find() ? matcher.group(1) : "";
     }
@@ -134,33 +136,74 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         return "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
                 + "<style>html,body,#player{margin:0;width:100%;height:100%;background:#000}</style></head><body>"
                 + "<div id='player'></div><script src='https://www.youtube.com/iframe_api'></script><script>"
-                + "let player, watched=0, lastTick=Date.now(), ended=false;"
+                + "let player,last=-1;"
                 + "function onYouTubeIframeAPIReady(){player=new YT.Player('player',{videoId:'" + videoId
-                + "',playerVars:{playsinline:1,rel:0,modestbranding:1},events:{onStateChange:onState}});"
-                + "setInterval(report,1000);}"
-                + "function onState(e){lastTick=Date.now();if(e.data===YT.PlayerState.ENDED){ended=true;report();}}"
-                + "function report(){if(!player||!player.getPlayerState)return;let now=Date.now();"
-                + "if(player.getPlayerState()===YT.PlayerState.PLAYING){watched+=Math.max(0,Math.min(2,(now-lastTick)/1000));}"
-                + "lastTick=now;let d=Number(player.getDuration()||0),c=Number(player.getCurrentTime()||0);"
-                + "let pct=d>0?Math.round(c*100/d):0;BluePathAndroid.onProgress(Math.floor(watched),pct,ended);}" 
+                + "',playerVars:{playsinline:1,rel:0,modestbranding:1},events:{onStateChange:onState}});setInterval(report,1000);}"
+                + "function onState(e){if(e.data!==YT.PlayerState.PLAYING)last=-1;}"
+                + "function report(){if(!player||!player.getPlayerState)return;let d=Number(player.getDuration()||0),c=Number(player.getCurrentTime()||0);"
+                + "if(player.getPlayerState()===YT.PlayerState.PLAYING&&d>0){if(last>=0){let delta=c-last;if(delta>0.2&&delta<=2.5)BluePathAndroid.onInterval(last,c,Math.floor(d));}last=c;}else{last=-1;}}"
                 + "</script></body></html>";
     }
 
     private final class PlaybackBridge {
         @JavascriptInterface
-        public void onProgress(int sessionWatchedSeconds, int progressPercent, boolean ended) {
-            int total = baseWatchedSeconds + Math.max(0, sessionWatchedSeconds);
-            store.recordVerifiedPlayback(contentId, total, progressPercent, ended);
-            runOnUiThread(() -> updateStatus(total, progressPercent, ended));
+        public void onInterval(double startSeconds, double endSeconds, int durationSeconds) {
+            store.recordVideoInterval(contentId, startSeconds, endSeconds, durationSeconds);
+            runOnUiThread(() -> {
+                updateStatus();
+                maybeVerify(durationSeconds);
+            });
         }
     }
 
-    private void updateStatus(int watchedSeconds, int progressPercent, boolean ended) {
-        if (progress != null) progress.setProgress(Math.max(0, Math.min(100, progressPercent)));
-        if (status != null) {
-            status.setText(String.format(Locale.KOREA, "검증 시청 %d분 %02d초 · 진행률 %d%%%s",
-                    watchedSeconds / 60, watchedSeconds % 60, progressPercent, ended ? " · 재생 완료" : ""));
+    private void maybeVerify(int durationSeconds) {
+        int coverage = store.getVideoProgressPercent(contentId);
+        if (coverage < 70 || store.getVideoWatchSeconds(contentId) < 45 || verificationRequested) return;
+        if (!store.hasCloudSession() || !repository.isCloudConfigured()) {
+            status.setText(status.getText() + " · 로그인 후 서버 검증 필요");
+            return;
         }
+        verificationRequested = true;
+        status.setText(status.getText() + " · 서버 검증 중");
+        executor.execute(() -> {
+            try {
+                ApiModels.VideoEvidenceResponse result = repository.verifyVideo(
+                        contentId, durationSeconds, store.getVideoIntervalsForVerification(contentId));
+                store.markVideoServerVerified(contentId, result.verified, result.watchedSeconds, result.coveragePercent);
+                runOnUiThread(() -> {
+                    updateStatus();
+                    Toast.makeText(this, result.message == null ? "영상 학습 검증을 완료했습니다." : result.message, Toast.LENGTH_LONG).show();
+                });
+            } catch (Exception error) {
+                verificationRequested = false;
+                runOnUiThread(() -> {
+                    updateStatus();
+                    Toast.makeText(this, "서버 검증 실패: " + safeMessage(error), Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void updateStatus() {
+        int watchedSeconds = store.getVideoWatchSeconds(contentId);
+        int coverage = store.getVideoProgressPercent(contentId);
+        if (progress != null) progress.setProgress(coverage);
+        if (status != null) {
+            String verified = store.hasVerifiedVideoCompletion(contentId, 0) ? " · 서버 검증 완료" : "";
+            status.setText(String.format(Locale.KOREA, "서로 다른 시청 구간 %d분 %02d초 · 실제 커버리지 %d%%%s",
+                    watchedSeconds / 60, watchedSeconds % 60, coverage, verified));
+        }
+    }
+
+    private String safeMessage(Exception error) {
+        String value = error.getMessage();
+        return value == null || value.trim().isEmpty() ? error.getClass().getSimpleName() : value.trim();
+    }
+
+    @Override
+    protected void onDestroy() {
+        executor.shutdownNow();
+        super.onDestroy();
     }
 
     private int dp(int value) {
