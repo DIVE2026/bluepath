@@ -148,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
     private CountDownTimer quizCountDownTimer;
     private TextView quizTimerText;
     private boolean quizTimedOut = false;
+    private boolean quizServerAuthoritative = false;
+    private boolean quizSubmitting = false;
 
     private boolean agentLoading = false;
     private String agentLastAnswer = "질문을 입력하면 BluePath AI가 상세한 답변을 제공합니다. 온라인 정보를 활용한 답변에는 참고한 근거 자료도 함께 표시됩니다.";
@@ -162,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
     private ApiModels.FamilyMissionResponse currentMission;
     private ApiModels.MissionQrPayload currentQrPayload;
     private int missionParticipantCount = 2;
+    private boolean guardianDialogVisible = false;
 
     /**
      * 커뮤니티 화면 전용 당겨서 새로고침 스크롤뷰입니다.
@@ -265,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
             toast(state.message);
             if (!state.success) return;
             if ("login".equals(state.type) || "register".equals(state.type)) {
+                refreshAccountBindings();
                 clearVoyageSession();
                 if (store.hasProfile()) {
                     showApp(0);
@@ -275,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             if ("password_reset".equals(state.type) || "logout".equals(state.type)) {
+                if ("logout".equals(state.type)) refreshAccountBindings();
                 clearVoyageSession();
                 showLoginScreen();
                 return;
@@ -286,6 +291,12 @@ public class MainActivity extends AppCompatActivity {
             if (store.hasCloudSession() && store.hasProfile()) showApp(currentTab);
         });
         showWelcomeScreen();
+    }
+
+    private void refreshAccountBindings() {
+        store = new UserStore(this);
+        llmClient = new MarineLlmClient(store);
+        cloudRepository = new BluePathRepository(this);
     }
 
     @Override
@@ -674,6 +685,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!store.hasProfile()) {
             showOnboarding();
+            return;
+        }
+        if (store.requiresGuardianConsent() && !store.hasGuardianConsent()) {
+            if (!guardianDialogVisible) showGuardianConsentDialog(true);
             return;
         }
         cancelQuizTimer();
@@ -1654,11 +1669,6 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     missionLoading = false;
                     if (response.newlyVerified) {
-                        if (response.acquiredCompetencies != null) {
-                            for (Map.Entry<String, Integer> entry : response.acquiredCompetencies.entrySet()) {
-                                store.applySkillGain(entry.getKey(), entry.getValue());
-                            }
-                        }
                         store.addMissionBadge(response.badge);
                         store.touchRouteActivity();
                         viewModel.recordLearning("museum_mission", currentMission.missionId, currentMission.title, "completed_verified");
@@ -1934,7 +1944,8 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < activeQuiz.size(); i++) addQuizQuestionCard(activeQuiz.get(i), i);
 
         if (!quizSubmitted) {
-            Button submit = primaryButton("모든 답안 최종 제출 및 채점");
+            Button submit = primaryButton(quizSubmitting ? "서버 검증 중" : "모든 답안 최종 제출 및 채점");
+            submit.setEnabled(!quizSubmitting);
             submit.setOnClickListener(v -> submitQuiz());
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(54));
             lp.setMargins(0, dp(6), 0, dp(12));
@@ -1965,7 +1976,7 @@ public class MainActivity extends AppCompatActivity {
             if (llmClient.isConfigured()) {
                 try {
                     generated = llmClient.generateQuiz(tier, store.getProfile(), DataRepository.contents());
-                    source = "BluePath Marine AI + RAG";
+                    source = "BluePath server verified quiz";
                 } catch (Exception e) {
                     generated = RecommendationEngine.quizForTier(tier, store.getProfile().interest);
                     source = "검증된 해양 로컬 문제은행";
@@ -1979,13 +1990,16 @@ public class MainActivity extends AppCompatActivity {
 
             final List<QuizQuestion> result = generated;
             final String finalSource = source;
-            final String finalNotice = notice;
+            final boolean finalServerAuthoritative = "BluePath server verified quiz".equals(source);
+            final String finalNotice = finalServerAuthoritative ? notice : (notice + (notice.isEmpty() ? "" : "\n")
+                    + "오프라인 문제은행은 연습 모드입니다. 정답 해설은 제공되지만 XP와 승급에는 반영되지 않습니다.");
             runOnUiThread(() -> {
                 quizGenerating = false;
                 activeQuiz = result == null ? new ArrayList<>() : new ArrayList<>(result);
                 selectedAnswers = new int[activeQuiz.size()];
                 Arrays.fill(selectedAnswers, -1);
                 quizSource = finalSource;
+                quizServerAuthoritative = finalServerAuthoritative;
                 quizNotice = finalNotice;
                 quizTimedOut = false;
                 if (activeQuiz.size() != PromotionRules.questionCount(tier)) {
@@ -2056,34 +2070,69 @@ public class MainActivity extends AppCompatActivity {
         }
 
         cancelQuizTimer();
-        int correct = 0;
-        for (int i = 0; i < activeQuiz.size(); i++) {
-            boolean isCorrect = selectedAnswers[i] == activeQuiz.get(i).answerIndex;
-            if (isCorrect) correct++;
-            store.recordSkillEvidence(activeQuiz.get(i).topic, isCorrect);
-        }
-        quizCorrect = correct;
-        String previousTier = store.getTier();
-        boolean passed = correct >= PromotionRules.passCount(quizAttemptTier);
-        quizAwardedXp = store.calculateQuizXpAward(quizAttemptTier, correct, passed);
-        store.recordQuizAttempt(quizAttemptTier, correct, activeQuiz.size(), passed, quizSource);
-        viewModel.recordLearning("quiz", quizAttemptTier, plainTierText(quizAttemptTier),
-                correct + "/" + activeQuiz.size() + (passed ? " passed" : " retry"));
-        if (quizAwardedXp > 0) store.addXp(quizAwardedXp);
-        if (passed) store.promoteByQuiz(quizAttemptTier);
-        quizSubmitted = true;
         quizTimedOut = timedOut;
         quizDeadlineElapsedRealtime = 0L;
-        String promotedTier = store.getTier();
-        showApp(2);
-        if (PromotionRules.rank(promotedTier) > PromotionRules.rank(previousTier)) {
-            appRoot.postDelayed(() -> showPromotionCelebration(promotedTier), 280L);
+        if (quizServerAuthoritative) {
+            quizSubmitting = true;
+            quizNotice = "서버에서 답안과 승급 조건을 검증하고 있습니다.";
+            showApp(2);
+            executor.execute(() -> {
+                try {
+                    ApiModels.QuizSubmissionResponse result = llmClient.submitQuiz(selectedAnswers);
+                    List<QuizQuestion> revealed = quizQuestionsFromServer(result.questions, quizAttemptTier);
+                    runOnUiThread(() -> {
+                        quizSubmitting = false;
+                        if (revealed.size() == activeQuiz.size()) activeQuiz = revealed;
+                        quizCorrect = result.correctCount;
+                        quizAwardedXp = result.xpAwarded;
+                        store.applyServerQuizResult(result, quizAttemptTier, quizSource);
+                        viewModel.recordLearning("quiz", quizAttemptTier, plainTierText(quizAttemptTier),
+                                result.correctCount + "/" + result.total + (result.passed ? " passed" : " retry"));
+                        quizSubmitted = true;
+                        quizNotice = "서버 검증 완료 · 임의 스냅샷 값은 승급에 사용되지 않습니다.";
+                        showApp(2);
+                    });
+                } catch (Exception error) {
+                    runOnUiThread(() -> {
+                        quizSubmitting = false;
+                        quizNotice = "서버 채점에 실패해 결과를 확정하지 않았습니다: " + safeMessage(error);
+                        showApp(2);
+                    });
+                }
+            });
+            return;
         }
+
+        int correct = 0;
+        for (int i = 0; i < activeQuiz.size(); i++) {
+            if (selectedAnswers[i] == activeQuiz.get(i).answerIndex) correct++;
+        }
+        quizCorrect = correct;
+        quizAwardedXp = 0;
+        store.recordQuizAttempt(quizAttemptTier, correct, activeQuiz.size(),
+                correct >= PromotionRules.passCount(quizAttemptTier), "offline practice");
+        viewModel.recordLearning("quiz_practice", quizAttemptTier, plainTierText(quizAttemptTier),
+                correct + "/" + activeQuiz.size() + " practice");
+        quizSubmitted = true;
+        quizNotice = "연습 결과입니다. 서버 검증이 없어 XP·숙련도·승급은 변경하지 않았습니다.";
+        showApp(2);
+    }
+
+    private List<QuizQuestion> quizQuestionsFromServer(List<ApiModels.QuizQuestionDto> values, String tier) {
+        List<QuizQuestion> result = new ArrayList<>();
+        if (values == null) return result;
+        for (ApiModels.QuizQuestionDto item : values) {
+            if (item == null || item.options == null || item.options.size() != 4) continue;
+            result.add(new QuizQuestion(item.id, tier, item.topic == null ? "해양교육" : item.topic,
+                    item.question == null ? "" : item.question, item.options.toArray(new String[0]),
+                    item.answerIndex, item.explanation == null ? "" : item.explanation));
+        }
+        return result;
     }
 
     private void addQuizResultCard() {
         int total = activeQuiz.size();
-        boolean passed = quizCorrect >= PromotionRules.passCount(quizAttemptTier);
+        boolean passed = quizServerAuthoritative && quizCorrect >= PromotionRules.passCount(quizAttemptTier);
         int score = total == 0 ? 0 : Math.round(quizCorrect * 100f / total);
         LinearLayout result = card();
         result.addView(big(passed ? "🎉 승급 기준 통과" : "🌊 다시 항해할 준비"));
@@ -2121,6 +2170,8 @@ public class MainActivity extends AppCompatActivity {
         selectedAnswers = new int[0];
         quizSubmitted = false;
         quizGenerating = false;
+        quizSubmitting = false;
+        quizServerAuthoritative = false;
         quizAttemptTier = "";
         quizSource = "";
         quizNotice = "";
@@ -2128,11 +2179,12 @@ public class MainActivity extends AppCompatActivity {
         quizAwardedXp = 0;
         quizTimedOut = false;
         quizDeadlineElapsedRealtime = 0L;
+        llmClient.clearQuizSession();
         cancelQuizTimer();
     }
 
     private void startOrResumeQuizTimer() {
-        if (quizSubmitted || activeQuiz.isEmpty() || quizDeadlineElapsedRealtime <= 0L) return;
+        if (quizSubmitted || quizSubmitting || activeQuiz.isEmpty() || quizDeadlineElapsedRealtime <= 0L) return;
         long remaining = quizDeadlineElapsedRealtime - SystemClock.elapsedRealtime();
         if (remaining <= 0L) {
             submitQuiz(true);
@@ -2199,6 +2251,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         content.addView(sectionTitle("일정 둘러보기"));
+        long catalogUpdatedAt = DataRepository.remoteCatalogUpdatedAt();
+        if (catalogUpdatedAt > 0L) {
+            content.addView(note("서버 카탈로그 저장 시각 · " + new SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.KOREA).format(new Date(catalogUpdatedAt))
+                    + " · 앱 재시작 후에도 이 카탈로그를 사용합니다.", MUTED));
+        }
         content.addView(scheduleChipRow(
                 new String[]{"전체", "해양환경", "해양생물", "항해", "선박", "안전", "가족", "진로", "독도·해양문화"}, true));
         content.addView(scheduleChipRow(new String[]{"전체", "진행 중", "진행 전", "진행 완료"}, false));
@@ -3239,7 +3296,7 @@ public class MainActivity extends AppCompatActivity {
         portfolio.addView(big(data.targetCareer + " 준비도 " + data.careerReadiness + "점"));
         portfolio.addView(body("완료 학습 " + data.learningEvidence.size() + "건 · 현장 미션 " + data.missionEvidence.size()
                 + "건 · 역량 증거 " + totalEvidence + "개를 공유 가능한 PDF로 정리합니다."));
-        portfolio.addView(note("문서 증거 코드 " + data.verificationCode, OCEAN));
+        portfolio.addView(note(store.hasCloudSession() ? "공유 시 서버 서명 자격 증명을 새로 발급합니다." : "현재는 로컬 초안이며 외부 검증이 불가능합니다.", OCEAN));
         portfolio.addView(body("포트폴리오는 앱에서 완료 조건이 확인된 기록과 현재 검토 상태만 포함합니다. 외부 기관 승인은 승인 완료 상태일 때만 표시됩니다."));
 
         LinearLayout actions = row();
@@ -3321,7 +3378,8 @@ public class MainActivity extends AppCompatActivity {
                 quizEvidence,
                 diamondEvidence,
                 SkillProfileCatalog.strongestTopics(mastery, 3),
-                SkillProfileCatalog.weakestTopics(mastery, 2)
+                SkillProfileCatalog.weakestTopics(mastery, 2),
+                false, "", "", ""
         );
     }
 
@@ -3333,7 +3391,7 @@ public class MainActivity extends AppCompatActivity {
         preview.setPadding(dp(20), dp(12), dp(20), dp(12));
         preview.addView(big(data.nickname + " · " + data.tier));
         preview.addView(body(data.targetCareer + " 준비도 " + data.careerReadiness + "점"));
-        preview.addView(note("문서 증거 코드 " + data.verificationCode, OCEAN));
+        preview.addView(note(store.hasCloudSession() ? "PDF 공유 시 서버 서명과 검증 QR이 포함됩니다." : "로컬 초안 미리보기입니다.", OCEAN));
         preview.addView(label("역량 요약"));
         for (String topic : SkillProfileCatalog.TOPICS) {
             preview.addView(body("• " + topic + " " + data.mastery.getOrDefault(topic, 50) + "점 · 증거 "
@@ -3355,10 +3413,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sharePortfolioPdf() {
-        PortfolioPdfExporter.PortfolioData data = buildPortfolioData();
-        toast("포트폴리오 PDF를 생성하고 있습니다.");
+        PortfolioPdfExporter.PortfolioData localData = buildPortfolioData();
+        toast("서버 자격 증명을 발급하고 PDF를 생성하고 있습니다.");
         executor.execute(() -> {
             try {
+                PortfolioPdfExporter.PortfolioData data = localData;
+                if (store.hasCloudSession() && cloudRepository.isCloudConfigured()) {
+                    ApiModels.PortfolioCredentialResponse credential = cloudRepository.issuePortfolioCredential();
+                    data = localData.withCredential(credential.credentialId, credential.verifyUrl, credential.signature, credential.issuedAt);
+                }
                 File file = PortfolioPdfExporter.export(this, data);
                 Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
                 runOnUiThread(() -> {
@@ -3456,7 +3519,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(8), dp(18), 0);
-        form.addView(body("앱 내 플레이어가 실제 재생 시간과 진행률을 확인했습니다. 영상에서 배운 핵심 내용을 한 문장 이상 기록하면 학습 증거와 XP가 인정됩니다."));
+        form.addView(body("서버가 중복을 제거한 실제 시청 구간을 검증했습니다. 영상에서 배운 핵심 내용을 한 문장 이상 기록하면 완료 소감으로 저장됩니다."));
         EditText reflection = inputField("핵심 내용 또는 새롭게 알게 된 점", "");
         reflection.setSingleLine(false);
         reflection.setMinLines(3);
@@ -3475,13 +3538,10 @@ public class MainActivity extends AppCompatActivity {
             }
             store.markCompleted(item.id);
             store.saveContentReflection(item.id, value);
-            store.recordSkillEvidence(item.topic, true);
-            int xp = item.difficulty.equals("하") ? 80 : item.difficulty.equals("중") ? 120 : 180;
-            store.addXp(xp);
             viewModel.recordLearning("video", item.id, item.title, "completed_with_reflection");
             recordRouteCompletionByTarget(item.id);
             dialog.dismiss();
-            toast("학습 완료가 인증되었습니다. XP +" + xp);
+            toast("서버 검증 학습에 완료 소감을 저장했습니다.");
             showApp(currentTab);
         }));
         dialog.show();
@@ -3575,7 +3635,10 @@ public class MainActivity extends AppCompatActivity {
         boolean completed = store.getCompletedContentIds().contains(item.id);
         boolean started = store.isContentStarted(item.id);
         LinearLayout card = card();
-        card.addView(label(item.topic + " · " + item.year + (item.doi.isEmpty() ? "" : " · DOI " + item.doi)));
+        String paperState = "retracted".equalsIgnoreCase(item.paperStatus) ? "철회됨"
+                : "corrected".equalsIgnoreCase(item.paperStatus) ? "정정본" : "현재본";
+        card.addView(label(item.topic + " · " + item.year + " · " + paperState + (item.doi.isEmpty() ? "" : " · DOI " + item.doi)));
+        if (!item.versionNote.isEmpty()) card.addView(note(item.versionNote, "retracted".equalsIgnoreCase(item.paperStatus) ? DANGER : MUTED));
         card.addView(big("▤ " + item.title));
         card.addView(body(item.authors + (item.source.isEmpty() ? "" : " · " + item.source)));
         if (!item.abstractText.isEmpty()) card.addView(body(item.abstractText));
@@ -3603,10 +3666,12 @@ public class MainActivity extends AppCompatActivity {
         right.setMargins(dp(6), 0, 0, 0);
         actions.addView(bookmark, right);
         card.addView(actions);
-        if (started && !completed) {
+        if (started && !completed && !"retracted".equalsIgnoreCase(item.paperStatus)) {
             Button complete = outlineButton("논문 학습 완료 기록");
             complete.setOnClickListener(v -> showPaperCompletionDialog(item));
             card.addView(complete, new LinearLayout.LayoutParams(-1, dp(46)));
+        } else if ("retracted".equalsIgnoreCase(item.paperStatus)) {
+            card.addView(note("철회 논문은 참고 열람만 가능하며 학습 자격 증명이나 XP를 만들 수 없습니다.", DANGER));
         }
         content.addView(card);
     }
@@ -3617,25 +3682,40 @@ public class MainActivity extends AppCompatActivity {
         reflection.setMinLines(4);
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("논문 학습 완료")
-                .setMessage("원문의 핵심 주장과 근거를 포함해 20자 이상 기록해 주세요.")
+                .setMessage("원문의 핵심 주장과 근거, 새롭게 알게 된 점을 포함해 40자 이상 기록해 주세요.")
                 .setView(reflection)
                 .setNegativeButton("취소", null)
                 .setPositiveButton("완료 기록", null)
                 .create();
         dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String value = reflection.getText().toString().trim();
-            if (value.length() < 20) {
-                reflection.setError("20자 이상 작성해 주세요.");
+            if (value.length() < 40) {
+                reflection.setError("40자 이상 작성해 주세요.");
                 return;
             }
-            store.markCompleted(item.id);
-            store.saveContentReflection(item.id, value);
-            store.recordSkillEvidence(item.topic, true);
-            store.addXp(120);
-            viewModel.recordLearning("paper", item.id, item.title, "completed_with_reflection");
-            dialog.dismiss();
-            toast("논문 학습 증거를 저장했습니다. XP +120");
-            showApp(1);
+            if (!store.hasCloudSession() || !cloudRepository.isCloudConfigured()) {
+                reflection.setError("로그인 후 서버 검증을 받아야 논문 학습을 완료할 수 있습니다.");
+                return;
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            executor.execute(() -> {
+                try {
+                    ApiModels.PaperCompletionResponse result = cloudRepository.completePaper(item.id, value);
+                    runOnUiThread(() -> {
+                        store.markCompleted(item.id);
+                        store.saveContentReflection(item.id, value);
+                        viewModel.recordLearning("paper", item.id, item.title, "server_verified");
+                        dialog.dismiss();
+                        toast("논문 학습 증거를 서버에서 검증했습니다. XP +" + result.xpAwarded);
+                        showApp(1);
+                    });
+                } catch (Exception error) {
+                    runOnUiThread(() -> {
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        toast("논문 학습 검증 실패: " + safeMessage(error));
+                    });
+                }
+            });
         }));
         dialog.show();
     }
@@ -3649,6 +3729,10 @@ public class MainActivity extends AppCompatActivity {
         card.addView(label(item.topic + " · 추천 " + score + "점 · " + status));
         card.addView(big("📚 " + item.title));
         card.addView(body(item.startDate + " ~ " + item.endDate + " · " + item.target + " · " + item.method));
+        card.addView(body("시간대 " + item.timezone
+                + (item.capacity > 0 ? " · 정원 " + item.capacity + "명" : "")
+                + (item.waitlistAvailable ? " · 대기 신청 가능" : "")
+                + (item.applicationDeadline.isEmpty() ? "" : " · 신청 마감 " + item.applicationDeadline)));
         card.addView(body(item.description));
         addReasonList(card, RecommendationEngine.programReasons(item, p, store));
         if (archived) card.addView(note("현재 신청 가능한 일정이 아니라 교육 이력과 수요 분석을 위한 아카이브 자료입니다.", MUTED));
@@ -3670,6 +3754,11 @@ public class MainActivity extends AppCompatActivity {
             calendar.setOnClickListener(v -> addProgramToCalendar(item));
             card.addView(calendar);
         }
+        if (store.hasCloudSession()) {
+            Button participation = outlineButton("신청·참석·수료 기록");
+            participation.setOnClickListener(v -> showProgramParticipationDialog(item));
+            card.addView(participation);
+        }
         content.addView(card);
     }
 
@@ -3678,7 +3767,10 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout card = card();
         card.addView(label(item.category + " · " + item.target + " · " + status));
         card.addView(big("🎪 " + item.title));
-        card.addView(body(item.startDate + " ~ " + item.endDate));
+        card.addView(body(item.startDate + " ~ " + item.endDate + " · " + item.timezone));
+        card.addView(body((item.capacity > 0 ? "정원 " + item.capacity + "명 · " : "")
+                + (item.waitlistAvailable ? "대기 신청 가능 · " : "")
+                + (item.applicationDeadline.isEmpty() ? "신청 마감 정보 없음" : "신청 마감 " + item.applicationDeadline)));
         card.addView(body(item.description));
         card.addView(body("출처: " + item.source));
         if (RecommendationEngine.isArchived(item.startDate, item.endDate)) {
@@ -3726,34 +3818,82 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showGuardianConsentDialog(boolean onboarding) {
+        if (guardianDialogVisible) return;
+        guardianDialogVisible = true;
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(8), dp(18), 0);
-        TextView notice = body("보호자는 연령대·관심 분야·학습 목표와 학습 증거가 맞춤 추천 및 계정 동기화에 사용되는 것에 동의합니다. 최소 정보만 수집하며 동의 기록을 MY에서 확인할 수 있습니다.");
+        TextView notice = body("보호자 이메일로 24시간 유효한 확인 링크를 전송합니다. 앱에서 대신 동의할 수 없으며, 보호자가 링크에서 동의 문서 버전 2026-07을 확인해야 완료됩니다.");
         EditText guardianEmail = inputField("보호자 이메일", store.getGuardianEmail());
         form.addView(notice);
         form.addView(label("보호자 이메일"));
         form.addView(guardianEmail);
-        new AlertDialog.Builder(this)
-                .setTitle("보호자 동의")
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("보호자 동의 확인")
                 .setView(form)
                 .setCancelable(!onboarding)
-                .setNegativeButton("동의하지 않음", (dialog, which) -> {
-                    store.saveGuardianConsent(false, "");
-                    showApp(onboarding ? 0 : 6);
-                })
-                .setPositiveButton("동의하고 계속", (dialog, which) -> {
-                    String email = guardianEmail.getText().toString().trim();
-                    if (email.isEmpty()) {
-                        toast("보호자 이메일을 입력해 주세요.");
-                        showApp(onboarding ? 0 : 6);
-                        return;
+                .setNeutralButton("상태 새로고침", null)
+                .setNegativeButton(onboarding ? "로그아웃" : "동의 철회", null)
+                .setPositiveButton("확인 링크 보내기", null)
+                .create();
+        dialog.setOnDismissListener(ignored -> guardianDialogVisible = false);
+        dialog.setOnShowListener(ignored -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String email = guardianEmail.getText().toString().trim();
+                if (email.isEmpty()) {
+                    toast("보호자 이메일을 입력해 주세요.");
+                    return;
+                }
+                executor.execute(() -> {
+                    try {
+                        ApiModels.GuardianConsentStatus result = cloudRepository.requestGuardianConsent(email);
+                        runOnUiThread(() -> {
+                            store.saveGuardianConsent(false, result.guardianEmail);
+                            toast("보호자 확인 링크를 전송했습니다. 보호자가 링크에서 동의한 뒤 상태를 새로고침해 주세요.");
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> toast("동의 요청 실패: " + safeMessage(error)));
                     }
-                    store.saveGuardianConsent(true, email);
-                    if (viewModel.isCloudConfigured()) viewModel.syncNow();
-                    toast("보호자 동의 정보를 저장했습니다.");
-                    showApp(onboarding ? 0 : 6);
-                }).show();
+                });
+            });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> executor.execute(() -> {
+                try {
+                    ApiModels.GuardianConsentStatus result = cloudRepository.refreshGuardianConsent();
+                    runOnUiThread(() -> {
+                        boolean confirmed = "confirmed".equals(result.status);
+                        toast(confirmed ? "보호자 동의가 확인되었습니다." : "아직 보호자 확인을 기다리고 있습니다.");
+                        if (confirmed) {
+                            dialog.dismiss();
+                            showApp(onboarding ? 0 : 6);
+                        }
+                    });
+                } catch (Exception error) {
+                    runOnUiThread(() -> toast("동의 상태 확인 실패: " + safeMessage(error)));
+                }
+            }));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v -> {
+                if (onboarding) {
+                    store.clearCloudSession();
+                    dialog.dismiss();
+                    showLoginScreen();
+                    return;
+                }
+                executor.execute(() -> {
+                    try {
+                        cloudRepository.revokeGuardianConsent();
+                        runOnUiThread(() -> {
+                            toast("보호자 동의를 철회했습니다. 미성년 프로필은 다시 확인할 때까지 이용할 수 없습니다.");
+                            store.clearCloudSession();
+                            dialog.dismiss();
+                            showLoginScreen();
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> toast("동의 철회 실패: " + safeMessage(error)));
+                    }
+                });
+            });
+        });
+        dialog.show();
     }
 
     private void showReminderTimePicker() {
@@ -4393,17 +4533,22 @@ public class MainActivity extends AppCompatActivity {
     private ProgramItem programFromDto(ApiModels.ContentDto dto) {
         return new ProgramItem(safe(dto.id), safe(dto.title), safeOr(dto.target, "전체"),
                 safe(dto.startAt), safe(dto.endAt), safeOr(dto.method, "오프라인"),
-                safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.source), safe(dto.url));
+                safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.source),
+                safeOr(dto.applicationUrl, safe(dto.url)), safe(dto.applicationDeadline), dto.capacity,
+                dto.waitlistAvailable, safeOr(dto.timezone, "Asia/Seoul"));
     }
 
     private EventItem eventFromDto(ApiModels.ContentDto dto) {
         return new EventItem(safe(dto.id), safe(dto.title), safe(dto.startAt), safe(dto.endAt),
-                safeOr(dto.target, "전체"), safeOr(dto.category, "행사"), safe(dto.description), safe(dto.source), safe(dto.url));
+                safeOr(dto.target, "전체"), safeOr(dto.category, "행사"), safe(dto.description), safe(dto.source),
+                safeOr(dto.applicationUrl, safe(dto.url)), safe(dto.applicationDeadline), dto.capacity,
+                dto.waitlistAvailable, safeOr(dto.timezone, "Asia/Seoul"));
     }
 
     private PaperItem paperFromDto(ApiModels.ContentDto dto) {
         return new PaperItem(safe(dto.id), safe(dto.title), safe(dto.authors), safe(dto.year),
-                safe(dto.source), safe(dto.url), safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.doi));
+                safe(dto.source), safe(dto.url), safeOr(dto.topic, "해양교육"), safe(dto.description), safe(dto.doi),
+                safeOr(dto.paperStatus, "current"), safe(dto.versionNote));
     }
 
     private String safe(String value) {
