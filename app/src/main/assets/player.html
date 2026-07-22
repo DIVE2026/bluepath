@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body,#player{margin:0;width:100%;height:100%;background:#000}</style>
+</head>
+<body>
+<div id="player"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+var EMBED_ORIGIN='https://appassets.androidplatform.net';
+var videoId=new URLSearchParams(location.search).get('v')||'';
+var player,last=-1;
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('player',{
+    videoId:videoId,
+    playerVars:{playsinline:1,rel:0,modestbranding:1,origin:EMBED_ORIGIN,widget_referrer:EMBED_ORIGIN},
+    events:{onStateChange:onState}
+  });
+  setInterval(report,1000);
+}
+function onState(e){if(e.data!==YT.PlayerState.PLAYING)last=-1;}
+function report(){
+  if(!player||!player.getPlayerState)return;
+  var d=Number(player.getDuration()||0),c=Number(player.getCurrentTime()||0);
+  if(player.getPlayerState()===YT.PlayerState.PLAYING&&d>0){
+    if(last>=0){
+      var delta=c-last;
+      if(delta>0.2&&delta<=2.5)BluePathAndroid.onInterval(last,c,Math.floor(d));
+    }
+    last=c;
+  }else{
+    last=-1;
+  }
+}
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.webkit.WebViewAssetLoader;
 
 import com.bluepath.app.network.ApiModels;
 import com.bluepath.app.repository.BluePathRepository;
@@ -33,6 +35,9 @@ public class VerifiedVideoActivity extends AppCompatActivity {
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_MINUTES = "minutes";
+
+    // Real https origin served by WebViewAssetLoader so YouTube receives a valid embedder Referer.
+    private static final String PLAYER_HOST = "appassets.androidplatform.net";
 
     private static final Pattern YOUTUBE_ID = Pattern.compile(
             "(?:youtu\\.be/|youtube(?:-nocookie)?\\.com/(?:watch\\?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})");
@@ -96,11 +101,20 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         webView.getSettings().setMediaPlaybackRequiresUserGesture(true);
         webView.addJavascriptInterface(new PlaybackBridge(), "BluePathAndroid");
         webView.setWebChromeClient(new WebChromeClient());
+        WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri target = request.getUrl();
                 if (target != null && target.getHost() != null
+                        && !target.getHost().contains(PLAYER_HOST)
                         && !target.getHost().contains("youtube.com")
                         && !target.getHost().contains("googlevideo.com")) {
                     startActivity(new Intent(Intent.ACTION_VIEW, target));
@@ -109,7 +123,7 @@ public class VerifiedVideoActivity extends AppCompatActivity {
                 return false;
             }
         });
-        webView.loadDataWithBaseURL("https://www.youtube.com", playerHtml(videoId), "text/html", "UTF-8", null);
+        webView.loadUrl("https://" + PLAYER_HOST + "/assets/player.html?v=" + videoId);
         root.addView(webView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         TextView guide = new TextView(this);
@@ -130,19 +144,6 @@ public class VerifiedVideoActivity extends AppCompatActivity {
         if (url == null || url.contains("/playlist?") || (!url.contains("v=") && url.contains("list="))) return "";
         Matcher matcher = YOUTUBE_ID.matcher(url);
         return matcher.find() ? matcher.group(1) : "";
-    }
-
-    private String playerHtml(String videoId) {
-        return "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
-                + "<style>html,body,#player{margin:0;width:100%;height:100%;background:#000}</style></head><body>"
-                + "<div id='player'></div><script src='https://www.youtube.com/iframe_api'></script><script>"
-                + "let player,last=-1;"
-                + "function onYouTubeIframeAPIReady(){player=new YT.Player('player',{videoId:'" + videoId
-                + "',playerVars:{playsinline:1,rel:0,modestbranding:1},events:{onStateChange:onState}});setInterval(report,1000);}"
-                + "function onState(e){if(e.data!==YT.PlayerState.PLAYING)last=-1;}"
-                + "function report(){if(!player||!player.getPlayerState)return;let d=Number(player.getDuration()||0),c=Number(player.getCurrentTime()||0);"
-                + "if(player.getPlayerState()===YT.PlayerState.PLAYING&&d>0){if(last>=0){let delta=c-last;if(delta>0.2&&delta<=2.5)BluePathAndroid.onInterval(last,c,Math.floor(d));}last=c;}else{last=-1;}}"
-                + "</script></body></html>";
     }
 
     private final class PlaybackBridge {
