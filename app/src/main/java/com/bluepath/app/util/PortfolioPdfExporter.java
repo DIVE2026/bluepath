@@ -1,11 +1,16 @@
 package com.bluepath.app.util;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.common.BitMatrix;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,11 +49,19 @@ public final class PortfolioPdfExporter {
             writer.title(data.nickname + "님의 해양 역량 포트폴리오");
             writer.paragraph("앱에서 검증된 학습 완료, 퀴즈 결과, 현장 미션과 제출 상태를 하나의 증거 기반 문서로 정리했습니다.");
             writer.infoRow("생성 시각", data.generatedAt);
-            writer.infoRow("문서 증거 코드", data.verificationCode);
+            writer.infoRow(data.serverVerified ? "서버 자격 증명 ID" : "로컬 초안 코드", data.verificationCode);
             writer.infoRow("통합 티어", data.tier + " · XP " + data.xp);
             writer.infoRow("목표 진로", data.targetCareer + " · 준비도 " + data.careerReadiness + "점");
             writer.infoRow("학습자 프로필", data.ageGroup + " · " + data.interest + " · " + data.goal + " · " + data.level);
-            writer.note("검증 범위: BluePath가 기록한 완료 조건, 문항별 역량 증거, 서명 QR 미션 결과와 제출 검토 상태입니다. 외부 기관 승인은 해당 상태가 approved일 때만 승인으로 표시됩니다.");
+            writer.note(data.serverVerified
+                    ? "이 문서는 BluePath 서버의 권위 있는 진척도 원장에서 발급됐습니다. 아래 QR 또는 검증 URL에서 서명과 취소 상태를 확인할 수 있습니다."
+                    : "이 문서는 로그인하지 않은 로컬 초안이며 외부 검증 수단이 아닙니다. 서버 자격 증명 없이 기관 제출용으로 사용하지 마세요.");
+            if (data.serverVerified) {
+                writer.infoRow("발급 시각", data.credentialIssuedAt);
+                writer.infoRow("서명", data.signature);
+                writer.paragraph("검증 URL: " + data.verifyUrl);
+                writer.qrCode(data.verifyUrl);
+            }
 
             writer.section("역량 스코어맵");
             for (Map.Entry<String, Integer> entry : data.mastery.entrySet()) {
@@ -77,7 +90,9 @@ public final class PortfolioPdfExporter {
                 SkillProfileCatalog.SkillDescriptor descriptor = SkillProfileCatalog.descriptor(data.weakestTopics.get(0));
                 writer.paragraph("추천 다음 활동: " + descriptor.nextAction);
             }
-            writer.note("문서 증거 코드는 현재 포트폴리오 데이터의 요약 해시입니다. 기록이 바뀌면 코드도 달라져 공유 시점의 증거 구성을 구분할 수 있습니다.");
+            writer.note(data.serverVerified
+                    ? "검증 페이지가 revoked로 표시되면 이 문서는 더 이상 유효하지 않습니다. QR URL과 서버 HMAC 서명을 함께 확인하세요."
+                    : "로컬 초안 코드는 데이터 구분용 해시일 뿐, 서버 서명이나 기관 승인이 아닙니다.");
 
             writer.finish();
             try (FileOutputStream stream = new FileOutputStream(target)) {
@@ -132,6 +147,10 @@ public final class PortfolioPdfExporter {
         public final List<String> diamondEvidence;
         public final List<String> strongestTopics;
         public final List<String> weakestTopics;
+        public final boolean serverVerified;
+        public final String verifyUrl;
+        public final String signature;
+        public final String credentialIssuedAt;
 
         public PortfolioData(
                 String nickname,
@@ -152,7 +171,11 @@ public final class PortfolioPdfExporter {
                 List<String> quizEvidence,
                 List<String> diamondEvidence,
                 List<String> strongestTopics,
-                List<String> weakestTopics
+                List<String> weakestTopics,
+                boolean serverVerified,
+                String verifyUrl,
+                String signature,
+                String credentialIssuedAt
         ) {
             this.nickname = safe(nickname, "BluePath Learner");
             this.generatedAt = safe(generatedAt, "-");
@@ -173,6 +196,16 @@ public final class PortfolioPdfExporter {
             this.diamondEvidence = copy(diamondEvidence);
             this.strongestTopics = copy(strongestTopics);
             this.weakestTopics = copy(weakestTopics);
+            this.serverVerified = serverVerified;
+            this.verifyUrl = safe(verifyUrl, "");
+            this.signature = safe(signature, "");
+            this.credentialIssuedAt = safe(credentialIssuedAt, "-");
+        }
+
+        public PortfolioData withCredential(String credentialId, String verifyUrl, String signature, String issuedAt) {
+            return new PortfolioData(nickname, generatedAt, credentialId, tier, xp, targetCareer, careerReadiness,
+                    ageGroup, interest, goal, level, mastery, evidence, learningEvidence, missionEvidence, quizEvidence,
+                    diamondEvidence, strongestTopics, weakestTopics, true, verifyUrl, signature, issuedAt);
         }
 
         private static String safe(String value, String fallback) {
@@ -250,6 +283,23 @@ public final class PortfolioPdfExporter {
             paint.setTextSize(9.3f);
             drawWrapped(value, PAGE_WIDTH - MARGIN * 2 - 14, 14);
             y += 7;
+        }
+
+        void qrCode(String value) {
+            if (value == null || value.trim().isEmpty()) return;
+            ensure(138);
+            try {
+                BitMatrix matrix = new MultiFormatWriter().encode(value, BarcodeFormat.QR_CODE, 120, 120);
+                Bitmap bitmap = Bitmap.createBitmap(120, 120, Bitmap.Config.ARGB_8888);
+                for (int x = 0; x < 120; x++) {
+                    for (int yy = 0; yy < 120; yy++) bitmap.setPixel(x, yy, matrix.get(x, yy) ? Color.BLACK : Color.WHITE);
+                }
+                canvas.drawBitmap(bitmap, MARGIN, y, paint);
+                y += 128;
+                bitmap.recycle();
+            } catch (Exception ignored) {
+                paragraph("QR 코드를 만들 수 없어 검증 URL을 사용해 주세요.");
+            }
         }
 
         void infoRow(String label, String value) {
