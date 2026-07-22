@@ -7,10 +7,13 @@ import com.bluepath.app.model.UserProfile;
 import com.bluepath.app.network.ApiModels;
 import com.bluepath.app.util.PromotionRules;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -19,16 +22,74 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class UserStore {
     private static final String PREF = "bluepath_user";
+    private static final String GLOBAL_PREF = "bluepath_global";
+    private static final String GUEST_SCOPE = "guest";
     private static final String[] SKILL_TOPICS = {"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류", "해양교육"};
-    private final SharedPreferences prefs;
+    private final Context context;
+    private final SharedPreferences globalPrefs;
+    private SharedPreferences prefs;
     private final SecureTokenStore secureTokenStore;
 
     public UserStore(Context context) {
-        prefs = context.getSharedPreferences(PREF, Context.MODE_PRIVATE);
-        secureTokenStore = new SecureTokenStore(prefs);
+        this.context = context.getApplicationContext();
+        globalPrefs = this.context.getSharedPreferences(GLOBAL_PREF, Context.MODE_PRIVATE);
+        secureTokenStore = new SecureTokenStore(globalPrefs);
+        String activeScope = globalPrefs.getString("activeAccountScope", GUEST_SCOPE);
+        prefs = preferencesForScope(activeScope);
+        migrateLegacySkillState();
+    }
+
+    private SharedPreferences preferencesForScope(String scope) {
+        if (scope == null || scope.trim().isEmpty() || GUEST_SCOPE.equals(scope)) {
+            return context.getSharedPreferences(PREF, Context.MODE_PRIVATE);
+        }
+        return context.getSharedPreferences(PREF + "_" + scope, Context.MODE_PRIVATE);
+    }
+
+    private String accountScope(String email) {
+        String value = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < 12; i++) result.append(String.format(Locale.ROOT, "%02x", digest[i]));
+            return result.toString();
+        } catch (Exception ignored) {
+            return Integer.toHexString(value.hashCode());
+        }
+    }
+
+    private void activateAccount(String email) {
+        String scope = accountScope(email);
+        SharedPreferences target = preferencesForScope(scope);
+        String legacyEmail = prefs.getString("accountEmail", "");
+        String migratedKey = "migratedScope_" + scope;
+        if (!globalPrefs.getBoolean(migratedKey, false) && !legacyEmail.isEmpty()
+                && legacyEmail.equalsIgnoreCase(email == null ? "" : email.trim())) {
+            SharedPreferences.Editor targetEditor = target.edit();
+            for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof String) targetEditor.putString(entry.getKey(), (String) value);
+                else if (value instanceof Integer) targetEditor.putInt(entry.getKey(), (Integer) value);
+                else if (value instanceof Long) targetEditor.putLong(entry.getKey(), (Long) value);
+                else if (value instanceof Boolean) targetEditor.putBoolean(entry.getKey(), (Boolean) value);
+                else if (value instanceof Float) targetEditor.putFloat(entry.getKey(), (Float) value);
+                else if (value instanceof Set) targetEditor.putStringSet(entry.getKey(), new HashSet<>((Set<String>) value));
+            }
+            targetEditor.apply();
+            globalPrefs.edit().putBoolean(migratedKey, true).putString("pendingLegacyRecordScope", scope).apply();
+        }
+        prefs = target;
+        globalPrefs.edit().putString("activeAccountScope", scope).apply();
+        migrateLegacySkillState();
+    }
+
+    private void activateGuest() {
+        prefs = preferencesForScope(GUEST_SCOPE);
+        globalPrefs.edit().putString("activeAccountScope", GUEST_SCOPE).apply();
         migrateLegacySkillState();
     }
 
@@ -55,6 +116,7 @@ public class UserStore {
                 .putString("level", profile.level)
                 .putString("persona", profile.persona)
                 .putInt("xp", profile.xp)
+                .putLong("profileUpdatedAt", System.currentTimeMillis())
                 .apply();
     }
 
@@ -153,7 +215,11 @@ public class UserStore {
     }
 
     public void saveContentReflection(String contentId, String reflection) {
-        prefs.edit().putString("contentReflection_" + contentId, reflection == null ? "" : reflection.trim()).apply();
+        if (contentId == null || contentId.trim().isEmpty()) return;
+        prefs.edit()
+                .putString("contentReflection_" + contentId, reflection == null ? "" : reflection.trim())
+                .putLong("contentReflectionUpdatedAt_" + contentId, System.currentTimeMillis())
+                .apply();
     }
 
     public String getContentReflection(String contentId) {
@@ -161,40 +227,92 @@ public class UserStore {
         return prefs.getString("contentReflection_" + contentId, "").trim();
     }
 
-    public void recordVerifiedPlayback(String contentId, int watchedSeconds, int progressPercent, boolean ended) {
-        if (contentId == null || contentId.trim().isEmpty()) return;
-        int safeSeconds = Math.max(0, watchedSeconds);
-        int safeProgress = clampPercent(progressPercent);
-        prefs.edit()
-                .putInt("videoWatchSeconds_" + contentId, Math.max(getVideoWatchSeconds(contentId), safeSeconds))
-                .putInt("videoProgress_" + contentId, Math.max(getVideoProgressPercent(contentId), safeProgress))
-                .putBoolean("videoEnded_" + contentId, hasVideoEnded(contentId) || ended)
-                .apply();
+    public synchronized void recordVideoInterval(String contentId, double startSeconds, double endSeconds, int durationSeconds) {
+        if (contentId == null || contentId.trim().isEmpty() || durationSeconds <= 0) return;
+        double start = Math.max(0d, Math.min(startSeconds, durationSeconds));
+        double end = Math.max(0d, Math.min(endSeconds, durationSeconds));
+        if (end <= start || end - start > 3.5d) return;
+        List<ApiModels.VideoInterval> intervals = getVideoIntervals(contentId);
+        intervals.add(new ApiModels.VideoInterval(start, end));
+        intervals.sort((a, b) -> Double.compare(a.start, b.start));
+        List<ApiModels.VideoInterval> merged = new ArrayList<>();
+        for (ApiModels.VideoInterval interval : intervals) {
+            if (merged.isEmpty() || interval.start > merged.get(merged.size() - 1).end + 1.25d) {
+                merged.add(new ApiModels.VideoInterval(interval.start, interval.end));
+            } else {
+                ApiModels.VideoInterval last = merged.get(merged.size() - 1);
+                last.end = Math.max(last.end, interval.end);
+            }
+        }
+        JSONArray encoded = new JSONArray();
+        for (ApiModels.VideoInterval interval : merged) {
+            JSONArray pair = new JSONArray();
+            pair.put(interval.start);
+            pair.put(interval.end);
+            encoded.put(pair);
+        }
+        prefs.edit().putString("videoIntervals_" + contentId, encoded.toString())
+                .putInt("videoDuration_" + contentId, durationSeconds).apply();
+    }
+
+    public List<ApiModels.VideoInterval> getVideoIntervals(String contentId) {
+        List<ApiModels.VideoInterval> result = new ArrayList<>();
+        if (contentId == null || contentId.trim().isEmpty()) return result;
+        String raw = prefs.getString("videoIntervals_" + contentId, "[]");
+        try {
+            JSONArray values = new JSONArray(raw);
+            for (int i = 0; i < values.length(); i++) {
+                JSONArray pair = values.optJSONArray(i);
+                if (pair == null || pair.length() < 2) continue;
+                double start = pair.optDouble(0, -1d);
+                double end = pair.optDouble(1, -1d);
+                if (start >= 0d && end > start) result.add(new ApiModels.VideoInterval(start, end));
+            }
+        } catch (JSONException ignored) {}
+        return result;
+    }
+
+    public List<ApiModels.VideoInterval> getVideoIntervalsForVerification(String contentId) {
+        List<ApiModels.VideoInterval> chunks = new ArrayList<>();
+        for (ApiModels.VideoInterval interval : getVideoIntervals(contentId)) {
+            double cursor = interval.start;
+            while (cursor < interval.end) {
+                double end = Math.min(interval.end, cursor + 10d);
+                chunks.add(new ApiModels.VideoInterval(cursor, end));
+                cursor = end;
+            }
+        }
+        return chunks;
+    }
+
+    public int getVideoDurationSeconds(String contentId) {
+        return Math.max(0, prefs.getInt("videoDuration_" + contentId, 0));
     }
 
     public int getVideoWatchSeconds(String contentId) {
-        return Math.max(0, prefs.getInt("videoWatchSeconds_" + contentId, 0));
+        double watched = 0d;
+        for (ApiModels.VideoInterval interval : getVideoIntervals(contentId)) watched += Math.max(0d, interval.end - interval.start);
+        return (int) Math.floor(watched);
     }
 
     public int getVideoProgressPercent(String contentId) {
-        return clampPercent(prefs.getInt("videoProgress_" + contentId, 0));
+        int duration = getVideoDurationSeconds(contentId);
+        return duration <= 0 ? 0 : clampPercent((int) Math.floor(getVideoWatchSeconds(contentId) * 100d / duration));
     }
 
     public boolean hasVideoEnded(String contentId) {
-        return prefs.getBoolean("videoEnded_" + contentId, false);
+        return getVideoProgressPercent(contentId) >= 99;
+    }
+
+    public void markVideoServerVerified(String contentId, boolean verified, int watchedSeconds, int coveragePercent) {
+        if (contentId == null || contentId.trim().isEmpty()) return;
+        prefs.edit().putBoolean("videoServerVerified_" + contentId, verified)
+                .putInt("videoServerWatched_" + contentId, Math.max(0, watchedSeconds))
+                .putInt("videoServerCoverage_" + contentId, clampPercent(coveragePercent)).apply();
     }
 
     public boolean hasVerifiedVideoCompletion(String contentId, int expectedMinutes) {
-        int targetSeconds = expectedMinutes > 0
-                ? Math.max(45, Math.min(300, Math.round(expectedMinutes * 60f * 0.7f)))
-                : 90;
-        int endedMinimumSeconds = expectedMinutes > 0
-                ? Math.max(45, Math.min(180, Math.round(expectedMinutes * 60f * 0.5f)))
-                : 60;
-        int watchedSeconds = getVideoWatchSeconds(contentId);
-        int progressPercent = getVideoProgressPercent(contentId);
-        return (progressPercent >= 70 && watchedSeconds >= targetSeconds)
-                || (hasVideoEnded(contentId) && watchedSeconds >= endedMinimumSeconds);
+        return prefs.getBoolean("videoServerVerified_" + contentId, false);
     }
 
     public Set<String> getBookmarks() {
@@ -206,9 +324,59 @@ public class UserStore {
     }
 
     public void toggleBookmark(String id) {
+        if (id == null || id.trim().isEmpty()) return;
+        String key = id.trim();
         Set<String> ids = getBookmarks();
-        if (ids.contains(id)) ids.remove(id); else ids.add(id);
-        prefs.edit().putStringSet("bookmarks", ids).apply();
+        boolean active;
+        if (ids.contains(key)) {
+            ids.remove(key);
+            active = false;
+        } else {
+            ids.add(key);
+            active = true;
+        }
+        JSONObject state = bookmarkStateObject();
+        try {
+            JSONObject item = new JSONObject();
+            item.put("active", active);
+            item.put("updatedAt", System.currentTimeMillis());
+            state.put(key, item);
+        } catch (JSONException ignored) {}
+        prefs.edit().putStringSet("bookmarks", ids).putString("bookmarkState", state.toString()).apply();
+    }
+
+    private JSONObject bookmarkStateObject() {
+        try {
+            return new JSONObject(prefs.getString("bookmarkState", "{}"));
+        } catch (JSONException ignored) {
+            return new JSONObject();
+        }
+    }
+
+    private Map<String, Object> bookmarkStateForCloud() {
+        JSONObject state = bookmarkStateObject();
+        for (String id : getBookmarks()) {
+            if (state.has(id)) continue;
+            try {
+                JSONObject item = new JSONObject();
+                item.put("active", true);
+                item.put("updatedAt", 0L);
+                state.put(id, item);
+            } catch (JSONException ignored) {}
+        }
+        Map<String, Object> result = new HashMap<>();
+        JSONArray names = state.names();
+        if (names == null) return result;
+        for (int i = 0; i < names.length(); i++) {
+            String id = names.optString(i, "");
+            JSONObject item = state.optJSONObject(id);
+            if (id.isEmpty() || item == null) continue;
+            Map<String, Object> value = new HashMap<>();
+            value.put("active", item.optBoolean("active", false));
+            value.put("updatedAt", item.optLong("updatedAt", 0L));
+            result.put(id, value);
+        }
+        return result;
     }
 
     public int calculateQuizXpAward(String tier, int correct, boolean passed) {
@@ -218,6 +386,28 @@ public class UserStore {
         int improvement = Math.max(0, correct - previousBest);
         if (improvement > 0) return Math.min(120, 20 + improvement * 15);
         return 0;
+    }
+
+    public void applyServerQuizResult(ApiModels.QuizSubmissionResponse result, String attemptedTier, String source) {
+        if (result == null) return;
+        prefs.edit()
+                .putInt("xp", Math.max(0, result.xp))
+                .putInt("quizTierRank", Math.max(1, Math.min(4, result.quizTierRank)))
+                .putBoolean("diamondAdvancedQuizPassed", result.advancedQuizPassed)
+                .apply();
+        if (result.skillMastery != null) {
+            SharedPreferences.Editor editor = prefs.edit();
+            for (Map.Entry<String, Integer> entry : result.skillMastery.entrySet()) {
+                editor.putInt("skillMastery_" + normalizeSkillTopic(entry.getKey()), clampPercent(entry.getValue()));
+            }
+            if (result.skillEvidence != null) {
+                for (Map.Entry<String, Integer> entry : result.skillEvidence.entrySet()) {
+                    editor.putInt("skillEvidence_" + normalizeSkillTopic(entry.getKey()), Math.max(0, entry.getValue()));
+                }
+            }
+            editor.apply();
+        }
+        recordQuizAttempt(attemptedTier, result.correctCount, result.total, result.passed, source);
     }
 
     public void recordQuizAttempt(String tier, int correct, int total, boolean passed, String source) {
@@ -316,6 +506,7 @@ public class UserStore {
 
     public void saveCloudSession(String email, String displayName, String nickname, String profileImageUrl,
                                  int followerCount, int followingCount, String joinedAt, String accessToken) {
+        activateAccount(email);
         secureTokenStore.put(accessToken == null ? "" : accessToken);
         prefs.edit()
                 .putString("accountEmail", email == null ? "" : email)
@@ -462,16 +653,35 @@ public class UserStore {
 
     public void clearCloudSession() {
         secureTokenStore.clear();
-        prefs.edit()
-                .remove("accountEmail")
-                .remove("accountDisplayName")
-                .remove("nickname")
-                .remove("profileImageUrl")
-                .remove("followerCount")
-                .remove("followingCount")
-                .remove("accountJoinedAt")
-                .remove("serverActivity")
-                .apply();
+        activateGuest();
+    }
+
+    public String getAccountScope() {
+        return globalPrefs.getString("activeAccountScope", GUEST_SCOPE);
+    }
+
+    public boolean consumeLegacyRecordMigrationFlag() {
+        String pending = globalPrefs.getString("pendingLegacyRecordScope", "");
+        if (pending == null || !pending.equals(getAccountScope())) return false;
+        globalPrefs.edit().remove("pendingLegacyRecordScope").apply();
+        return true;
+    }
+
+    public String getDeviceId() {
+        String value = globalPrefs.getString("deviceId", "");
+        if (value == null || value.trim().isEmpty()) {
+            value = UUID.randomUUID().toString();
+            globalPrefs.edit().putString("deviceId", value).apply();
+        }
+        return value;
+    }
+
+    public int getCloudVersion() {
+        return Math.max(0, prefs.getInt("cloudVersion", 0));
+    }
+
+    public void setCloudVersion(int version) {
+        prefs.edit().putInt("cloudVersion", Math.max(0, version)).apply();
     }
 
     public void setLastSyncAt(String value) {
@@ -508,6 +718,7 @@ public class UserStore {
                 .putBoolean("reminderEnabled", enabled)
                 .putInt("reminderHour", hour)
                 .putInt("reminderMinute", minute)
+                .putLong("reminderUpdatedAt", System.currentTimeMillis())
                 .apply();
     }
 
@@ -590,6 +801,7 @@ public class UserStore {
         prefs.edit()
                 .putString("targetCareer", targetCareer == null ? "해양환경 교육 기획자" : targetCareer)
                 .putString("routeType", routeType == null ? "balanced" : routeType)
+                .putLong("voyagePreferenceUpdatedAt", System.currentTimeMillis())
                 .apply();
     }
 
@@ -662,6 +874,7 @@ public class UserStore {
         snapshot.put("quizTier", getQuizTier());
         snapshot.put("completedContentIds", new ArrayList<>(getCompletedContentIds()));
         snapshot.put("bookmarks", new ArrayList<>(getBookmarks()));
+        snapshot.put("bookmarkState", bookmarkStateForCloud());
         snapshot.put("quizAttempts", getQuizAttempts());
         snapshot.put("lastQuizSummary", getLastQuizSummary());
         snapshot.put("bestQuizBronze", getBestQuizScore("브론즈"));
@@ -679,6 +892,7 @@ public class UserStore {
         snapshot.put("skillMastery", getSkillMasteryMap());
         snapshot.put("skillEvidenceCounts", getSkillEvidenceMap());
         snapshot.put("contentReflections", stringPreferencesWithPrefix("contentReflection_"));
+        snapshot.put("contentReflectionUpdatedAt", longPreferencesWithPrefix("contentReflectionUpdatedAt_"));
         snapshot.put("contentStartedAt", longPreferencesWithPrefix("contentStarted_"));
         snapshot.put("videoWatchSeconds", intPreferencesWithPrefix("videoWatchSeconds_"));
         snapshot.put("videoProgress", intPreferencesWithPrefix("videoProgress_"));
@@ -688,6 +902,9 @@ public class UserStore {
         snapshot.put("routeType", getRouteType());
         snapshot.put("missionBadges", new ArrayList<>(getMissionBadges()));
         snapshot.put("lastRouteActivityAt", prefs.getLong("lastRouteActivityAt", 0L));
+        snapshot.put("profileUpdatedAt", prefs.getLong("profileUpdatedAt", 0L));
+        snapshot.put("reminderUpdatedAt", prefs.getLong("reminderUpdatedAt", 0L));
+        snapshot.put("voyagePreferenceUpdatedAt", prefs.getLong("voyagePreferenceUpdatedAt", 0L));
         return snapshot;
     }
 
@@ -702,8 +919,11 @@ public class UserStore {
         putInt(editor, snapshot, "xp", "xp");
         String quizTier = stringValue(snapshot.get("quizTier"));
         if (!quizTier.isEmpty()) editor.putInt("quizTierRank", PromotionRules.rank(quizTier));
+        Object quizTierRank = snapshot.get("quizTierRank");
+        if (quizTierRank instanceof Number) editor.putInt("quizTierRank", Math.max(1, Math.min(4, ((Number) quizTierRank).intValue())));
         putStringSet(editor, snapshot, "completedContentIds", "completed");
-        putStringSet(editor, snapshot, "bookmarks", "bookmarks");
+        applyBookmarkState(editor, snapshot.get("bookmarkState"), snapshot.get("bookmarks"));
+        markVerifiedIds(editor, snapshot.get("verifiedVideoIds"), "videoServerVerified_");
         putInt(editor, snapshot, "quizAttempts", "quizAttempts");
         putString(editor, snapshot, "lastQuizSummary");
         putInt(editor, snapshot, "bestQuizBronze", "bestQuiz_브론즈");
@@ -737,13 +957,62 @@ public class UserStore {
         }
         applyNumberMap(editor, snapshot.get("skillEvidenceCounts"), "skillEvidence_", true);
         applyStringMap(editor, snapshot.get("contentReflections"), "contentReflection_");
+        applyNumberMap(editor, snapshot.get("contentReflectionUpdatedAt"), "contentReflectionUpdatedAt_", false);
         applyNumberMap(editor, snapshot.get("contentStartedAt"), "contentStarted_", false);
-        applyNumberMap(editor, snapshot.get("videoWatchSeconds"), "videoWatchSeconds_", true);
-        applyNumberMap(editor, snapshot.get("videoProgress"), "videoProgress_", true);
-        applyBooleanMap(editor, snapshot.get("videoEnded"), "videoEnded_");
+        // Playback intervals remain device-local; only server verified content IDs are restored across devices.
+        putLong(editor, snapshot, "profileUpdatedAt", "profileUpdatedAt");
+        putLong(editor, snapshot, "reminderUpdatedAt", "reminderUpdatedAt");
+        putLong(editor, snapshot, "voyagePreferenceUpdatedAt", "voyagePreferenceUpdatedAt");
         String localActivity = stringValue(snapshot.get("localActivity"));
         if (!localActivity.isEmpty()) editor.putString("localActivity", localActivity);
         editor.apply();
+    }
+
+    private void applyBookmarkState(SharedPreferences.Editor editor, Object rawState, Object fallbackBookmarks) {
+        Set<String> active = new HashSet<>();
+        JSONObject stored = new JSONObject();
+        if (rawState instanceof Map) {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) rawState).entrySet()) {
+                String id = stringValue(entry.getKey());
+                if (id.isEmpty() || !(entry.getValue() instanceof Map)) continue;
+                Map<?, ?> value = (Map<?, ?>) entry.getValue();
+                boolean enabled = booleanValue(value.get("active"));
+                long updatedAt = value.get("updatedAt") instanceof Number ? ((Number) value.get("updatedAt")).longValue() : 0L;
+                try {
+                    JSONObject item = new JSONObject();
+                    item.put("active", enabled);
+                    item.put("updatedAt", Math.max(0L, updatedAt));
+                    stored.put(id, item);
+                } catch (JSONException ignored) {}
+                if (enabled) active.add(id);
+            }
+        } else {
+            active.addAll(stringSetValue(fallbackBookmarks));
+            for (String id : active) {
+                try {
+                    JSONObject item = new JSONObject();
+                    item.put("active", true);
+                    item.put("updatedAt", 0L);
+                    stored.put(id, item);
+                } catch (JSONException ignored) {}
+            }
+        }
+        editor.putStringSet("bookmarks", active).putString("bookmarkState", stored.toString());
+    }
+
+    private boolean booleanValue(Object value) {
+        if (value instanceof Boolean) return (Boolean) value;
+        return "true".equalsIgnoreCase(stringValue(value));
+    }
+
+    private Set<String> stringSetValue(Object value) {
+        Set<String> result = new HashSet<>();
+        if (!(value instanceof Iterable)) return result;
+        for (Object item : (Iterable<?>) value) {
+            String text = stringValue(item);
+            if (!text.isEmpty()) result.add(text);
+        }
+        return result;
     }
 
     private Map<String, String> stringPreferencesWithPrefix(String prefix) {
@@ -786,6 +1055,14 @@ public class UserStore {
         return values;
     }
 
+    private void markVerifiedIds(SharedPreferences.Editor editor, Object raw, String prefix) {
+        if (!(raw instanceof Iterable)) return;
+        for (Object item : (Iterable<?>) raw) {
+            String id = stringValue(item);
+            if (!id.isEmpty()) editor.putBoolean(prefix + id, true);
+        }
+    }
+
     private void applyStringMap(SharedPreferences.Editor editor, Object raw, String prefix) {
         if (!(raw instanceof Map)) return;
         for (Map.Entry<?, ?> entry : ((Map<?, ?>) raw).entrySet()) {
@@ -823,6 +1100,11 @@ public class UserStore {
     private void putInt(SharedPreferences.Editor editor, Map<String, Object> snapshot, String sourceKey, String targetKey) {
         Object value = snapshot.get(sourceKey);
         if (value instanceof Number) editor.putInt(targetKey, ((Number) value).intValue());
+    }
+
+    private void putLong(SharedPreferences.Editor editor, Map<String, Object> snapshot, String sourceKey, String targetKey) {
+        Object value = snapshot.get(sourceKey);
+        if (value instanceof Number) editor.putLong(targetKey, Math.max(0L, ((Number) value).longValue()));
     }
 
     private void putBoolean(SharedPreferences.Editor editor, Map<String, Object> snapshot, String sourceKey, String targetKey) {
