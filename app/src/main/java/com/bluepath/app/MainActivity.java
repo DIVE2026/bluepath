@@ -1847,7 +1847,7 @@ public class MainActivity extends AppCompatActivity {
         UserProfile p = store.getProfile();
         String tier = store.getTier();
         content.addView(sectionTitle("난도별 해양 영상 라이브러리"));
-        content.addView(body("관심 분야와 통합 티어에 맞춰 정렬되며, 앱 내 검증 플레이어가 실제 재생 시간과 진행률을 기록합니다."));
+        content.addView(body("관심 분야와 티어에 맞춰 정렬되며, 앱 내 검증 플레이어가 실제 재생 시간과 진행률을 기록합니다."));
         List<ContentItem> all = RecommendationEngine.recommendedContents(p, tier, store);
         addDifficultySection("하", "입문", "브론즈", all);
         addDifficultySection("중", "진로 탐색", "실버", all);
@@ -1882,7 +1882,7 @@ public class MainActivity extends AppCompatActivity {
                 "",
                 "SKILL CHECK",
                 "퀴즈 · 역량 진단",
-                "현재 통합 티어와 다음 승급 기준을 확인한 뒤, 내 관심 분야와 학습 기록에 맞춘 4지선다 퀴즈에 도전해 보세요. "
+                "현재 티어와 다음 승급 기준을 확인한 뒤, 내 관심 분야와 학습 기록에 맞춘 4지선다 퀴즈에 도전해 보세요. "
                         + "서버 연결 시에는 해양 AI가 앱 자료와 공공·기관 근거를 바탕으로 문제를 만들고, 연결이 어려울 때는 검증된 해양 로컬 문제은행으로 자동 전환됩니다.\n\n"
                         + "퀴즈 세션은 티어별 문항 수와 합격선이 적용되며 30초 제한 시간이 지나면 미응답 문항까지 자동 제출됩니다. 제출 후에는 점수, 정답 여부, 내가 고른 답, 정답과 해설, 획득 XP와 승급 결과를 문항별로 확인할 수 있습니다. "
                         + "각 주제의 정답·오답 기록은 MY의 역량 여권과 다음 학습·진로 추천에 반영되며, 같은 티어의 새 퀴즈에 다시 도전하거나 승급 기준 전체 매뉴얼을 확인할 수 있습니다."
@@ -1892,7 +1892,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout currentTierCard = card();
         currentTierCard.addView(tierSummaryRow(
                 currentTier,
-                "현재 통합 티어",
+                "현재 티어",
                 plainTierCopy(PromotionRules.quizRule(currentTier)),
                 dp(70),
                 dp(82)
@@ -2174,7 +2174,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (passed) {
             passMessage = plainTierText(quizAttemptTier) + "에서 "
                     + plainTierText(PromotionRules.nextTier(quizAttemptTier))
-                    + "로 승급했습니다. 현재 통합 티어: " + plainTierText(store.getTier());
+                    + "로 승급했습니다. 현재 티어: " + plainTierText(store.getTier());
         } else {
             passMessage = "합격까지 " + Math.max(0, PromotionRules.passCount(quizAttemptTier) - quizCorrect) + "문제가 더 필요합니다.";
         }
@@ -2521,7 +2521,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         content.addView(sectionTitle("NCS 기반 커리어 항로"));
-        content.addView(body("AI 답변 아래에서 관심 분야, 현재 통합 티어, 학습 목표를 직무·필요 역량·근무지·다음 학습으로 연결합니다."));
+        content.addView(body("AI 답변 아래에서 관심 분야, 현재 티어, 학습 목표를 직무·필요 역량·근무지·다음 학습으로 연결합니다."));
         for (CareerItem c : RecommendationEngine.recommendedCareers(p, tier, store)) addCareerCard(c);
     }
 
@@ -3069,7 +3069,7 @@ public class MainActivity extends AppCompatActivity {
                 "",
                 "MY OCEAN PAGE",
                 "MY · 나의 해양 여권",
-                "내 프로필 사진, 관심 분야, 목표, 통합 티어, XP, 팔로워·팔로잉 수와 학습·찜·퀴즈 통계를 한곳에서 확인하세요. "
+                "내 프로필 사진, 관심 분야, 목표, 티어, XP, 팔로워·팔로잉 수와 학습·찜·퀴즈 통계를 한곳에서 확인하세요. "
                         + "Ocean Skill Map에서는 퀴즈, 학습 완료와 현장 미션으로 쌓인 분야별 숙련도와 증거를 살펴보고, 노드를 눌러 점수 근거, 하위 역량, NCS 연계, 연결 진로와 다음 추천 활동을 확인할 수 있습니다.\n\n"
                         + "검증된 학습·미션 기록은 목표 진로 준비도와 증거 코드가 포함된 해양 역량 포트폴리오로 미리 보거나 PDF로 생성해 공유할 수 있습니다. 승급·학습 리포트에서는 티어별 최고 퀴즈 점수와 최근 결과를 확인하고, 완료한 영상과 찜한 항목도 다시 살펴볼 수 있습니다.\n\n"
                         + "연령대, 관심 분야, 학습 목적과 현재 수준을 수정하고 프로필 사진을 업로드할 수 있으며, 미성년 계정의 보호자 동의와 클라우드 동기화, 최신 학습 자료 불러오기, 로그아웃을 관리할 수 있습니다. "
@@ -3093,7 +3093,7 @@ public class MainActivity extends AppCompatActivity {
         TierShieldView myShield = tierShield(tier);
         profileTop.addView(myShield, new LinearLayout.LayoutParams(dp(88), dp(100)));
         profileCard.addView(profileTop);
-        profileCard.addView(big("통합 티어 " + plainTierText(tier) + " · XP " + p.xp));
+        profileCard.addView(big("티어 " + plainTierText(tier) + " · XP " + p.xp));
         Button uploadPhoto = outlineButton("프로필 사진 업로드");
         uploadPhoto.setOnClickListener(v -> profileImagePicker.launch(new String[]{"image/jpeg", "image/png", "image/webp"}));
         profileCard.addView(uploadPhoto, new LinearLayout.LayoutParams(-1, dp(46)));
@@ -3827,7 +3827,7 @@ public class MainActivity extends AppCompatActivity {
                 : "corrected".equalsIgnoreCase(item.paperStatus) ? "정정본" : "현재본";
         card.addView(label(item.topic + " · " + item.year + " · " + paperState + (item.doi.isEmpty() ? "" : " · DOI " + item.doi)));
         if (!item.versionNote.isEmpty()) card.addView(note(item.versionNote, "retracted".equalsIgnoreCase(item.paperStatus) ? DANGER : MUTED));
-        card.addView(big("▤ " + item.title));
+        card.addView(big("(논문) " + item.title));
         card.addView(body(item.authors + (item.source.isEmpty() ? "" : " · " + item.source)));
         if (!item.abstractText.isEmpty()) card.addView(body(item.abstractText));
         if (completed) card.addView(note("논문 학습 완료 · 요약 기록과 역량 증거가 저장되었습니다.", SUCCESS));
@@ -4008,7 +4008,7 @@ public class MainActivity extends AppCompatActivity {
         boolean archived = RecommendationEngine.isArchived(item.startDate, item.endDate);
         LinearLayout card = card();
         card.addView(label(item.topic + " · 추천 " + score + "점 · " + status));
-        card.addView(big("📚 " + item.title));
+        card.addView(big("(교육) " + item.title));
         card.addView(body(item.startDate + " ~ " + item.endDate + " · " + item.target + " · " + item.method));
         card.addView(body("시간대 " + item.timezone
                 + (item.capacity > 0 ? " · 정원 " + item.capacity + "명" : "")
@@ -4047,7 +4047,7 @@ public class MainActivity extends AppCompatActivity {
         String status = RecommendationEngine.scheduleStatus(item.startDate, item.endDate);
         LinearLayout card = card();
         card.addView(label(item.category + " · " + item.target + " · " + status));
-        card.addView(big("🎪 " + item.title));
+        card.addView(big("(이벤트) " + item.title));
         card.addView(body(item.startDate + " ~ " + item.endDate + " · " + item.timezone));
         card.addView(body((item.capacity > 0 ? "정원 " + item.capacity + "명 · " : "")
                 + (item.waitlistAvailable ? "대기 신청 가능 · " : "")
