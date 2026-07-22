@@ -95,6 +95,33 @@ public final class ApiModels {
 
     public static class QuizResponse {
         public String source;
+        public String sessionId;
+        public String expiresAt;
+        public List<QuizQuestionDto> questions = new ArrayList<>();
+    }
+
+    public static class QuizSubmissionRequest {
+        public String sessionId;
+        public List<Integer> answers;
+
+        public QuizSubmissionRequest(String sessionId, List<Integer> answers) {
+            this.sessionId = sessionId;
+            this.answers = answers;
+        }
+    }
+
+    public static class QuizSubmissionResponse {
+        public String sessionId;
+        public int correctCount;
+        public int total;
+        public boolean passed;
+        public int xpAwarded;
+        public int xp;
+        public String tier;
+        public int quizTierRank;
+        public boolean advancedQuizPassed;
+        public Map<String, Integer> skillMastery;
+        public Map<String, Integer> skillEvidence;
         public List<QuizQuestionDto> questions = new ArrayList<>();
     }
 
@@ -123,13 +150,38 @@ public final class ApiModels {
         public String organization;
     }
 
+    public static class LearningRecordPayload {
+        public String id;
+        public String recordType;
+        public String targetId;
+        public String title;
+        public String status;
+        public long updatedAt;
+        public boolean synced;
+
+        public LearningRecordPayload(LearningRecord record) {
+            id = record.clientRecordId;
+            recordType = record.recordType;
+            targetId = record.targetId;
+            title = record.title;
+            status = record.status;
+            updatedAt = record.updatedAt;
+            synced = record.synced;
+        }
+    }
+
     public static class SyncRequest {
         public Map<String, Object> snapshot;
-        public List<LearningRecord> learningRecords;
+        public List<LearningRecordPayload> learningRecords;
+        public int baseVersion;
+        public String deviceId;
 
-        public SyncRequest(Map<String, Object> snapshot, List<LearningRecord> learningRecords) {
+        public SyncRequest(Map<String, Object> snapshot, List<LearningRecord> records, int baseVersion, String deviceId) {
             this.snapshot = snapshot;
-            this.learningRecords = learningRecords;
+            this.learningRecords = new ArrayList<>();
+            if (records != null) for (LearningRecord record : records) this.learningRecords.add(new LearningRecordPayload(record));
+            this.baseVersion = baseVersion;
+            this.deviceId = deviceId;
         }
     }
 
@@ -148,12 +200,17 @@ public final class ApiModels {
         public DiamondStatus diamondStatus;
         public Map<String, Object> snapshot;
         public List<CloudLearningRecordDto> learningRecords = new ArrayList<>();
+        public int version;
+        public List<String> acceptedRecordIds = new ArrayList<>();
+        public List<String> rejectedRecordIds = new ArrayList<>();
+        public boolean conflictResolved;
     }
 
     public static class CloudStateResponse {
         public Map<String, Object> snapshot;
         public DiamondStatus diamondStatus;
         public List<CloudLearningRecordDto> learningRecords = new ArrayList<>();
+        public int version;
     }
 
     public static class EvidenceRequest {
@@ -196,6 +253,13 @@ public final class ApiModels {
         public String authors;
         public String year;
         public String doi;
+        public String applicationUrl;
+        public String applicationDeadline;
+        public int capacity;
+        public boolean waitlistAvailable;
+        public String timezone;
+        public String paperStatus;
+        public String versionNote;
     }
 
 
@@ -528,6 +592,98 @@ public final class ApiModels {
         public Map<String, Integer> acquiredCompetencies;
         public String verifiedAt;
         public String nextRecommendation;
+    }
+
+    public static class ProgramParticipationRequest {
+        public String programId;
+        public String programTitle;
+        public String status;
+        public Integer preAssessment;
+        public Integer postAssessment;
+        public Map<String, Object> metadata = new HashMap<>();
+        public ProgramParticipationRequest(String programId, String programTitle, String status,
+                                           Integer preAssessment, Integer postAssessment) {
+            this.programId = programId; this.programTitle = programTitle; this.status = status;
+            this.preAssessment = preAssessment; this.postAssessment = postAssessment;
+            this.metadata.put("source", "android_schedule");
+        }
+    }
+
+    public static class ProgramParticipationResponse {
+        public String programId;
+        public String status;
+        public String enrolledAt;
+        public String attendedAt;
+        public String completedAt;
+        public Integer preAssessment;
+        public Integer postAssessment;
+    }
+
+    public static class PaperCompletionRequest {
+        public String contentId;
+        public String reflection;
+        public PaperCompletionRequest(String contentId, String reflection) {
+            this.contentId = contentId; this.reflection = reflection;
+        }
+    }
+
+    public static class PaperCompletionResponse {
+        public boolean verified;
+        public int xpAwarded;
+        public String message;
+        public String verifiedAt;
+    }
+
+    public static class VideoInterval {
+        public double start;
+        public double end;
+        public VideoInterval(double start, double end) { this.start = start; this.end = end; }
+    }
+
+    public static class VideoEvidenceRequest {
+        public String contentId;
+        public int durationSeconds;
+        public List<VideoInterval> intervals;
+        public VideoEvidenceRequest(String contentId, int durationSeconds, List<VideoInterval> intervals) {
+            this.contentId = contentId; this.durationSeconds = durationSeconds; this.intervals = intervals;
+        }
+    }
+
+    public static class VideoEvidenceResponse {
+        public boolean verified;
+        public int watchedSeconds;
+        public int coveragePercent;
+        public int xpAwarded;
+        public String message;
+    }
+
+    public static class GuardianConsentRequest {
+        public String guardianEmail;
+        public String consentVersion;
+        public GuardianConsentRequest(String guardianEmail, String consentVersion) {
+            this.guardianEmail = guardianEmail; this.consentVersion = consentVersion;
+        }
+    }
+
+    public static class GuardianConsentStatus {
+        public String status;
+        public String guardianEmail;
+        public String consentVersion;
+        public String consentedAt;
+    }
+
+    public static class PortfolioIssueRequest {
+        public String title;
+        public PortfolioIssueRequest(String title) { this.title = title; }
+    }
+
+    public static class PortfolioCredentialResponse {
+        public String credentialId;
+        public String verifyUrl;
+        public String signature;
+        public String issuedAt;
+        public Map<String, Object> payload;
+        public boolean revoked;
     }
 
 }
