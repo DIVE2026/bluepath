@@ -21,6 +21,8 @@ os.environ['QR_SIGNING_SECRET'] = 'test-qr-secret-that-is-more-than-thirty-two-b
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
+from backend.app.database import SessionLocal
+from backend.app.models import QuizSession
 
 
 def auth_header(token: str) -> dict[str, str]:
@@ -65,8 +67,18 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         questions = quiz.json()['questions']
         assert len(questions) == 10
         assert all(len(item['options']) == 4 for item in questions)
-        assert all(0 <= item['answerIndex'] <= 3 for item in questions)
-        assert all(item['explanation'] for item in questions)
+        assert all(item['answerIndex'] == -1 for item in questions)
+        assert all(not item['explanation'] for item in questions)
+        with SessionLocal() as db:
+            quiz_session = db.get(QuizSession, quiz.json()['sessionId'])
+            answers = [item['answerIndex'] for item in quiz_session.questions_json]
+        submitted_quiz = client.post('/api/v1/ai/quiz/submit', headers=auth_header(token), json={
+            'sessionId': quiz.json()['sessionId'], 'answers': answers,
+        })
+        assert submitted_quiz.status_code == 200, submitted_quiz.text
+        assert submitted_quiz.json()['passed'] is True
+        assert submitted_quiz.json()['xpAwarded'] > 0
+        assert all(0 <= item['answerIndex'] <= 3 for item in submitted_quiz.json()['questions'])
 
         search = client.post('/api/v1/ai/search', headers=auth_header(token), json={
             'query': '해양환경 입문 영상',
@@ -76,6 +88,11 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert search.status_code == 200, search.text
         assert isinstance(search.json()['items'], list)
         assert search.json()['summary']
+        unrelated = client.post('/api/v1/ai/search', headers=auth_header(token), json={
+            'query': 'zzqv unrelated resource token 987654321', 'resourceType': 'paper', 'limit': 5,
+        })
+        assert unrelated.status_code == 200, unrelated.text
+        assert unrelated.json()['items'] == []
 
         route = client.post('/api/v1/routes/plan', headers=auth_header(token), json={
             'targetCareer': '해양환경 교육 기획자',
@@ -175,29 +192,35 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         })
         assert blank_note.status_code == 422
 
+        record_id = '123e4567-e89b-42d3-a456-426614174000'
         sync = client.post('/api/v1/sync', headers=auth_header(token), json={
             'snapshot': {
                 'tier': '플래티넘',
+                'xp': 999999,
                 'diamondAdvancedQuizPassed': True,
-                'guardianConsent': False,
+                'guardianConsent': True,
             },
             'learningRecords': [{
-                'id': 'local-1',
+                'id': record_id,
                 'recordType': 'quiz',
-                'targetId': '플래티넘',
-                'title': 'Advanced promotion quiz',
+                'targetId': '브론즈',
+                'title': 'Server verified promotion quiz',
                 'status': 'passed',
                 'updatedAt': 1,
                 'synced': False,
             }],
+            'baseVersion': 0,
+            'deviceId': 'test-device-a',
         })
         assert sync.status_code == 200, sync.text
-        assert sync.json()['diamondStatus']['advancedQuizPassed'] is True
-        assert sync.json()['diamondStatus']['eligible'] is False
+        assert sync.json()['snapshot']['tier'] == '실버'
+        assert sync.json()['snapshot']['xp'] < 999999
+        assert sync.json()['diamondStatus']['advancedQuizPassed'] is False
+        assert record_id in sync.json()['acceptedRecordIds']
         cloud = client.get('/api/v1/sync', headers=auth_header(token))
         assert cloud.status_code == 200
-        assert cloud.json()['snapshot']['tier'] == '플래티넘'
-        assert cloud.json()['learningRecords'][0]['id'] == 'local-1'
+        assert cloud.json()['snapshot']['tier'] == '실버'
+        assert cloud.json()['learningRecords'][0]['id'] == record_id
         assert cloud.json()['learningRecords'][0]['status'] == 'passed'
 
         for evidence_type in ('certification', 'project'):
@@ -352,6 +375,11 @@ def test_admin_content_and_quiz_management() -> None:
             'method': '오프라인',
             'category': '워크숍',
             'description': '해양 안전 장비를 체험하는 교육 프로그램',
+            'applicationUrl': 'https://example.com/program/apply',
+            'applicationDeadline': '2026-08-01T18:00:00+09:00',
+            'capacity': 24,
+            'waitlistAvailable': True,
+            'timezone': 'Asia/Seoul',
         }
         saved = client.post('/api/v1/admin/content', headers=headers, json=content_payload)
         assert saved.status_code == 200, saved.text
@@ -363,6 +391,11 @@ def test_admin_content_and_quiz_management() -> None:
         catalog_item = next(item for item in catalog.json() if item['id'] == 'program-test-1')
         assert catalog_item['startAt'] == '2026-08-15'
         assert catalog_item['description'].startswith('해양 안전')
+        assert catalog_item['applicationUrl'].endswith('/apply')
+        assert catalog_item['applicationDeadline'].startswith('2026-08-01')
+        assert catalog_item['capacity'] == 24
+        assert catalog_item['waitlistAvailable'] is True
+        assert catalog_item['timezone'] == 'Asia/Seoul'
 
         knowledge_csv = "title,content,organization,url,topic\nMarine Safety,Use approved safety equipment,Test Institute,https://example.com/knowledge,해양안전\n"
         knowledge = client.post(
@@ -687,3 +720,272 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
         assert dashboard.json()['profile']['nickname'] == 'BlueWhale'
         assert dashboard.json()['profile']['followerCount'] == 0
         assert sum(dashboard.json()['activity'].values()) >= 2
+
+
+def test_integrity_guards_for_sync_video_mission_and_community(monkeypatch) -> None:
+    from backend.app.models import User, CommunityReport
+
+    with TestClient(app) as client:
+        def register(email: str, nickname: str) -> tuple[str, str]:
+            response = client.post('/api/v1/auth/register', json={
+                'email': email, 'password': 'LearnerPassword123!', 'guardianEmail': None, 'nickname': nickname,
+            })
+            assert response.status_code == 200, response.text
+            with SessionLocal() as db:
+                user = db.scalar(__import__('sqlalchemy').select(User).where(User.email == email))
+                return response.json()['accessToken'], user.id
+
+        token_a, user_a = register('integrity-a@bluepath.example.com', 'IntegrityA')
+        token_b, user_b = register('integrity-b@bluepath.example.com', 'IntegrityB')
+
+        first_uuid = '123e4567-e89b-42d3-a456-426614174101'
+        second_uuid = '123e4567-e89b-42d3-a456-426614174102'
+        first_sync = client.post('/api/v1/sync', headers=auth_header(token_a), json={
+            'snapshot': {
+                'bookmarks': ['a'], 'bookmarkState': {'a': {'active': True, 'updatedAt': 10}},
+                'contentReflections': {'lesson': 'old reflection'},
+                'contentReflectionUpdatedAt': {'lesson': 10},
+                'ageGroup': '성인', 'interest': '항해', 'profileUpdatedAt': 10,
+                'xp': 999999,
+            },
+            'learningRecords': [{'id': first_uuid, 'recordType': 'video', 'targetId': 'a', 'title': 'a', 'status': 'done', 'updatedAt': 10}],
+            'baseVersion': 0, 'deviceId': 'device-a-1234',
+        })
+        assert first_sync.status_code == 200, first_sync.text
+        stale_sync = client.post('/api/v1/sync', headers=auth_header(token_a), json={
+            'snapshot': {
+                'bookmarks': ['b'],
+                'bookmarkState': {
+                    'a': {'active': False, 'updatedAt': 20},
+                    'b': {'active': True, 'updatedAt': 20},
+                },
+                'contentReflections': {'lesson': 'new reflection'},
+                'contentReflectionUpdatedAt': {'lesson': 20},
+                'ageGroup': '성인', 'interest': '해양생물', 'profileUpdatedAt': 20,
+                'xp': 888888,
+            },
+            'learningRecords': [{'id': second_uuid, 'recordType': 'video', 'targetId': 'b', 'title': 'b', 'status': 'done', 'updatedAt': 11}],
+            'baseVersion': 0, 'deviceId': 'device-b-1234',
+        })
+        assert stale_sync.status_code == 200, stale_sync.text
+        assert stale_sync.json()['conflictResolved'] is True
+        assert set(stale_sync.json()['acceptedRecordIds']) == {second_uuid}
+        assert stale_sync.json()['snapshot']['xp'] < 888888
+        assert set(stale_sync.json()['snapshot']['bookmarks']) == {'b'}
+        assert stale_sync.json()['snapshot']['bookmarkState']['a']['active'] is False
+        assert stale_sync.json()['snapshot']['contentReflections']['lesson'] == 'new reflection'
+        assert stale_sync.json()['snapshot']['interest'] == '해양생물'
+        cloud_ids = {item['id'] for item in stale_sync.json()['learningRecords']}
+        assert {first_uuid, second_uuid}.issubset(cloud_ids)
+
+        catalog = client.get('/api/v1/catalog', headers=auth_header(token_a)).json()
+        video = next(item for item in catalog if item['contentType'] == 'video')
+        seek_only = client.post('/api/v1/learning/video/verify', headers=auth_header(token_a), json={
+            'contentId': video['id'], 'durationSeconds': 100,
+            'intervals': [{'start': 70, 'end': 72}, {'start': 90, 'end': 92}],
+        })
+        assert seek_only.status_code == 200
+        assert seek_only.json()['verified'] is False
+        full_coverage = client.post('/api/v1/learning/video/verify', headers=auth_header(token_a), json={
+            'contentId': video['id'], 'durationSeconds': 100,
+            'intervals': [{'start': value, 'end': value + 10} for value in range(0, 70, 10)],
+        })
+        assert full_coverage.status_code == 200, full_coverage.text
+        assert full_coverage.json()['verified'] is True
+
+        qr_payload = issue_qr(client, 'six-person-exhibit', '6인 협동 전시')
+        mission = client.post('/api/v1/missions/generate', headers=auth_header(token_a), json={
+            'exhibitCode': 'six-person-exhibit', 'exhibitTitle': '6인 협동 전시', 'participantCount': 6,
+            'qrPayload': qr_payload, 'profile': {'ageGroup': '가족', 'interest': '해양안전'},
+        })
+        assert mission.status_code == 200, mission.text
+        assert len(mission.json()['roles']) == 6
+        mismatch = client.post('/api/v1/missions/verify', headers=auth_header(token_a), json={
+            'missionId': mission.json()['missionId'], 'completionNote': '여섯 명이 각 역할을 수행했다.',
+            'participantCount': 1, 'qrPayload': qr_payload,
+        })
+        assert mismatch.status_code in {400, 422}
+
+        post = client.post('/api/v1/community/posts', headers=auth_header(token_a), json={
+            'category': 'free', 'title': 'block test', 'body': 'server enforced block test',
+        })
+        assert post.status_code == 200
+        blocked = client.post(f'/api/v1/community/users/{user_b}/block', headers=auth_header(token_a))
+        assert blocked.status_code == 200 and blocked.json()['blocked'] is True
+        assert client.post(f"/api/v1/community/posts/{post.json()['id']}/comments", headers=auth_header(token_b), json={'body': 'blocked'}).status_code == 403
+        assert client.post('/api/v1/community/reactions', headers=auth_header(token_b), json={'targetType': 'post', 'targetId': post.json()['id'], 'emoji': '👍'}).status_code == 403
+        assert client.post(f'/api/v1/community/users/{user_a}/follow', headers=auth_header(token_b)).status_code == 403
+
+        report = client.post('/api/v1/community/reports', headers=auth_header(token_b), json={
+            'targetType': 'post', 'targetId': post.json()['id'], 'reason': 'moderation test',
+        })
+        assert report.status_code == 200
+        with SessionLocal() as db:
+            report_id = db.scalar(__import__('sqlalchemy').select(CommunityReport.id).where(CommunityReport.target_id == post.json()['id']))
+        admin_login = client.post('/api/v1/auth/login', json={
+            'email': 'admin@bluepath.example.com', 'password': 'AdminPassword123!', 'guardianEmail': None,
+        })
+        admin_headers = auth_header(admin_login.json()['accessToken'])
+        reviewed = client.post(f'/api/v1/admin/community/reports/{report_id}/review', headers=admin_headers, json={
+            'status': 'resolved', 'action': 'delete', 'reviewNote': 'confirmed by integrity test',
+        })
+        assert reviewed.status_code == 200, reviewed.text
+        assert client.delete(f"/api/v1/community/posts/{post.json()['id']}", headers=auth_header(token_a)).status_code == 404
+
+        with SessionLocal() as db:
+            admin_user = db.scalar(__import__('sqlalchemy').select(User).where(User.email == 'admin@bluepath.example.com'))
+        admin_report = client.post('/api/v1/community/reports', headers=auth_header(token_b), json={
+            'targetType': 'user', 'targetId': admin_user.id, 'reason': 'admin protection test',
+        })
+        assert admin_report.status_code == 200
+        with SessionLocal() as db:
+            admin_report_id = db.scalar(__import__('sqlalchemy').select(CommunityReport.id).where(
+                CommunityReport.target_type == 'user', CommunityReport.target_id == admin_user.id,
+            ))
+        protected = client.post(f'/api/v1/admin/community/reports/{admin_report_id}/review', headers=admin_headers, json={
+            'status': 'resolved', 'action': 'deactivate', 'reviewNote': 'must be rejected',
+        })
+        assert protected.status_code == 400
+
+
+def test_guardian_paper_and_portfolio_credentials(monkeypatch) -> None:
+    import backend.app.main as main_module
+
+    captured: dict[str, str] = {}
+    monkeypatch.setattr(main_module, 'send_guardian_consent_email',
+                        lambda recipient, token, learner_name, consent_version: captured.update(token=token, recipient=recipient))
+    with TestClient(app) as client:
+        registered = client.post('/api/v1/auth/register', json={
+            'email': 'credential-user@bluepath.example.com', 'password': 'LearnerPassword123!',
+            'guardianEmail': None, 'nickname': 'CredentialUser',
+        })
+        token = registered.json()['accessToken']
+        headers = auth_header(token)
+        minor_sync = client.post('/api/v1/sync', headers=headers, json={
+            'snapshot': {'ageGroup': '중학생', 'bookmarks': []}, 'learningRecords': [],
+            'baseVersion': 0, 'deviceId': 'guardian-device-1234',
+        })
+        assert minor_sync.status_code == 200, minor_sync.text
+        blocked_credential = client.post('/api/v1/portfolio/credentials', headers=headers, json={'title': 'Blocked Minor Portfolio'})
+        assert blocked_credential.status_code == 403
+        requested = client.post('/api/v1/guardian-consent/request', headers=headers, json={
+            'guardianEmail': 'guardian@example.com', 'consentVersion': '2026-07',
+        })
+        assert requested.status_code == 200 and requested.json()['status'] == 'pending'
+        assert captured['recipient'] == 'guardian@example.com'
+        assert client.get('/api/v1/guardian-consent/status', headers=headers).json()['status'] == 'pending'
+        consent_details = client.get('/api/v1/guardian-consent/details', params={'token': captured['token']})
+        assert consent_details.status_code == 200
+        assert consent_details.json()['status'] == 'pending'
+        assert consent_details.json()['learnerName'] == 'CredentialUser'
+        assert consent_details.json()['guardianEmailMasked'] == 'g***@example.com'
+        assert consent_details.json()['consentVersion'] == '2026-07'
+        assert len(consent_details.json()['terms']) >= 4
+        confirmed = client.post('/api/v1/guardian-consent/confirm', json={'token': captured['token']})
+        assert confirmed.status_code == 200 and confirmed.json()['status'] == 'confirmed'
+        assert client.get('/api/v1/guardian-consent/status', headers=headers).json()['consentVersion'] == '2026-07'
+        assert client.get('/api/v1/guardian-consent/details', params={'token': captured['token']}).json()['status'] == 'confirmed'
+
+        admin_login = client.post('/api/v1/auth/login', json={
+            'email': 'admin@bluepath.example.com', 'password': 'AdminPassword123!', 'guardianEmail': None,
+        })
+        admin_headers = auth_header(admin_login.json()['accessToken'])
+        current_paper = {
+            'id': 'paper-integrity-current', 'title': 'Current marine paper', 'contentType': 'paper',
+            'source': 'Integrity Journal', 'url': 'https://example.com/current-paper', 'topic': '해양환경',
+            'description': 'A current peer reviewed paper.', 'authors': 'A Researcher', 'year': '2026',
+            'doi': '10.9999/bluepath.current', 'paperStatus': 'current', 'versionNote': '',
+        }
+        retracted_paper = {**current_paper, 'id': 'paper-integrity-retracted', 'title': 'Retracted marine paper',
+                           'url': 'https://example.com/retracted-paper', 'doi': '10.9999/bluepath.retracted',
+                           'paperStatus': 'retracted', 'versionNote': 'Retracted after data review'}
+        assert client.post('/api/v1/admin/content', headers=admin_headers, json=current_paper).status_code == 200
+        assert client.post('/api/v1/admin/content', headers=admin_headers, json=retracted_paper).status_code == 200
+        duplicate_doi = {**current_paper, 'id': 'paper-integrity-duplicate', 'title': 'Duplicate DOI'}
+        assert client.post('/api/v1/admin/content', headers=admin_headers, json=duplicate_doi).status_code == 409
+
+        reflection = '이 논문은 해양환경 변화의 원인과 관측 근거를 비교하며 한계와 후속 연구 필요성을 함께 제시한다.'
+        paper_done = client.post('/api/v1/learning/paper/complete', headers=headers, json={
+            'contentId': current_paper['id'], 'reflection': reflection,
+        })
+        assert paper_done.status_code == 200, paper_done.text
+        assert paper_done.json()['verified'] is True and paper_done.json()['xpAwarded'] > 0
+        retracted = client.post('/api/v1/learning/paper/complete', headers=headers, json={
+            'contentId': retracted_paper['id'], 'reflection': reflection,
+        })
+        assert retracted.status_code == 409
+
+        issued = client.post('/api/v1/portfolio/credentials', headers=headers, json={'title': 'Integrity Portfolio'})
+        assert issued.status_code == 200, issued.text
+        credential = issued.json()
+        assert credential['signature'] and credential['verifyUrl']
+        assert credential['payload']['verifiedPapers'] == 1
+        verified = client.get(f"/api/v1/portfolio/credentials/{credential['credentialId']}")
+        assert verified.status_code == 200 and verified.json()['revoked'] is False
+        assert verified.json()['valid'] is True
+        assert verified.json()['signature'] == credential['signature']
+
+        retracted_update = {**current_paper, 'paperStatus': 'retracted', 'versionNote': 'Retracted after integrity review'}
+        assert client.post('/api/v1/admin/content', headers=admin_headers, json=retracted_update).status_code == 200
+        invalidated = client.get(f"/api/v1/portfolio/credentials/{credential['credentialId']}")
+        assert invalidated.status_code == 200 and invalidated.json()['valid'] is False
+        cloud_after_retraction = client.get('/api/v1/sync', headers=headers)
+        assert current_paper['id'] not in cloud_after_retraction.json()['snapshot']['verifiedPaperIds']
+        reissued = client.post('/api/v1/portfolio/credentials', headers=headers, json={'title': 'Post Retraction Portfolio'})
+        assert reissued.status_code == 200 and reissued.json()['payload']['verifiedPapers'] == 0
+
+        assert client.delete(f"/api/v1/portfolio/credentials/{credential['credentialId']}", headers=headers).status_code == 200
+        revoked_credential = client.get(f"/api/v1/portfolio/credentials/{credential['credentialId']}").json()
+        assert revoked_credential['revoked'] is True and revoked_credential['valid'] is False
+        revoked = client.delete('/api/v1/guardian-consent', headers=headers)
+        assert revoked.status_code == 200 and revoked.json()['status'] == 'revoked'
+        assert client.post('/api/v1/portfolio/credentials', headers=headers, json={'title': 'Revoked Minor Portfolio'}).status_code == 403
+
+
+def test_official_schedule_feed_sync_replaces_removed_items(monkeypatch) -> None:
+    import backend.app.services as services
+    from backend.app.models import Content
+    from sqlalchemy import select
+
+    class FakeResponse:
+        def __init__(self, rows):
+            self._rows = rows
+            self.url = 'https://official.example.com/schedules.json'
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return {'items': self._rows}
+
+    rows = [
+        {
+            'id': 'official-program-1', 'contentType': 'program', 'title': 'Official Ocean Workshop',
+            'startAt': '2026-09-01T10:00:00+09:00', 'endAt': '2026-09-01T12:00:00+09:00',
+            'applicationUrl': 'https://official.example.com/apply/1', 'applicationDeadline': '2026-08-25T18:00:00+09:00',
+            'capacity': 30, 'waitlistAvailable': True, 'timezone': 'Asia/Seoul', 'source': 'Official Institute',
+        },
+        {
+            'id': 'official-event-2', 'contentType': 'event', 'title': 'Official Marine Festival',
+            'startAt': '2026-10-03', 'endAt': '2026-10-04', 'url': 'https://official.example.com/events/2',
+        },
+    ]
+    current = {'rows': rows}
+    monkeypatch.setattr(services, 'is_safe_public_url', lambda value: True)
+    monkeypatch.setattr(services.httpx, 'get', lambda *args, **kwargs: FakeResponse(current['rows']))
+
+    with SessionLocal() as db:
+        first = services.sync_schedule_feeds(db, ['https://official.example.com/schedules.json'])
+        assert first['imported'] == 2 and first['removed'] == 0 and not first['errors']
+        imported = list(db.scalars(select(Content).where(Content.id.like('schedule-feed-%'))))
+        assert len(imported) == 2
+        program = next(item for item in imported if item.content_type == 'program')
+        assert program.metadata_json['applicationUrl'].endswith('/apply/1')
+        assert program.metadata_json['capacity'] == 30
+        assert program.metadata_json['waitlistAvailable'] is True
+
+        current['rows'] = rows[:1]
+        second = services.sync_schedule_feeds(db, ['https://official.example.com/schedules.json'])
+        assert second['imported'] == 1 and second['removed'] == 1
+        remaining = list(db.scalars(select(Content).where(Content.id.like('schedule-feed-%'))))
+        assert len(remaining) == 1 and remaining[0].title == 'Official Ocean Workshop'
