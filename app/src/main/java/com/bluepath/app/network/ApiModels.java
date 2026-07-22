@@ -3,6 +3,7 @@ package com.bluepath.app.network;
 import com.bluepath.app.local.LearningRecord;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
