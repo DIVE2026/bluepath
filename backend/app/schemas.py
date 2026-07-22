@@ -162,8 +162,8 @@ class QuizQuestion(CamelModel):
     topic: str
     question: str
     options: list[str]
-    answerIndex: int
-    explanation: str
+    answerIndex: int = -1
+    explanation: str = ""
     sources: list[SourceItem] = Field(default_factory=list)
 
 
@@ -175,7 +175,29 @@ class QuizRequest(CamelModel):
 
 class QuizResponse(CamelModel):
     source: str
+    sessionId: str = ""
+    expiresAt: datetime | None = None
     questions: list[QuizQuestion]
+
+
+class QuizSubmissionRequest(CamelModel):
+    sessionId: str
+    answers: list[int]
+
+
+class QuizSubmissionResponse(CamelModel):
+    sessionId: str
+    correctCount: int
+    total: int
+    passed: bool
+    xpAwarded: int
+    xp: int
+    tier: str
+    quizTierRank: int
+    advancedQuizPassed: bool
+    skillMastery: dict[str, int] = Field(default_factory=dict)
+    skillEvidence: dict[str, int] = Field(default_factory=dict)
+    questions: list[QuizQuestion] = Field(default_factory=list)
 
 
 class AgentRequest(CamelModel):
@@ -191,7 +213,7 @@ class AgentResponse(CamelModel):
 
 
 class LearningRecordInput(CamelModel):
-    id: int | str
+    id: str
     recordType: str
     targetId: str
     title: str = ""
@@ -203,6 +225,8 @@ class LearningRecordInput(CamelModel):
 class SyncRequest(CamelModel):
     snapshot: dict[str, Any]
     learningRecords: list[LearningRecordInput] = Field(default_factory=list)
+    baseVersion: int = Field(default=0, ge=0)
+    deviceId: str = Field(min_length=8, max_length=80)
 
 
 class DiamondStatus(CamelModel):
@@ -228,12 +252,17 @@ class SyncResponse(CamelModel):
     diamondStatus: DiamondStatus
     snapshot: dict[str, Any] = Field(default_factory=dict)
     learningRecords: list[CloudLearningRecord] = Field(default_factory=list)
+    version: int = 0
+    acceptedRecordIds: list[str] = Field(default_factory=list)
+    rejectedRecordIds: list[str] = Field(default_factory=list)
+    conflictResolved: bool = False
 
 
 class CloudStateResponse(CamelModel):
     snapshot: dict[str, Any] = Field(default_factory=dict)
     diamondStatus: DiamondStatus
     learningRecords: list[CloudLearningRecord] = Field(default_factory=list)
+    version: int = 0
 
 
 class EvidenceRequest(CamelModel):
@@ -285,6 +314,13 @@ class AdminContentItem(CamelModel):
     authors: str = ""
     year: str = ""
     doi: str = ""
+    applicationUrl: str = ""
+    applicationDeadline: str = ""
+    capacity: int = 0
+    waitlistAvailable: bool = False
+    timezone: str = "Asia/Seoul"
+    paperStatus: str = "current"
+    versionNote: str = ""
 
 
 class AiSearchRequest(CamelModel):
@@ -418,7 +454,7 @@ class MissionQrIssueRequest(CamelModel):
     exhibitCode: str = Field(min_length=2, max_length=120)
     exhibitTitle: str = Field(min_length=2, max_length=240)
     sessionId: str | None = Field(default=None, min_length=8, max_length=80)
-    validMinutes: int = Field(default=10, ge=1, le=120)
+    validMinutes: int = Field(default=20, ge=5, le=120)
 
 
 class MissionQrIssueResponse(MissionQrPayload):
@@ -428,7 +464,7 @@ class MissionQrIssueResponse(MissionQrPayload):
 class MissionGenerateRequest(CamelModel):
     exhibitCode: str = Field(min_length=2, max_length=120)
     exhibitTitle: str = Field(min_length=2, max_length=240)
-    participantCount: int = Field(default=2, ge=1, le=8)
+    participantCount: int = Field(default=2, ge=2, le=6)
     qrPayload: MissionQrPayload
     profile: dict[str, Any] = Field(default_factory=dict)
 
@@ -523,3 +559,74 @@ class ProgramDraftResponse(CamelModel):
     followUpLearning: list[str] = Field(default_factory=list)
     measurementPlan: list[str] = Field(default_factory=list)
     generatedBy: str = "rules"
+
+
+class PaperCompletionRequest(CamelModel):
+    contentId: str = Field(min_length=1, max_length=160)
+    reflection: str = Field(min_length=40, max_length=4000)
+
+
+class PaperCompletionResponse(CamelModel):
+    verified: bool
+    xpAwarded: int
+    message: str
+    verifiedAt: datetime
+
+
+class VideoInterval(CamelModel):
+    start: float = Field(ge=0)
+    end: float = Field(gt=0)
+
+
+class VideoEvidenceRequest(CamelModel):
+    contentId: str
+    durationSeconds: int = Field(ge=30, le=43200)
+    intervals: list[VideoInterval] = Field(default_factory=list, max_length=2000)
+
+
+class VideoEvidenceResponse(CamelModel):
+    verified: bool
+    watchedSeconds: int
+    coveragePercent: int
+    xpAwarded: int
+    message: str
+
+
+class GuardianConsentRequestCreate(CamelModel):
+    guardianEmail: EmailStr
+    consentVersion: str = Field(default="2026-07", min_length=4, max_length=40)
+
+
+class GuardianConsentStatus(CamelModel):
+    status: str
+    guardianEmail: str = ""
+    consentVersion: str = ""
+    consentedAt: datetime | None = None
+
+
+class GuardianConsentDetails(CamelModel):
+    status: str
+    learnerName: str
+    guardianEmailMasked: str
+    consentVersion: str
+    expiresAt: datetime
+    consentedAt: datetime | None = None
+    terms: list[str] = Field(default_factory=list)
+
+
+class GuardianConsentConfirm(CamelModel):
+    token: str = Field(min_length=32, max_length=512)
+
+
+class PortfolioIssueRequest(CamelModel):
+    title: str = Field(default="BluePath Ocean Skill Passport", min_length=2, max_length=200)
+
+
+class PortfolioCredentialResponse(CamelModel):
+    credentialId: str
+    verifyUrl: str
+    signature: str
+    issuedAt: datetime
+    payload: dict[str, Any] = Field(default_factory=dict)
+    revoked: bool = False
+    valid: bool = True
