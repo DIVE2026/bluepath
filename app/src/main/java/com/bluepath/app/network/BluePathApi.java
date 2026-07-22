@@ -32,6 +32,12 @@ public interface BluePathApi {
             @Body ApiModels.QuizRequest request
     );
 
+    @POST("api/v1/ai/quiz/submit")
+    Call<ApiModels.QuizSubmissionResponse> submitQuiz(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.QuizSubmissionRequest request
+    );
+
     @POST("api/v1/ai/agent")
     Call<ApiModels.AgentResponse> answerAgent(
             @Header("Authorization") String authorization,
@@ -196,6 +202,42 @@ public interface BluePathApi {
     Call<ApiModels.MissionVerifyResponse> verifyMission(
             @Header("Authorization") String authorization,
             @Body ApiModels.MissionVerifyRequest request
+    );
+
+    @POST("api/v1/program-participation")
+    Call<ApiModels.ProgramParticipationResponse> saveProgramParticipation(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.ProgramParticipationRequest request
+    );
+
+    @POST("api/v1/learning/paper/complete")
+    Call<ApiModels.PaperCompletionResponse> completePaper(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.PaperCompletionRequest request
+    );
+
+    @POST("api/v1/learning/video/verify")
+    Call<ApiModels.VideoEvidenceResponse> verifyVideo(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.VideoEvidenceRequest request
+    );
+
+    @POST("api/v1/guardian-consent/request")
+    Call<ApiModels.GuardianConsentStatus> requestGuardianConsent(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.GuardianConsentRequest request
+    );
+
+    @GET("api/v1/guardian-consent/status")
+    Call<ApiModels.GuardianConsentStatus> guardianConsentStatus(@Header("Authorization") String authorization);
+
+    @DELETE("api/v1/guardian-consent")
+    Call<ApiModels.GuardianConsentStatus> revokeGuardianConsent(@Header("Authorization") String authorization);
+
+    @POST("api/v1/portfolio/credentials")
+    Call<ApiModels.PortfolioCredentialResponse> issuePortfolioCredential(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.PortfolioIssueRequest request
     );
 
 }
