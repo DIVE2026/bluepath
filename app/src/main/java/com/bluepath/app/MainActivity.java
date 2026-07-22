@@ -65,6 +65,8 @@ import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
 import com.bluepath.app.viewmodel.BluePathViewModel;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 
 
 import java.io.File;
@@ -3632,25 +3634,98 @@ public class MainActivity extends AppCompatActivity {
         boolean completed = store.getCompletedContentIds().contains(item.id);
         boolean started = store.isContentStarted(item.id);
         LinearLayout card = card();
-        LinearLayout tierRow = row();
-        tierRow.setGravity(Gravity.CENTER_VERTICAL);
-        TierShieldView requiredTierShield = tierShield(item.requiredTier);
-        tierRow.addView(requiredTierShield, new LinearLayout.LayoutParams(dp(38), dp(44)));
-        TextView tierMeta = label(item.difficulty + " 난도 · " + plainTierText(item.requiredTier) + " 권장 · 적합도 " + score);
-        tierMeta.setPadding(dp(7), 0, 0, 0);
-        tierRow.addView(tierMeta, new LinearLayout.LayoutParams(0, -2, 1));
-        card.addView(tierRow);
-        card.addView(big("▶ " + item.title));
-        String duration = item.minutes > 0 ? " · " + item.minutes + "분" : "";
-        card.addView(body("출처: " + item.source + duration));
-        card.addView(body("분야: " + item.topic + " · 연결 진로: " + item.careerTag));
-        addReasonList(card, RecommendationEngine.contentReasons(item, p, tier, store));
-        if (completed) card.addView(note("학습 완료 인증 · XP 반영됨", SUCCESS));
-        else if (started) card.addView(note("검증 시청 " + store.getVideoProgressPercent(item.id) + "% · "
-                + store.getVideoWatchSeconds(item.id) + "초 · 기준 충족 후 핵심 내용을 제출하세요.", OCEAN));
+        card.setLayoutTransition(new LayoutTransition());
 
-        LinearLayout actionRow = row();
-        Button watch = primaryButton(compact ? "열기" : (started ? "영상 계속 보기" : "영상 학습 시작"));
+        String learningState = completed
+                ? "학습 완료"
+                : started ? "검증 시청 " + store.getVideoProgressPercent(item.id) + "%" : "학습 전";
+        LinearLayout summaryRow = row();
+        summaryRow.setGravity(Gravity.TOP);
+
+        LinearLayout mediaColumn = new LinearLayout(this);
+        mediaColumn.setOrientation(LinearLayout.VERTICAL);
+        ImageView thumbnail = new ImageView(this);
+        thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        thumbnail.setBackgroundResource(R.drawable.bg_thumb);
+        thumbnail.setContentDescription(item.title + " 영상 썸네일");
+        String thumbnailUrl = youtubeThumbnailUrl(item.url);
+        Glide.with(this)
+                .load(thumbnailUrl)
+                .placeholder(R.drawable.bg_thumb)
+                .error(R.drawable.bg_thumb)
+                .fallback(R.drawable.bg_thumb)
+                .transform(new CenterCrop(), new RoundedCorners(dp(8)))
+                .into(thumbnail);
+        mediaColumn.addView(thumbnail, new LinearLayout.LayoutParams(dp(88), dp(64)));
+
+        TextView detailToggle = label("자세히 보기 ▾");
+        detailToggle.setTextColor(OCEAN);
+        detailToggle.setTextSize(10);
+        detailToggle.setGravity(Gravity.CENTER);
+        detailToggle.setSingleLine(true);
+        detailToggle.setBackgroundResource(R.drawable.bg_secondary_button);
+        detailToggle.setPadding(dp(4), 0, dp(4), 0);
+        detailToggle.setClickable(true);
+        detailToggle.setFocusable(true);
+        detailToggle.setContentDescription(item.title + " 상세 정보 펼치기");
+        LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(-1, dp(32));
+        toggleParams.setMargins(0, dp(6), 0, 0);
+        mediaColumn.addView(detailToggle, toggleParams);
+
+        LinearLayout.LayoutParams mediaParams = new LinearLayout.LayoutParams(dp(88), -2);
+        mediaParams.setMargins(0, 0, dp(12), 0);
+        summaryRow.addView(mediaColumn, mediaParams);
+
+        LinearLayout summaryCopy = new LinearLayout(this);
+        summaryCopy.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout statusRow = row();
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView tierChip = tierChip(item.requiredTier);
+        LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(-2, dp(26));
+        chipParams.setMargins(0, 0, dp(7), 0);
+        statusRow.addView(tierChip, chipParams);
+        statusRow.addView(label(item.difficulty + " 난도 · " + learningState));
+        summaryCopy.addView(statusRow);
+        TextView title = big(item.title);
+        title.setTextSize(15);
+        summaryCopy.addView(title);
+        summaryCopy.addView(body((item.minutes > 0 ? "영상 " + item.minutes + "분" : "영상") + " · 적합도 " + score));
+        summaryRow.addView(summaryCopy, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView bookmarkHeart = new TextView(this);
+        bookmarkHeart.setTextSize(24);
+        bookmarkHeart.setGravity(Gravity.CENTER);
+        bookmarkHeart.setClickable(true);
+        bookmarkHeart.setFocusable(true);
+        updateBookmarkHeart(bookmarkHeart, store.isBookmarked(item.id), item.title);
+        bookmarkHeart.setOnClickListener(v -> {
+            store.toggleBookmark(item.id);
+            boolean bookmarked = store.isBookmarked(item.id);
+            updateBookmarkHeart(bookmarkHeart, bookmarked, item.title);
+            viewModel.recordLearning("bookmark", item.id, item.title, bookmarked ? "saved" : "removed");
+            toast(bookmarked ? "찜 목록에 저장했습니다." : "찜을 해제했습니다.");
+        });
+        LinearLayout.LayoutParams heartParams = new LinearLayout.LayoutParams(dp(48), dp(48));
+        heartParams.setMargins(dp(4), 0, 0, 0);
+        summaryRow.addView(bookmarkHeart, heartParams);
+        card.addView(summaryRow);
+
+        LinearLayout details = new LinearLayout(this);
+        details.setOrientation(LinearLayout.VERTICAL);
+        details.setVisibility(View.GONE);
+        details.addView(body("출처: " + item.source));
+        details.addView(body("분야: " + item.topic + " · 연결 진로: " + item.careerTag));
+        addReasonList(details, RecommendationEngine.contentReasons(item, p, tier, store));
+        if (completed) {
+            details.addView(note("학습 완료 인증 · XP 반영됨", SUCCESS));
+        } else if (started) {
+            details.addView(note("검증 시청 " + store.getVideoProgressPercent(item.id) + "% · "
+                    + store.getVideoWatchSeconds(item.id) + "초 · 기준 충족 후 핵심 내용을 제출하세요.", OCEAN));
+        } else {
+            details.addView(note("앱 내 검증 플레이어에서 시청 기록을 쌓은 뒤 학습 완료를 인증할 수 있습니다.", MUTED));
+        }
+
+        Button watch = primaryButton(started ? "영상 계속 보기" : "영상 학습 시작");
         watch.setOnClickListener(v -> {
             store.markContentStarted(item.id);
             viewModel.recordLearning("video", item.id, item.title, "started");
@@ -3661,27 +3736,87 @@ public class MainActivity extends AppCompatActivity {
             verified.putExtra(VerifiedVideoActivity.EXTRA_MINUTES, item.minutes);
             startActivity(verified);
         });
-        Button save = outlineButton(store.isBookmarked(item.id) ? "찜 해제" : "찜");
-        save.setOnClickListener(v -> {
-            store.toggleBookmark(item.id);
-            viewModel.recordLearning("bookmark", item.id, item.title, store.isBookmarked(item.id) ? "saved" : "removed");
-            toast(store.isBookmarked(item.id) ? "찜 목록에 저장했습니다." : "찜을 해제했습니다.");
-            showApp(currentTab);
-        });
-        LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, dp(44), 1);
-        left.setMargins(0, 0, dp(6), 0);
-        actionRow.addView(watch, left);
-        LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(0, dp(44), 1);
-        right.setMargins(dp(6), 0, 0, 0);
-        actionRow.addView(save, right);
-        card.addView(actionRow);
+        details.addView(watch, new LinearLayout.LayoutParams(-1, dp(44)));
 
         if (started && !completed) {
             Button complete = outlineButton("학습 완료 인증");
             complete.setOnClickListener(v -> showContentCompletionDialog(item));
-            card.addView(complete, new LinearLayout.LayoutParams(-1, dp(46)));
+            details.addView(complete, new LinearLayout.LayoutParams(-1, dp(46)));
         }
+        card.addView(details);
+
+        detailToggle.setOnClickListener(v -> {
+            boolean expanded = details.getVisibility() == View.VISIBLE;
+            details.setVisibility(expanded ? View.GONE : View.VISIBLE);
+            detailToggle.setText(expanded ? "자세히 보기 ▾" : "접기 ▴");
+            detailToggle.setContentDescription(item.title + (expanded ? " 상세 정보 펼치기" : " 상세 정보 접기"));
+        });
         content.addView(card);
+    }
+
+    private TextView tierChip(String tier) {
+        String value = plainTierText(tier);
+        TextView chip = new TextView(this);
+        chip.setText(value);
+        chip.setTextSize(11);
+        chip.setTypeface(Typeface.DEFAULT_BOLD);
+        chip.setTextColor(tierChipTextColor(value));
+        chip.setGravity(Gravity.CENTER);
+        chip.setSingleLine(true);
+        chip.setPadding(dp(10), 0, dp(10), 0);
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(tierChipColor(value));
+        background.setCornerRadius(dp(13));
+        chip.setBackground(background);
+        return chip;
+    }
+
+    private int tierChipColor(String tier) {
+        if ("실버".equals(tier)) return Color.parseColor("#94A3B8");
+        if ("골드".equals(tier)) return Color.parseColor("#EAB308");
+        if ("플래티넘".equals(tier)) return Color.parseColor("#22C1C3");
+        if ("다이아".equals(tier)) return Color.parseColor("#60A5FA");
+        return Color.parseColor("#B7794A");
+    }
+
+    private int tierChipTextColor(String tier) {
+        return "브론즈".equals(tier) || "플래티넘".equals(tier) ? Color.WHITE : NAVY;
+    }
+
+    private void updateBookmarkHeart(TextView heart, boolean bookmarked, String title) {
+        heart.setText(bookmarked ? "♥" : "♡");
+        heart.setTextColor(bookmarked ? Color.parseColor("#E11D48") : Color.parseColor("#94A3B8"));
+        heart.setContentDescription((bookmarked ? "찜 해제: " : "찜하기: ") + title);
+    }
+
+    private String youtubeThumbnailUrl(String url) {
+        if (url == null || url.trim().isEmpty()) return null;
+        try {
+            Uri uri = Uri.parse(url.trim());
+            String host = uri.getHost();
+            if (host == null) return null;
+            host = host.toLowerCase(Locale.ROOT);
+
+            String videoId = null;
+            List<String> segments = uri.getPathSegments();
+            if (host.equals("youtu.be") || host.endsWith(".youtu.be")) {
+                if (!segments.isEmpty()) videoId = segments.get(0);
+            } else if (host.equals("youtube.com") || host.endsWith(".youtube.com")
+                    || host.equals("youtube-nocookie.com") || host.endsWith(".youtube-nocookie.com")) {
+                if ("/watch".equals(uri.getPath())) {
+                    videoId = uri.getQueryParameter("v");
+                } else if (segments.size() >= 2
+                        && ("embed".equals(segments.get(0))
+                        || "shorts".equals(segments.get(0))
+                        || "live".equals(segments.get(0)))) {
+                    videoId = segments.get(1);
+                }
+            }
+            if (videoId == null || !videoId.matches("[A-Za-z0-9_-]{6,20}")) return null;
+            return "https://img.youtube.com/vi/" + videoId + "/mqdefault.jpg";
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private void addPaperCard(PaperItem item) {
