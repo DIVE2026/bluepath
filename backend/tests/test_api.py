@@ -792,6 +792,35 @@ def test_integrity_guards_for_sync_video_mission_and_community(monkeypatch) -> N
         })
         assert full_coverage.status_code == 200, full_coverage.text
         assert full_coverage.json()['verified'] is True
+        assert full_coverage.json()['xpAwarded'] == 0
+        verified_state = client.get('/api/v1/sync', headers=auth_header(token_a)).json()['snapshot']
+        assert video['id'] in verified_state['verifiedVideoIds']
+        assert video['id'] not in verified_state['completedContentIds']
+        completed_without_reflection = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
+            'contentId': video['id'], 'reflection': '',
+        })
+        assert completed_without_reflection.status_code == 200, completed_without_reflection.text
+        assert completed_without_reflection.json()['xpAwarded'] == 70
+        repeated_completion = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
+            'contentId': video['id'], 'reflection': '',
+        })
+        assert repeated_completion.status_code == 200
+        assert repeated_completion.json()['xpAwarded'] == 0
+
+        reflection_video = next(item for item in catalog if item['contentType'] == 'video' and item['id'] != video['id'])
+        reflected_coverage = client.post('/api/v1/learning/video/verify', headers=auth_header(token_a), json={
+            'contentId': reflection_video['id'], 'durationSeconds': 100,
+            'intervals': [{'start': value, 'end': value + 10} for value in range(0, 70, 10)],
+        })
+        assert reflected_coverage.status_code == 200, reflected_coverage.text
+        completed_with_reflection = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
+            'contentId': reflection_video['id'],
+            'reflection': '영상에서 배운 해양생물의 특징과 환경 보호의 중요성을 정리했다.',
+        })
+        assert completed_with_reflection.status_code == 200, completed_with_reflection.text
+        assert completed_with_reflection.json()['xpAwarded'] == 100
+        completed_state = client.get('/api/v1/sync', headers=auth_header(token_a)).json()['snapshot']
+        assert {video['id'], reflection_video['id']}.issubset(set(completed_state['completedContentIds']))
 
         qr_payload = issue_qr(client, 'six-person-exhibit', '6인 협동 전시')
         mission = client.post('/api/v1/missions/generate', headers=auth_header(token_a), json={

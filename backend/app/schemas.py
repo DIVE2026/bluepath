@@ -592,6 +592,18 @@ class VideoEvidenceResponse(CamelModel):
     message: str
 
 
+class VideoCompletionRequest(CamelModel):
+    contentId: str = Field(min_length=1, max_length=160)
+    reflection: str = Field(default="", max_length=2000)
+
+
+class VideoCompletionResponse(CamelModel):
+    completed: bool
+    xpAwarded: int
+    message: str
+    completedAt: datetime
+
+
 class GuardianConsentRequestCreate(CamelModel):
     guardianEmail: EmailStr
     consentVersion: str = Field(default="2026-07", min_length=4, max_length=40)

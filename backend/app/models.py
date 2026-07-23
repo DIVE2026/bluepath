@@ -127,6 +127,8 @@ class VideoLearningEvidence(Base):
     coverage_percent: Mapped[int] = mapped_column(Integer, default=0)
     intervals_json: Mapped[list] = mapped_column(JSON, default=list)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reflection: Mapped[str] = mapped_column(Text, default="")
 
 
 class GuardianConsentRequest(Base):

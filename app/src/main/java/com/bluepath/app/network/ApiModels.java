@@ -658,6 +658,22 @@ public final class ApiModels {
         public String message;
     }
 
+    public static class VideoCompletionRequest {
+        public String contentId;
+        public String reflection;
+        public VideoCompletionRequest(String contentId, String reflection) {
+            this.contentId = contentId;
+            this.reflection = reflection;
+        }
+    }
+
+    public static class VideoCompletionResponse {
+        public boolean completed;
+        public int xpAwarded;
+        public String message;
+        public String completedAt;
+    }
+
     public static class GuardianConsentRequest {
         public String guardianEmail;
         public String consentVersion;

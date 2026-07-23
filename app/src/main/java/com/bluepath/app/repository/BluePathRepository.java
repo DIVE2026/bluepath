@@ -337,6 +337,14 @@ public class BluePathRepository {
         return body;
     }
 
+    public ApiModels.VideoCompletionResponse completeVideo(String contentId, String reflection) throws IOException {
+        requireAuthenticated();
+        ApiModels.VideoCompletionResponse body = requireBody(api.completeVideo(
+                bearer(), new ApiModels.VideoCompletionRequest(contentId, reflection)).execute(), "영상 학습 완료");
+        pullCloudState();
+        return body;
+    }
+
     public ApiModels.GuardianConsentStatus requestGuardianConsent(String email) throws IOException {
         requireAuthenticated();
         return requireBody(api.requestGuardianConsent(

@@ -3579,45 +3579,72 @@ public class MainActivity extends AppCompatActivity {
             toast("이미 완료 인증된 학습입니다.");
             return;
         }
-        if (!store.isContentStarted(item.id)) {
-            toast("먼저 앱 내 검증 플레이어에서 영상 학습을 시작해 주세요.");
-            return;
-        }
         if (!store.hasVerifiedVideoCompletion(item.id, item.minutes)) {
             toast("실제 재생 기준 70% 이상과 최소 학습 시간을 충족해야 합니다. 현재 "
                     + store.getVideoProgressPercent(item.id) + "% · " + store.getVideoWatchSeconds(item.id) + "초입니다.");
+            return;
+        }
+        if (!store.hasCloudSession() || !cloudRepository.isCloudConfigured()) {
+            toast("로그인 후 서버 검증을 받아야 영상 학습을 완료할 수 있습니다.");
             return;
         }
 
         LinearLayout form = new LinearLayout(this);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(8), dp(18), 0);
-        form.addView(body("서버가 중복을 제거한 실제 시청 구간을 검증했습니다. 영상에서 배운 핵심 내용을 한 문장 이상 기록하면 완료 소감으로 저장됩니다."));
+        form.addView(body("시청 인증이 완료되었습니다. 소감을 건너뛰면 70XP, 10자 이상 작성하면 100XP를 받습니다."));
         EditText reflection = inputField("핵심 내용 또는 새롭게 알게 된 점", "");
         reflection.setSingleLine(false);
         reflection.setMinLines(3);
         form.addView(reflection);
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("학습 완료 인증")
+                .setTitle("학습 완료하기")
                 .setView(form)
-                .setNegativeButton("취소", null)
-                .setPositiveButton("완료 인증", null)
+                .setNegativeButton("건너뛰기 · 70XP", null)
+                .setPositiveButton("작성 완료 · 100XP", null)
                 .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String value = reflection.getText().toString().trim();
-            if (value.length() < 10) {
-                reflection.setError("10자 이상으로 핵심 내용을 작성해 주세요.");
-                return;
-            }
-            store.markCompleted(item.id);
-            store.saveContentReflection(item.id, value);
-            viewModel.recordLearning("video", item.id, item.title, "completed_with_reflection");
-            recordRouteCompletionByTarget(item.id);
-            dialog.dismiss();
-            toast("서버 검증 학습에 완료 소감을 저장했습니다.");
-            showApp(currentTab);
-        }));
+        dialog.setOnShowListener(ignored -> {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v ->
+                    submitVideoCompletion(item, "", dialog));
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String value = reflection.getText().toString().trim();
+                if (value.length() < 10) {
+                    reflection.setError("10자 이상 작성하거나 70XP 건너뛰기를 선택해 주세요.");
+                    return;
+                }
+                submitVideoCompletion(item, value, dialog);
+            });
+        });
         dialog.show();
+    }
+
+    private void submitVideoCompletion(ContentItem item, String reflection, AlertDialog dialog) {
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+        executor.execute(() -> {
+            try {
+                ApiModels.VideoCompletionResponse result = cloudRepository.completeVideo(item.id, reflection);
+                runOnUiThread(() -> {
+                    if (result.xpAwarded > 0) {
+                        if (!reflection.isEmpty()) store.saveContentReflection(item.id, reflection);
+                        viewModel.recordLearning("video", item.id, item.title,
+                                reflection.isEmpty() ? "completed_without_reflection" : "completed_with_reflection");
+                        recordRouteCompletionByTarget(item.id);
+                    }
+                    dialog.dismiss();
+                    toast(result.xpAwarded > 0
+                            ? "학습 완료! " + result.xpAwarded + "XP를 받았습니다."
+                            : "이미 완료된 학습입니다.");
+                    showApp(currentTab);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                    toast("영상 학습 완료 실패: " + safeMessage(error));
+                });
+            }
+        });
     }
 
     private void addIdListCard(String title, Set<String> ids) {
@@ -3650,12 +3677,14 @@ public class MainActivity extends AppCompatActivity {
         String tier = store.getTier();
         int score = RecommendationEngine.scoreContent(item, p, tier, store);
         boolean completed = store.getCompletedContentIds().contains(item.id);
+        boolean verified = store.hasVerifiedVideoCompletion(item.id, item.minutes);
         boolean started = store.isContentStarted(item.id);
         LinearLayout card = card();
         card.setLayoutTransition(new LayoutTransition());
 
         String learningState = completed
                 ? "학습 완료"
+                : verified ? "시청 인증 완료"
                 : started ? "검증 시청 " + store.getVideoProgressPercent(item.id) + "%" : "학습 전";
         LinearLayout summaryRow = row();
         summaryRow.setGravity(Gravity.TOP);
@@ -3736,28 +3765,36 @@ public class MainActivity extends AppCompatActivity {
         addReasonList(details, RecommendationEngine.contentReasons(item, p, tier, store));
         if (completed) {
             details.addView(note("학습 완료 인증 · XP 반영됨", SUCCESS));
+            String savedReflection = store.getContentReflection(item.id);
+            if (!savedReflection.isEmpty()) {
+                details.addView(label("내 학습 소감"));
+                details.addView(body(savedReflection));
+            }
+        } else if (verified) {
+            details.addView(note("시청 인증 완료 · 학습 완료하기를 눌러 XP를 받을 수 있습니다.", SUCCESS));
         } else if (started) {
             details.addView(note("검증 시청 " + store.getVideoProgressPercent(item.id) + "% · "
-                    + store.getVideoWatchSeconds(item.id) + "초 · 기준 충족 후 핵심 내용을 제출하세요.", OCEAN));
+                    + store.getVideoWatchSeconds(item.id) + "초 · 기준 충족 후 시청 인증이 완료됩니다.", OCEAN));
         } else {
             details.addView(note("앱 내 검증 플레이어에서 시청 기록을 쌓은 뒤 학습 완료를 인증할 수 있습니다.", MUTED));
         }
 
-        Button watch = primaryButton(started ? "영상 계속 보기" : "영상 학습 시작");
+        String watchLabel = completed ? "영상 다시보기" : (started || verified) ? "영상 계속 보기" : "영상 학습 시작";
+        Button watch = primaryButton(watchLabel);
         watch.setOnClickListener(v -> {
             store.markContentStarted(item.id);
             viewModel.recordLearning("video", item.id, item.title, "started");
-            Intent verified = new Intent(this, VerifiedVideoActivity.class);
-            verified.putExtra(VerifiedVideoActivity.EXTRA_CONTENT_ID, item.id);
-            verified.putExtra(VerifiedVideoActivity.EXTRA_TITLE, item.title);
-            verified.putExtra(VerifiedVideoActivity.EXTRA_URL, item.url);
-            verified.putExtra(VerifiedVideoActivity.EXTRA_MINUTES, item.minutes);
-            startActivity(verified);
+            Intent verifiedVideoIntent = new Intent(this, VerifiedVideoActivity.class);
+            verifiedVideoIntent.putExtra(VerifiedVideoActivity.EXTRA_CONTENT_ID, item.id);
+            verifiedVideoIntent.putExtra(VerifiedVideoActivity.EXTRA_TITLE, item.title);
+            verifiedVideoIntent.putExtra(VerifiedVideoActivity.EXTRA_URL, item.url);
+            verifiedVideoIntent.putExtra(VerifiedVideoActivity.EXTRA_MINUTES, item.minutes);
+            startActivity(verifiedVideoIntent);
         });
         details.addView(watch, new LinearLayout.LayoutParams(-1, dp(44)));
 
-        if (started && !completed) {
-            Button complete = outlineButton("학습 완료 인증");
+        if (verified && !completed) {
+            Button complete = outlineButton("학습 완료하기");
             complete.setOnClickListener(v -> showContentCompletionDialog(item));
             details.addView(complete, new LinearLayout.LayoutParams(-1, dp(46)));
         }

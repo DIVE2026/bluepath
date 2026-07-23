@@ -222,6 +222,12 @@ public interface BluePathApi {
             @Body ApiModels.VideoEvidenceRequest request
     );
 
+    @POST("api/v1/learning/video/complete")
+    Call<ApiModels.VideoCompletionResponse> completeVideo(
+            @Header("Authorization") String authorization,
+            @Body ApiModels.VideoCompletionRequest request
+    );
+
     @POST("api/v1/guardian-consent/request")
     Call<ApiModels.GuardianConsentStatus> requestGuardianConsent(
             @Header("Authorization") String authorization,
