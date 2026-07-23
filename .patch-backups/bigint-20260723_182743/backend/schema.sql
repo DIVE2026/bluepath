@@ -139,7 +139,6 @@ CREATE TABLE IF NOT EXISTS community_posts (
   category VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (category IN ('free', 'question')),
   title VARCHAR(240) NOT NULL,
   body TEXT NOT NULL,
-  image_url TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -324,21 +323,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS guardian_consent_version VARCHAR(40) 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS guardian_consented_at TIMESTAMPTZ;
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE learning_records ADD COLUMN IF NOT EXISTS device_id VARCHAR(80) NOT NULL DEFAULT '';
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema = current_schema()
-      AND table_name = 'learning_records'
-      AND column_name = 'client_updated_at'
-      AND data_type = 'integer'
-  ) THEN
-    ALTER TABLE learning_records
-      ALTER COLUMN client_updated_at TYPE BIGINT
-      USING client_updated_at::BIGINT;
-  END IF;
-END $$;
 
 CREATE TABLE IF NOT EXISTS user_progress (
   user_id VARCHAR(36) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

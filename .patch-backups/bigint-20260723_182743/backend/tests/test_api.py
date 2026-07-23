@@ -81,29 +81,13 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert all(0 <= item['answerIndex'] <= 3 for item in submitted_quiz.json()['questions'])
 
         search = client.post('/api/v1/ai/search', headers=auth_header(token), json={
-            'query': '그중 입문자가 보기 쉬운 자료',
+            'query': '해양환경 입문 영상',
             'resourceType': 'video',
             'limit': 5,
-            'history': [
-                {'role': 'user', 'content': '해양환경 영상을 찾아줘'},
-                {'role': 'assistant', 'content': '해양환경 관련 영상을 살펴봤습니다.'},
-            ],
         })
         assert search.status_code == 200, search.text
         assert isinstance(search.json()['items'], list)
         assert search.json()['summary']
-        agent = client.post('/api/v1/ai/agent', headers=auth_header(token), json={
-            'question': '그 준비 과정에서 먼저 할 일은?',
-            'tier': '브론즈',
-            'profile': {'interest': '항해', 'level': '입문'},
-            'promotionManual': '',
-            'history': [
-                {'role': 'user', 'content': '항해사가 되려면 무엇이 필요해?'},
-                {'role': 'assistant', 'content': '기초 항해 지식과 관련 교육이 필요합니다.'},
-            ],
-        })
-        assert agent.status_code == 200, agent.text
-        assert agent.json()['answer']
         unrelated = client.post('/api/v1/ai/search', headers=auth_header(token), json={
             'query': 'zzqv unrelated resource token 987654321', 'resourceType': 'paper', 'limit': 5,
         })
@@ -209,7 +193,6 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert blank_note.status_code == 422
 
         record_id = '123e4567-e89b-42d3-a456-426614174000'
-        client_updated_at_ms = 1_784_730_513_527
         sync = client.post('/api/v1/sync', headers=auth_header(token), json={
             'snapshot': {
                 'tier': '플래티넘',
@@ -223,7 +206,7 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
                 'targetId': '브론즈',
                 'title': 'Server verified promotion quiz',
                 'status': 'passed',
-                'updatedAt': client_updated_at_ms,
+                'updatedAt': 1,
                 'synced': False,
             }],
             'baseVersion': 0,
@@ -239,7 +222,6 @@ def test_registration_sync_quiz_and_diamond_pathway() -> None:
         assert cloud.json()['snapshot']['tier'] == '실버'
         assert cloud.json()['learningRecords'][0]['id'] == record_id
         assert cloud.json()['learningRecords'][0]['status'] == 'passed'
-        assert cloud.json()['learningRecords'][0]['updatedAt'] == client_updated_at_ms
 
         for evidence_type in ('certification', 'project'):
             submitted = client.post('/api/v1/diamond/evidence', headers=auth_header(token), json={
@@ -661,19 +643,8 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
             'body': '항만 물류 진로를 준비하려면 무엇부터 시작해야 하나요?',
         })
         assert post.status_code == 200, post.text
-        assert post.json()['imageUrl'] == ''
         post_id = post.json()['id']
         author_id = post.json()['author']['userId']
-
-        post_image = client.post(f'/api/v1/community/posts/{post_id}/image', headers=first_headers, files={
-            'file': ('post.png', png_1x1, 'image/png'),
-        })
-        assert post_image.status_code == 200, post_image.text
-        assert post_image.json()['imageUrl'].endswith('.png')
-        detail = client.get(f'/api/v1/community/posts/{post_id}', headers=second_headers)
-        assert detail.status_code == 200, detail.text
-        assert detail.json()['id'] == post_id
-        assert detail.json()['imageUrl'].endswith('.png')
 
         comment = client.post(f'/api/v1/community/posts/{post_id}/comments', headers=second_headers, json={
             'body': '기초 물류 영상과 현장 교육부터 추천합니다.',
@@ -699,7 +670,6 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
         item = feed.json()[0]
         assert len(item['comments']) == 2
         assert item['author']['isFollowing'] is True
-        assert item['imageUrl'].endswith('.png')
         assert any(value['emoji'] == '🌊' and value['count'] == 1 for value in item['reactions'])
 
         searched = client.get('/api/v1/community/posts?category=question&q=BlueWhale&limit=1&offset=0', headers=second_headers)
@@ -822,35 +792,6 @@ def test_integrity_guards_for_sync_video_mission_and_community(monkeypatch) -> N
         })
         assert full_coverage.status_code == 200, full_coverage.text
         assert full_coverage.json()['verified'] is True
-        assert full_coverage.json()['xpAwarded'] == 0
-        verified_state = client.get('/api/v1/sync', headers=auth_header(token_a)).json()['snapshot']
-        assert video['id'] in verified_state['verifiedVideoIds']
-        assert video['id'] not in verified_state['completedContentIds']
-        completed_without_reflection = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
-            'contentId': video['id'], 'reflection': '',
-        })
-        assert completed_without_reflection.status_code == 200, completed_without_reflection.text
-        assert completed_without_reflection.json()['xpAwarded'] == 70
-        repeated_completion = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
-            'contentId': video['id'], 'reflection': '',
-        })
-        assert repeated_completion.status_code == 200
-        assert repeated_completion.json()['xpAwarded'] == 0
-
-        reflection_video = next(item for item in catalog if item['contentType'] == 'video' and item['id'] != video['id'])
-        reflected_coverage = client.post('/api/v1/learning/video/verify', headers=auth_header(token_a), json={
-            'contentId': reflection_video['id'], 'durationSeconds': 100,
-            'intervals': [{'start': value, 'end': value + 10} for value in range(0, 70, 10)],
-        })
-        assert reflected_coverage.status_code == 200, reflected_coverage.text
-        completed_with_reflection = client.post('/api/v1/learning/video/complete', headers=auth_header(token_a), json={
-            'contentId': reflection_video['id'],
-            'reflection': '영상에서 배운 해양생물의 특징과 환경 보호의 중요성을 정리했다.',
-        })
-        assert completed_with_reflection.status_code == 200, completed_with_reflection.text
-        assert completed_with_reflection.json()['xpAwarded'] == 100
-        completed_state = client.get('/api/v1/sync', headers=auth_header(token_a)).json()['snapshot']
-        assert {video['id'], reflection_video['id']}.issubset(set(completed_state['completedContentIds']))
 
         qr_payload = issue_qr(client, 'six-person-exhibit', '6인 협동 전시')
         mission = client.post('/api/v1/missions/generate', headers=auth_header(token_a), json={

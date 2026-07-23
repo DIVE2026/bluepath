@@ -69,10 +69,24 @@ public interface BluePathApi {
             @Query("offset") int offset
     );
 
+    @GET("api/v1/community/posts/{postId}")
+    Call<ApiModels.CommunityPostDto> communityPost(
+            @Header("Authorization") String authorization,
+            @Path("postId") String postId
+    );
+
     @POST("api/v1/community/posts")
     Call<ApiModels.CommunityPostDto> createCommunityPost(
             @Header("Authorization") String authorization,
             @Body ApiModels.CommunityPostRequest request
+    );
+
+    @Multipart
+    @POST("api/v1/community/posts/{postId}/image")
+    Call<ApiModels.CommunityPostDto> uploadCommunityPostImage(
+            @Header("Authorization") String authorization,
+            @Path("postId") String postId,
+            @Part MultipartBody.Part file
     );
 
     @POST("api/v1/community/posts/{postId}/comments")

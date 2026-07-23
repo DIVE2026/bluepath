@@ -27,3 +27,4 @@ finetuning/checkpoints/
 /gradle.properties
 
 backend/uploads/
+.patch-backups/

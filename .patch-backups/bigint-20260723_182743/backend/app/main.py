@@ -92,8 +92,6 @@ from .schemas import (
     SyncRequest,
     SyncResponse,
     YouTubeSyncRequest,
-    VideoCompletionRequest,
-    VideoCompletionResponse,
     VideoEvidenceRequest,
     VideoEvidenceResponse,
     GuardianConsentRequestCreate,
@@ -207,7 +205,6 @@ def apply_compatibility_migrations() -> None:
     inspector = inspect(engine)
     tables = set(inspector.get_table_names())
     statements: list[str] = []
-    backfill_legacy_video_completions = False
     if "users" in tables:
         columns = {column["name"] for column in inspector.get_columns("users")}
         if "nickname" not in columns:
@@ -223,32 +220,12 @@ def apply_compatibility_migrations() -> None:
         if "version" not in columns:
             statements.append("ALTER TABLE user_profiles ADD COLUMN version INTEGER NOT NULL DEFAULT 0")
     if "learning_records" in tables:
-        learning_record_columns = {
-            column["name"]: column for column in inspector.get_columns("learning_records")
-        }
-        if "device_id" not in learning_record_columns:
+        columns = {column["name"] for column in inspector.get_columns("learning_records")}
+        if "device_id" not in columns:
             statements.append("ALTER TABLE learning_records ADD COLUMN device_id VARCHAR(80) NOT NULL DEFAULT ''")
-
-        client_updated_at = learning_record_columns.get("client_updated_at")
-        client_updated_at_type = str(client_updated_at["type"]).upper() if client_updated_at else ""
-        if engine.dialect.name == "postgresql" and client_updated_at_type in {"INTEGER", "INT", "INT4"}:
-            statements.append(
-                "ALTER TABLE learning_records "
-                "ALTER COLUMN client_updated_at TYPE BIGINT "
-                "USING client_updated_at::BIGINT"
-            )
-    if "community_posts" in tables:
-        columns = {column["name"] for column in inspector.get_columns("community_posts")}
-        if "image_url" not in columns:
-            statements.append("ALTER TABLE community_posts ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
-
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
-        if backfill_legacy_video_completions:
-            connection.execute(text(
-                "UPDATE video_learning_evidence SET completed_at = verified_at WHERE completed_at IS NULL"
-            ))
         if "users" in tables:
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_nickname ON users (nickname)"))
             connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_users_nickname_ci ON users (lower(nickname))"))
@@ -329,10 +306,6 @@ def health() -> dict:
         "status": "ok",
         "environment": settings.environment,
         "llmEnabled": settings.llm_enabled,
-        "llmApiKeyConfigured": bool(settings.llm_api_key.strip()),
-        "llmModel": settings.llm_model if settings.llm_enabled else "",
-        "llmTimeoutSeconds": settings.llm_timeout_seconds,
-        "llmMaxRetries": settings.llm_max_retries,
         "embeddingEnabled": bool(settings.embedding_model),
         "liveWebSearchEnabled": settings.web_search_enabled,
         "liveWebSearchProvider": settings.web_search_provider if settings.web_search_enabled else "",
@@ -906,18 +879,6 @@ def list_community_posts(
     return [community_post_schema(db, item, user) for item in rows]
 
 
-@app.get("/api/v1/community/posts/{post_id}", response_model=CommunityPostItem)
-def get_community_post(
-    post_id: str,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> CommunityPostItem:
-    post = db.get(CommunityPost, post_id)
-    if post is None or post.user_id in blocked_user_ids(db, user.id):
-        raise HTTPException(status_code=404, detail="Post not found")
-    return community_post_schema(db, post, user)
-
-
 @app.post("/api/v1/community/posts", response_model=CommunityPostItem)
 def create_community_post(
     request: CommunityPostCreate,
@@ -928,54 +889,6 @@ def create_community_post(
     db.add(post)
     db.commit()
     db.refresh(post)
-    return community_post_schema(db, post, user)
-
-
-@app.post("/api/v1/community/posts/{post_id}/image", response_model=CommunityPostItem)
-async def upload_community_post_image(
-    post_id: str,
-    request: Request,
-    file: UploadFile = File(...),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> CommunityPostItem:
-    post = db.get(CommunityPost, post_id)
-    if post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
-    if post.user_id != user.id and not is_admin(user):
-        raise HTTPException(status_code=403, detail="You cannot attach an image to this post")
-
-    content_type = (file.content_type or "").lower()
-    if content_type not in {"image/jpeg", "image/png", "image/webp"}:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, and WebP post images are supported")
-    raw = await file.read(8_000_001)
-    if len(raw) > 8_000_000:
-        raise HTTPException(status_code=413, detail="Post image must be 8 MB or smaller")
-    signatures = {
-        "image/jpeg": raw.startswith(b"\xff\xd8\xff"),
-        "image/png": raw.startswith(b"\x89PNG\r\n\x1a\n"),
-        "image/webp": len(raw) >= 12 and raw.startswith(b"RIFF") and raw[8:12] == b"WEBP",
-    }
-    if not raw or not signatures[content_type]:
-        raise HTTPException(status_code=400, detail="Uploaded bytes do not match the declared image type")
-
-    extension = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}[content_type]
-    filename = f"community-{post.id}-{secrets.token_hex(6)}{extension}"
-    (UPLOADS_DIR / filename).write_bytes(raw)
-
-    previous_url = post.image_url or ""
-    post.image_url = str(request.base_url).rstrip("/") + f"/uploads/{filename}"
-    post.updated_at = datetime.now(timezone.utc)
-    db.commit()
-    db.refresh(post)
-
-    previous_name = previous_url.rsplit("/", 1)[-1]
-    if previous_name.startswith(f"community-{post.id}-"):
-        previous_path = UPLOADS_DIR / previous_name
-        try:
-            previous_path.unlink(missing_ok=True)
-        except OSError:
-            pass
     return community_post_schema(db, post, user)
 
 
@@ -1040,15 +953,8 @@ def delete_community_post(
             (CommunityReaction.target_type == "comment") & CommunityReaction.target_id.in_(comment_ids or [""]),
         )
     ))
-    image_name = (post.image_url or "").rsplit("/", 1)[-1]
     db.delete(post)
     db.commit()
-    if image_name.startswith(f"community-{post_id}-"):
-        image_path = UPLOADS_DIR / image_name
-        try:
-            image_path.unlink(missing_ok=True)
-        except OSError:
-            pass
     return GenericResponse(message="Post deleted")
 
 
@@ -1353,17 +1259,13 @@ def valid_paper_evidence_ids(db: Session, user_id: str) -> list[str]:
 def apply_verified_evidence(db: Session, user_id: str, snapshot: dict) -> dict:
     result = dict(snapshot or {})
     video_ids = list(db.scalars(select(VideoLearningEvidence.content_id).where(VideoLearningEvidence.user_id == user_id)))
-    completed_video_ids = list(db.scalars(select(VideoLearningEvidence.content_id).where(
-        VideoLearningEvidence.user_id == user_id,
-        VideoLearningEvidence.completed_at.is_not(None),
-    )))
     paper_ids = valid_paper_evidence_ids(db, user_id)
     badges = list(db.scalars(select(MissionEvidence.badge).where(
         MissionEvidence.user_id == user_id, MissionEvidence.status == "verified"
     )))
     result["verifiedVideoIds"] = sorted(set(video_ids))
     result["verifiedPaperIds"] = paper_ids
-    result["completedContentIds"] = sorted(set(completed_video_ids) | set(paper_ids))
+    result["completedContentIds"] = sorted(set(video_ids) | set(paper_ids))
     result["missionBadges"] = sorted({badge for badge in badges if badge})
     return result
 
@@ -1543,9 +1445,11 @@ def verify_video_learning(
     existing = db.scalar(select(VideoLearningEvidence).where(
         VideoLearningEvidence.user_id == user.id, VideoLearningEvidence.content_id == request.contentId,
     ))
+    xp_awarded = 0
     if existing is None:
         existing = VideoLearningEvidence(user_id=user.id, content_id=request.contentId)
         db.add(existing)
+        xp_awarded = 100
     existing.duration_seconds = request.durationSeconds
     existing.watched_seconds = watched
     existing.coverage_percent = coverage
@@ -1553,6 +1457,17 @@ def verify_video_learning(
     existing.verified_at = datetime.now(timezone.utc)
 
     progress = get_or_create_progress(db, user.id)
+    if xp_awarded:
+        progress.xp += xp_awarded
+        topic = content.topic or "해양교육"
+        evidence = dict(progress.skill_evidence_json or {})
+        mastery = dict(progress.skill_mastery_json or {})
+        count = int(evidence.get(topic, 0))
+        old = int(mastery.get(topic, 50))
+        evidence[topic] = count + 1
+        mastery[topic] = round((old * count + 80) / max(1, count + 1))
+        progress.skill_evidence_json = evidence
+        progress.skill_mastery_json = mastery
     profile = db.get(UserProfile, user.id) or UserProfile(user_id=user.id)
     status = diamond_status_for(db, user, progress=progress)
     profile.snapshot = apply_verified_evidence(db, user.id, apply_account_state(apply_authoritative_progress(profile.snapshot or {}, progress, diamond_eligible=status.eligible), user))
@@ -1560,74 +1475,8 @@ def verify_video_learning(
     db.add(profile)
     db.commit()
     return VideoEvidenceResponse(
-        verified=True, watchedSeconds=watched, coveragePercent=coverage, xpAwarded=0,
+        verified=True, watchedSeconds=watched, coveragePercent=coverage, xpAwarded=xp_awarded,
         message="Distinct playback coverage was verified by the server.",
-    )
-
-
-@app.post("/api/v1/learning/video/complete", response_model=VideoCompletionResponse)
-def complete_video_learning(
-    request: VideoCompletionRequest,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> VideoCompletionResponse:
-    require_guardian_consent_for_minor(db, user)
-    content = db.get(Content, request.contentId)
-    if content is None or content.content_type != "video":
-        raise HTTPException(status_code=404, detail="Video content not found")
-    reflection = request.reflection.strip()
-    if reflection and len(reflection) < 10:
-        raise HTTPException(status_code=422, detail="Reflection must contain at least 10 characters")
-    evidence = db.scalar(
-        select(VideoLearningEvidence)
-        .where(
-            VideoLearningEvidence.user_id == user.id,
-            VideoLearningEvidence.content_id == request.contentId,
-        )
-        .with_for_update()
-    )
-    if evidence is None:
-        raise HTTPException(status_code=409, detail="Verified video watch evidence is required before completion")
-
-    progress = get_or_create_progress(db, user.id)
-    xp_awarded = 0
-    if evidence.completed_at is None:
-        evidence.completed_at = datetime.now(timezone.utc)
-        evidence.reflection = reflection
-        xp_awarded = 100 if reflection else 70
-        progress.xp += xp_awarded
-
-        topic = content.topic or "해양교육"
-        skill_evidence = dict(progress.skill_evidence_json or {})
-        mastery = dict(progress.skill_mastery_json or {})
-        count = int(skill_evidence.get(topic, 0))
-        old = int(mastery.get(topic, 50))
-        skill_evidence[topic] = count + 1
-        mastery[topic] = round((old * count + 80) / max(1, count + 1))
-        progress.skill_evidence_json = skill_evidence
-        progress.skill_mastery_json = mastery
-
-    db.flush()
-    profile = db.get(UserProfile, user.id) or UserProfile(user_id=user.id, snapshot={}, version=0)
-    status = diamond_status_for(db, user, progress=progress)
-    profile.snapshot = apply_verified_evidence(
-        db,
-        user.id,
-        apply_account_state(
-            apply_authoritative_progress(
-                profile.snapshot or {}, progress, diamond_eligible=status.eligible
-            ),
-            user,
-        ),
-    )
-    profile.version = int(profile.version or 0) + 1
-    db.add(profile)
-    db.commit()
-    return VideoCompletionResponse(
-        completed=True,
-        xpAwarded=xp_awarded,
-        message="Video learning was completed.",
-        completedAt=evidence.completed_at,
     )
 
 
@@ -2479,7 +2328,6 @@ def community_post_schema(db: Session, post: CommunityPost, viewer: User) -> Com
         author=profile_summary(db, author, viewer),
         title=post.title,
         body=post.body,
-        imageUrl=post.image_url or "",
         createdAt=post.created_at,
         updatedAt=post.updated_at,
         canEdit=post.user_id == viewer.id or is_admin(viewer),

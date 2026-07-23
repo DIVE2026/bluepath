@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
+    llm_timeout_seconds: int = 90
+    llm_connect_timeout_seconds: int = 20
+    llm_max_retries: int = 1
     embedding_model: str = ""
     embedding_dimensions: int = 1536
     require_llm: bool = False

@@ -3,11 +3,13 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import logging
 import ipaddress
 import json
 import math
 import re
 import socket
+import time
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,6 +27,7 @@ from .models import Content, KnowledgeChunk, QuizBankItem
 from .schemas import AdminContentItem, AgentRequest, AgentResponse, AiSearchRequest, AiSearchResponse, QuizQuestion, QuizRequest, QuizResponse, SourceItem
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
 FALLBACK_QUIZZES = ROOT / "app/src/main/assets/fallback_quizzes.json"
 KNOWLEDGE_SEED = ROOT / "backend/data/knowledge_seed.json"
@@ -43,6 +46,30 @@ class WebEvidence:
     organization: str
     content: str
 
+
+
+
+def conversation_context(history: list[Any], max_messages: int = 12) -> str:
+    """Return a compact, bounded transcript for follow-up questions."""
+    lines: list[str] = []
+    for item in history[-max_messages:]:
+        role = str(getattr(item, "role", "")).strip().lower()
+        content = str(getattr(item, "content", "")).strip()
+        if role not in {"user", "assistant"} or not content:
+            continue
+        label = "USER" if role == "user" else "ASSISTANT"
+        lines.append(f"{label}: {content[:4000]}")
+    return "\n".join(lines)
+
+
+def conversation_search_query(history: list[Any], current_query: str) -> str:
+    recent_user_messages = [
+        str(getattr(item, "content", "")).strip()
+        for item in history[-8:]
+        if str(getattr(item, "role", "")).strip().lower() == "user"
+        and str(getattr(item, "content", "")).strip()
+    ]
+    return " ".join([*recent_user_messages[-2:], current_query]).strip()
 
 SYSTEM_PROMPT = (
     "You are BluePath Marine AI, a Korean-language ocean education specialist. "
@@ -284,9 +311,11 @@ def generate_quiz(db: Session, request: QuizRequest) -> QuizResponse:
 
 
 def answer_agent(db: Session, request: AgentRequest) -> AgentResponse:
-    query = f"{request.question} {request.profile.get('interest', '')} {request.tier}"
+    transcript = conversation_context(request.history)
+    contextual_question = conversation_search_query(request.history, request.question)
+    query = f"{contextual_question} {request.profile.get('interest', '')} {request.tier}"
     local_sources = retrieve_sources(db, query, 5)
-    live_sources = retrieve_live_web_sources(request.question, min(4, settings.web_search_max_results))
+    live_sources = retrieve_live_web_sources(contextual_question, min(4, settings.web_search_max_results))
     source_items = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in local_sources]
     source_items.extend(SourceItem(title=s.title, url=s.url, organization=s.organization) for s in live_sources)
 
@@ -303,7 +332,8 @@ def answer_agent(db: Session, request: AgentRequest) -> AgentResponse:
         prompt = (
             f"Learner profile: {json.dumps(request.profile, ensure_ascii=False)}\n"
             f"Current tier: {request.tier}\nPromotion manual:\n{request.promotionManual}\n"
-            f"Retrieved local and live-web evidence:\n{evidence}\n\nQuestion: {request.question}\n"
+            f"Conversation so far (may be empty):\n{transcript or '(none)'}\n"
+            f"Retrieved local and live-web evidence:\n{evidence}\n\nCurrent question: {request.question}\n"
             "Answer in Korean. Put the direct answer first, then a practical career/learning path. "
             "Cite source markers exactly as [LOCAL 1] or [WEB 1] when used. Never claim live browsing if no WEB evidence exists. "
             "For laws, licenses, recruitment, prices, or schedules, state that the user must verify the latest official source. "
@@ -311,8 +341,8 @@ def answer_agent(db: Session, request: AgentRequest) -> AgentResponse:
         )
         try:
             return AgentResponse(answer=call_chat(prompt, 0.2, 1800).strip(), sources=source_items)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("AI agent LLM fallback: %s", exc)
 
     interest = request.profile.get("interest", "해양")
     web_note = " 실시간 웹 자료도 함께 확인했습니다." if live_sources else " 현재 실시간 웹 검색 키가 없어 앱의 검증된 자료를 우선 사용했습니다."
@@ -415,7 +445,9 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
     type_map = {"video": {"video"}, "schedule": {"program", "event", "schedule"}, "paper": {"paper"}}
     allowed = type_map[request.resourceType]
     items = list(db.scalars(select(Content).where(Content.content_type.in_(allowed)).limit(500)))
-    tokens = tokenize(request.query)
+    transcript = conversation_context(request.history)
+    contextual_query = conversation_search_query(request.history, request.query)
+    tokens = tokenize(contextual_query)
 
     def score(item: Content) -> float:
         metadata = item.metadata_json or {}
@@ -426,14 +458,14 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
             str(metadata.get("authors", "")), str(metadata.get("year", "")), str(metadata.get("doi", "")),
         ])
         base = lexical_score(tokens, tokenize(document))
-        exact = 1.0 if request.query.lower() in document.lower() else 0.0
+        exact = 1.0 if contextual_query.lower() in document.lower() else 0.0
         return base * 10 + exact * 3
 
     ranked = sorted(items, key=score, reverse=True)
     selected = [item for item in ranked if score(item) > 0][: request.limit]
 
     live_sources = retrieve_live_web_sources(
-        f"{request.query} 해양 {request.resourceType} 공식 자료",
+        f"{contextual_query} 해양 {request.resourceType} 공식 자료",
         min(3, settings.web_search_max_results),
     )
     sources = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in live_sources]
@@ -445,15 +477,16 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
         )
         web_text = "\n".join(f"- {s.title}: {s.content[:1200]} ({s.url})" for s in live_sources)
         prompt = (
-            f"User request: {request.query}\nResource type: {request.resourceType}\n"
+            f"Conversation so far (may be empty):\n{transcript or '(none)'}\n"
+            f"Current user request: {request.query}\nContextual search query: {contextual_query}\nResource type: {request.resourceType}\n"
             f"BluePath candidates:\n{catalog_text}\nLive web evidence:\n{web_text}\n"
             "Write a concise Korean summary explaining why these results fit. Do not invent items or URLs. "
             "Mention when official schedules must be rechecked."
         )
         try:
             summary = call_chat(prompt, 0.15, 500).strip()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("AI resource search LLM fallback: %s", exc)
     return AiSearchResponse(
         summary=summary,
         items=[content_schema(item) for item in selected],
@@ -839,25 +872,65 @@ def call_chat(user_prompt: str, temperature: float, max_tokens: int) -> str:
     headers = {"Content-Type": "application/json"}
     if settings.llm_api_key:
         headers["Authorization"] = f"Bearer {settings.llm_api_key}"
-    response = httpx.post(
-        endpoint,
-        headers=headers,
-        json={
-            "model": settings.llm_model,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-        },
-        timeout=90,
+    request_payload = {
+        "model": settings.llm_model,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+    timeout = httpx.Timeout(
+        max(10, settings.llm_timeout_seconds),
+        connect=max(5, min(settings.llm_connect_timeout_seconds, settings.llm_timeout_seconds)),
     )
-    response.raise_for_status()
-    content = response.json()["choices"][0]["message"]["content"]
-    if isinstance(content, list):
-        return "".join(part.get("text", "") for part in content if isinstance(part, dict))
-    return str(content)
+    attempts = max(1, settings.llm_max_retries + 1)
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            response = httpx.post(
+                endpoint,
+                headers=headers,
+                json=request_payload,
+                timeout=timeout,
+            )
+            if response.status_code == 400:
+                detail = response.text.lower()
+                compatible_payload = dict(request_payload)
+                changed = False
+                if "max_tokens" in detail and "max_completion_tokens" in detail:
+                    compatible_payload.pop("max_tokens", None)
+                    compatible_payload["max_completion_tokens"] = max_tokens
+                    changed = True
+                if "temperature" in detail and ("unsupported" in detail or "not supported" in detail):
+                    compatible_payload.pop("temperature", None)
+                    changed = True
+                if changed:
+                    response = httpx.post(
+                        endpoint,
+                        headers=headers,
+                        json=compatible_payload,
+                        timeout=timeout,
+                    )
+            if response.status_code == 429 or response.status_code >= 500:
+                response.raise_for_status()
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            if isinstance(content, list):
+                return "".join(part.get("text", "") for part in content if isinstance(part, dict))
+            return str(content)
+        except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
+            last_error = exc
+            retryable_status = isinstance(exc, httpx.HTTPStatusError) and (
+                exc.response.status_code == 429 or exc.response.status_code >= 500
+            )
+            if attempt + 1 >= attempts or (isinstance(exc, httpx.HTTPStatusError) and not retryable_status):
+                raise
+            time.sleep(min(2.0, 0.5 * (2 ** attempt)))
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("LLM request failed without an error")
 
 
 def validate_quiz_payload(raw: str, tier: str, expected: int, sources: list[KnowledgeChunk]) -> list[QuizQuestion]:

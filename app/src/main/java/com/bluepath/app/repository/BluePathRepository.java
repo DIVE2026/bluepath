@@ -123,9 +123,12 @@ public class BluePathRepository {
     }
 
 
-    public ApiModels.AiSearchResponse aiSearch(String query, String resourceType) throws IOException {
+    public ApiModels.AiSearchResponse aiSearch(String query, String resourceType,
+                                               List<ApiModels.ChatMessage> history) throws IOException {
         requireAuthenticated();
-        return requireBody(api.aiSearch(bearer(), new ApiModels.AiSearchRequest(query, resourceType, 12)).execute(), "AI 자료 검색");
+        return requireBody(api.aiSearch(
+                bearer(), new ApiModels.AiSearchRequest(query, resourceType, 12, history)
+        ).execute(), "AI 자료 검색");
     }
 
     public ApiModels.RoutePlanResponse planRoute(String targetCareer, String routeType) throws IOException {
@@ -225,12 +228,46 @@ public class BluePathRepository {
         return communityPosts(category, "", 20, 0);
     }
 
+    public ApiModels.CommunityPostDto communityPost(String postId) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityPost(bearer(), postId).execute(), "게시글 불러오기");
+    }
+
     public ApiModels.CommunityPostDto createCommunityPost(String category, String title, String body) throws IOException {
         requireAuthenticated();
         ApiModels.CommunityPostDto result = requireBody(api.createCommunityPost(
                 bearer(), new ApiModels.CommunityPostRequest(category, title, body)).execute(), "게시글 작성");
         store.recordActivity("community_post", 1);
         return result;
+    }
+
+    public ApiModels.CommunityPostDto uploadCommunityPostImage(String postId, Uri uri) throws IOException {
+        requireAuthenticated();
+        String mimeType = context.getContentResolver().getType(uri);
+        if (mimeType == null || (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png") && !mimeType.equals("image/webp"))) {
+            throw new IOException("게시글 사진은 JPEG, PNG, WebP 형식만 첨부할 수 있습니다.");
+        }
+        String extension = mimeType.equals("image/png") ? ".png" : mimeType.equals("image/webp") ? ".webp" : ".jpg";
+        File temp = File.createTempFile("bluepath-community-", extension, context.getCacheDir());
+        try {
+            try (InputStream input = context.getContentResolver().openInputStream(uri);
+                 FileOutputStream output = new FileOutputStream(temp)) {
+                if (input == null) throw new IOException("선택한 사진을 읽을 수 없습니다.");
+                byte[] buffer = new byte[8192];
+                int read;
+                long total = 0;
+                while ((read = input.read(buffer)) != -1) {
+                    total += read;
+                    if (total > 8_000_000L) throw new IOException("게시글 사진은 8MB 이하만 첨부할 수 있습니다.");
+                    output.write(buffer, 0, read);
+                }
+            }
+            RequestBody body = RequestBody.create(MediaType.parse(mimeType), temp);
+            MultipartBody.Part part = MultipartBody.Part.createFormData("file", temp.getName(), body);
+            return requireBody(api.uploadCommunityPostImage(bearer(), postId, part).execute(), "게시글 사진 업로드");
+        } finally {
+            temp.delete();
+        }
     }
 
     public ApiModels.CommunityCommentDto createCommunityComment(String postId, String body, String parentId) throws IOException {

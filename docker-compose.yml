@@ -19,6 +19,8 @@ services:
       - backend/.env
     depends_on:
       - db
+    volumes:
+      - bluepath_uploads:/workspace/backend/uploads
     ports:
       - "8002:8000"
 
@@ -37,4 +39,5 @@ services:
 
 volumes:
   bluepath_db:
+  bluepath_uploads:
   bluepath_hf_cache:

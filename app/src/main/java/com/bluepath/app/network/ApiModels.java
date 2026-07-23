@@ -126,17 +126,30 @@ public final class ApiModels {
         public List<QuizQuestionDto> questions = new ArrayList<>();
     }
 
+    public static class ChatMessage {
+        public String role;
+        public String content;
+
+        public ChatMessage(String role, String content) {
+            this.role = role;
+            this.content = content;
+        }
+    }
+
     public static class AgentRequest {
         public String question;
         public String tier;
         public Map<String, Object> profile;
         public String promotionManual;
+        public List<ChatMessage> history = new ArrayList<>();
 
-        public AgentRequest(String question, String tier, Map<String, Object> profile, String promotionManual) {
+        public AgentRequest(String question, String tier, Map<String, Object> profile,
+                            String promotionManual, List<ChatMessage> history) {
             this.question = question;
             this.tier = tier;
             this.profile = profile;
             this.promotionManual = promotionManual;
+            if (history != null) this.history.addAll(history);
         }
     }
 
@@ -268,11 +281,13 @@ public final class ApiModels {
         public String query;
         public String resourceType;
         public int limit;
+        public List<ChatMessage> history = new ArrayList<>();
 
-        public AiSearchRequest(String query, String resourceType, int limit) {
+        public AiSearchRequest(String query, String resourceType, int limit, List<ChatMessage> history) {
             this.query = query;
             this.resourceType = resourceType;
             this.limit = limit;
+            if (history != null) this.history.addAll(history);
         }
     }
 
@@ -307,6 +322,7 @@ public final class ApiModels {
         public ProfileSummary author;
         public String title;
         public String body;
+        public String imageUrl;
         public String createdAt;
         public String updatedAt;
         public boolean canEdit;

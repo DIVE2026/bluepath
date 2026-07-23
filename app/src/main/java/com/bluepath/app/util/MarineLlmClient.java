@@ -112,10 +112,11 @@ public class MarineLlmClient {
     }
 
     public String answerAgent(String question, UserProfile profile, String tier,
-                              List<ContentItem> recommendations, String promotionManual) throws Exception {
+                              List<ContentItem> recommendations, String promotionManual,
+                              List<ApiModels.ChatMessage> history) throws Exception {
         Response<ApiModels.AgentResponse> response = api.answerAgent(
                 authorization(),
-                new ApiModels.AgentRequest(question, tier, profileMap(profile), promotionManual)).execute();
+                new ApiModels.AgentRequest(question, tier, profileMap(profile), promotionManual, history)).execute();
         if (!response.isSuccessful() || response.body() == null) {
             throw new IllegalStateException("BluePath AI agent HTTP " + response.code());
         }

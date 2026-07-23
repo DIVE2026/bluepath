@@ -378,6 +378,7 @@ class CommunityPost(Base):
     category: Mapped[str] = mapped_column(String(20), default="free", index=True)
     title: Mapped[str] = mapped_column(String(240))
     body: Mapped[str] = mapped_column(Text)
+    image_url: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 
