@@ -52,6 +52,7 @@ import com.bluepath.app.model.PaperItem;
 import com.bluepath.app.model.ProgramItem;
 import com.bluepath.app.model.QuizQuestion;
 import com.bluepath.app.model.UserProfile;
+import com.bluepath.app.network.ApiClient;
 import com.bluepath.app.network.ApiModels;
 import com.bluepath.app.repository.BluePathRepository;
 import com.bluepath.app.storage.UserStore;
@@ -2807,59 +2808,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addCommunityPostCard(ApiModels.CommunityPostDto post) {
-        LinearLayout card = card();
-        LinearLayout authorRow = row();
-        authorRow.setGravity(Gravity.CENTER_VERTICAL);
-        authorRow.addView(profileAvatar(post.author.nickname, post.author.profileImageUrl, dp(48)), new LinearLayout.LayoutParams(dp(48), dp(48)));
-        LinearLayout authorText = new LinearLayout(this);
-        authorText.setOrientation(LinearLayout.VERTICAL);
-        authorText.setPadding(dp(10), 0, 0, 0);
-        authorText.addView(big(post.author.nickname));
-        authorText.addView(label("팔로워 " + post.author.followerCount));
-        authorRow.addView(authorText, new LinearLayout.LayoutParams(0, -2, 1));
-        TierShieldView authorShield = tierShield(post.author.tier);
-        LinearLayout.LayoutParams authorShieldParams = new LinearLayout.LayoutParams(dp(40), dp(46));
-        authorShieldParams.setMargins(dp(4), 0, dp(6), 0);
-        authorRow.addView(authorShield, authorShieldParams);
-        if (!store.getNickname().equals(post.author.nickname)) {
-            Button follow = outlineButton(post.author.isFollowing ? "팔로잉" : "팔로우");
-            follow.setOnClickListener(v -> toggleFollow(post.author.userId));
-            authorRow.addView(follow, new LinearLayout.LayoutParams(dp(88), dp(40)));
-        }
-        card.addView(authorRow);
-        card.addView(label(("question".equals(post.category) ? "질문" : "자유") + " · " + readableDate(post.createdAt)));
-        card.addView(big(post.title));
-        card.addView(body(post.body));
-        card.addView(reactionBar("post", post.id, post.reactions));
-        LinearLayout postActions = row();
-        if (post.canEdit) {
-            Button edit = outlineButton("수정");
-            edit.setOnClickListener(v -> showEditPostDialog(post));
-            Button delete = outlineButton("삭제");
-            delete.setOnClickListener(v -> confirmDeletePost(post.id));
-            postActions.addView(edit, weightedButtonParams(true));
-            postActions.addView(delete, weightedButtonParams(false));
-        } else {
-            Button report = outlineButton("신고");
-            report.setOnClickListener(v -> showReportDialog("post", post.id));
-            Button block = outlineButton("작성자 차단");
-            block.setOnClickListener(v -> confirmBlockUser(post.author.userId, post.author.nickname));
-            postActions.addView(report, weightedButtonParams(true));
-            postActions.addView(block, weightedButtonParams(false));
-        }
-        card.addView(postActions);
-        Button comment = outlineButton("댓글 작성 · " + (post.comments == null ? 0 : post.comments.size()));
-        comment.setOnClickListener(v -> showCommunityCommentDialog(post.id, null, "댓글"));
-        card.addView(comment, new LinearLayout.LayoutParams(-1, dp(44)));
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setPadding(dp(12), dp(14), dp(12), dp(12));
+        item.setBackgroundColor(Color.WHITE);
+        item.setClickable(true);
+        item.setFocusable(true);
+        item.setOnClickListener(v -> openCommunityPostDetail(post.id));
 
-        if (post.comments != null && !post.comments.isEmpty()) {
-            LinearLayout comments = new LinearLayout(this);
-            comments.setOrientation(LinearLayout.VERTICAL);
-            comments.setPadding(dp(10), dp(8), 0, 0);
-            addCommentChildren(comments, post, null, 0);
-            card.addView(comments);
+        LinearLayout titleRow = row();
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = body(post.title);
+        title.setTextSize(16);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setTextColor(NAVY);
+        title.setMaxLines(2);
+        title.setPadding(0, 0, dp(12), 0);
+        titleRow.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView author = label(post.author == null ? "알 수 없음" : post.author.nickname);
+        author.setTextColor(TEXT);
+        author.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        author.setMaxLines(1);
+        titleRow.addView(author, new LinearLayout.LayoutParams(dp(92), -2));
+        item.addView(titleRow);
+
+        int commentCount = post.comments == null ? 0 : post.comments.size();
+        int reactionCount = 0;
+        if (post.reactions != null) {
+            for (ApiModels.ReactionSummary reaction : post.reactions) reactionCount += reaction.count;
         }
-        content.addView(card);
+        String photo = safe(post.imageUrl).isEmpty() ? "" : " · 사진";
+        String metaText = ("question".equals(post.category) ? "질문" : "자유")
+                + " · " + readableDate(post.createdAt)
+                + " · 댓글 " + commentCount
+                + " · 공감 " + reactionCount
+                + photo;
+        TextView meta = label(metaText);
+        meta.setPadding(0, dp(7), 0, 0);
+        item.addView(meta);
+
+        content.addView(item, new LinearLayout.LayoutParams(-1, -2));
+        View divider = new View(this);
+        divider.setBackgroundColor(Color.parseColor("#D7E3E8"));
+        content.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+    }
+
+    private void openCommunityPostDetail(String postId) {
+        Intent intent = new Intent(this, CommunityPostDetailActivity.class);
+        intent.putExtra(CommunityPostDetailActivity.EXTRA_POST_ID, postId);
+        communityPostLauncher.launch(intent);
     }
 
     private void addCommentChildren(LinearLayout container, ApiModels.CommunityPostDto post, String parentId, int depth) {
@@ -5088,7 +5087,7 @@ public class MainActivity extends AppCompatActivity {
         if (imageUrl != null && !imageUrl.trim().isEmpty()) {
             ImageView image = new ImageView(this);
             image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(this).load(imageUrl).circleCrop().into(image);
+            Glide.with(this).load(ApiClient.resolveMediaUrl(imageUrl)).circleCrop().into(image);
             return image;
         }
         TextView fallback = new TextView(this);

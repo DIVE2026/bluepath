@@ -17,6 +17,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity android:name=".CommunityPostDetailActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".CommunityPostActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".VerifiedVideoActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true" android:theme="@style/Theme.BluePath.Splash">
