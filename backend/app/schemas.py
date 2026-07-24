@@ -64,7 +64,6 @@ class CommunityPostItem(CamelModel):
     author: ProfileSummary
     title: str
     body: str
-    imageUrl: str = ""
     createdAt: datetime
     updatedAt: datetime
     canEdit: bool = False
@@ -201,8 +200,8 @@ class QuizSubmissionResponse(CamelModel):
     questions: list[QuizQuestion] = Field(default_factory=list)
 
 
-class ConversationMessage(CamelModel):
-    role: str = Field(pattern="^(user|assistant)$")
+class AgentHistoryMessage(CamelModel):
+    role: str = Field(pattern=r"^(user|assistant)$")
     content: str = Field(min_length=1, max_length=4000)
 
 
@@ -211,7 +210,7 @@ class AgentRequest(CamelModel):
     tier: str
     profile: dict[str, Any] = Field(default_factory=dict)
     promotionManual: str = ""
-    history: list[ConversationMessage] = Field(default_factory=list, max_length=20)
+    history: list[AgentHistoryMessage] = Field(default_factory=list, max_length=12)
 
 
 class AgentResponse(CamelModel):
@@ -334,7 +333,6 @@ class AiSearchRequest(CamelModel):
     query: str = Field(min_length=1, max_length=1000)
     resourceType: str = Field(pattern="^(video|schedule|paper)$")
     limit: int = Field(default=10, ge=1, le=30)
-    history: list[ConversationMessage] = Field(default_factory=list, max_length=20)
 
 
 class AiSearchResponse(CamelModel):
@@ -598,18 +596,6 @@ class VideoEvidenceResponse(CamelModel):
     coveragePercent: int
     xpAwarded: int
     message: str
-
-
-class VideoCompletionRequest(CamelModel):
-    contentId: str = Field(min_length=1, max_length=160)
-    reflection: str = Field(default="", max_length=2000)
-
-
-class VideoCompletionResponse(CamelModel):
-    completed: bool
-    xpAwarded: int
-    message: str
-    completedAt: datetime
 
 
 class GuardianConsentRequestCreate(CamelModel):

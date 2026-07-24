@@ -16,8 +16,11 @@ import java.util.Map;
 import retrofit2.Response;
 
 public class MarineLlmClient {
+    private static final int MAX_HISTORY_MESSAGES = 12;
+
     private final UserStore store;
     private final BluePathApi api;
+    private final List<Map<String, String>> history = new ArrayList<>();
     private String activeQuizSessionId = "";
 
     public MarineLlmClient(UserStore store) {
@@ -112,17 +115,28 @@ public class MarineLlmClient {
     }
 
     public String answerAgent(String question, UserProfile profile, String tier,
-                              List<ContentItem> recommendations, String promotionManual,
-                              List<ApiModels.ChatMessage> history) throws Exception {
+                              List<ContentItem> recommendations, String promotionManual) throws Exception {
+        String safeQuestion = safe(question);
+        if (safeQuestion.isEmpty()) throw new IllegalArgumentException("질문을 입력해 주세요.");
+
+        List<Map<String, String>> historySnapshot = historySnapshot();
         Response<ApiModels.AgentResponse> response = api.answerAgent(
                 authorization(),
-                new ApiModels.AgentRequest(question, tier, profileMap(profile), promotionManual, history)).execute();
+                new ApiModels.AgentRequest(
+                        safeQuestion,
+                        tier,
+                        profileMap(profile),
+                        promotionManual,
+                        historySnapshot)).execute();
         if (!response.isSuccessful() || response.body() == null) {
             throw new IllegalStateException("BluePath AI agent HTTP " + response.code());
         }
 
         ApiModels.AgentResponse body = response.body();
-        StringBuilder answer = new StringBuilder(safe(body.answer));
+        String rawAnswer = safe(body.answer);
+        rememberAgentTurn(safeQuestion, rawAnswer);
+
+        StringBuilder answer = new StringBuilder(rawAnswer);
         if (body.sources != null && !body.sources.isEmpty()) {
             answer.append("\n\n근거 자료");
             for (int i = 0; i < Math.min(4, body.sources.size()); i++) {
@@ -133,6 +147,31 @@ public class MarineLlmClient {
             }
         }
         return answer.toString().trim();
+    }
+
+    public synchronized void clearAgentHistory() {
+        history.clear();
+    }
+
+    private synchronized List<Map<String, String>> historySnapshot() {
+        List<Map<String, String>> snapshot = new ArrayList<>();
+        for (Map<String, String> message : history) {
+            snapshot.add(new HashMap<>(message));
+        }
+        return snapshot;
+    }
+
+    private synchronized void rememberAgentTurn(String question, String answer) {
+        addHistoryMessage("user", question);
+        if (!answer.isEmpty()) addHistoryMessage("assistant", answer);
+        while (history.size() > MAX_HISTORY_MESSAGES) history.remove(0);
+    }
+
+    private void addHistoryMessage(String role, String content) {
+        Map<String, String> message = new HashMap<>();
+        message.put("role", role);
+        message.put("content", content);
+        history.add(message);
     }
 
     private Map<String, Object> profileMap(UserProfile profile) {
