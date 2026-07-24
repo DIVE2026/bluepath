@@ -14,8 +14,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.CalendarContract;
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableStringBuilder;
@@ -23,6 +26,7 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -116,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> communityPostLauncher;
     private ActivityResultLauncher<Object> qrScanner;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService communityExecutor = Executors.newFixedThreadPool(2);
     private LinearLayout root;
     private LinearLayout content;
     private ScrollView contentScroll;
@@ -134,7 +139,14 @@ public class MainActivity extends AppCompatActivity {
     private String communityQuery = "";
     private int communityOffset = 0;
     private boolean communityHasMore = true;
+    private int communityRequestVersion = 0;
     private static final int COMMUNITY_PAGE_SIZE = 20;
+    private static final long COMMUNITY_SEARCH_DEBOUNCE_MS = 150L;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Runnable communitySearchRunnable;
+    private EditText communitySearchInput;
+    private Button communitySearchClearButton;
+    private LinearLayout communityResultsContainer;
     private List<ApiModels.CommunityPostDto> communityPosts = new ArrayList<>();
     private boolean learningSearchLoading = false;
     private boolean scheduleSearchLoading = false;
@@ -331,6 +343,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         cancelQuizTimer();
+        if (communitySearchRunnable != null) {
+            mainHandler.removeCallbacks(communitySearchRunnable);
+            communitySearchRunnable = null;
+        }
+        communityExecutor.shutdownNow();
         executor.shutdownNow();
         super.onDestroy();
     }
@@ -2558,9 +2575,7 @@ public class MainActivity extends AppCompatActivity {
             if (llmClient.isConfigured()) {
                 try {
                     UserProfile profile = store.getProfile();
-                    answer = llmClient.answerAgent(trimmed, profile, store.getTier(),
-                            RecommendationEngine.recommendedContents(profile, store.getTier(), store),
-                            PromotionRules.fullManualPlain());
+                    answer = invokeAgentAnswerCompat(trimmed, profile);
                 } catch (Exception e) {
                     answer = "LLM 호출에 실패해 로컬 상담으로 전환했습니다.\n\n"
                             + RecommendationEngine.answerAgent(trimmed, store.getProfile(), store.getTier())
@@ -2634,15 +2649,15 @@ public class MainActivity extends AppCompatActivity {
                 "",
                 "OCEAN COMMUNITY",
                 "해양 커뮤니티",
-                "자유 게시판과 질문 게시판에서 해양 학습·활동 경험을 나누고 서로 답해 보세요. 검색과 더 보기를 지원하며, 작성자는 게시글과 댓글을 수정·삭제할 수 있습니다. "
+                "자유 게시판과 질문 게시판에서 해양 학습·활동 경험을 나누고 서로 답해 보세요. 검색어를 입력하거나 지우는 즉시 목록이 갱신되며, 작성자는 게시글과 댓글을 수정·삭제할 수 있습니다. "
                         + "불편하거나 유해한 콘텐츠는 신고하고 작성자를 차단할 수 있으며, 차단한 사용자의 게시글과 댓글은 목록에서 제외됩니다."
         );
 
         LinearLayout tabs = row();
         Button free = "free".equals(communityCategory) ? primaryButton("자유 게시판") : outlineButton("자유 게시판");
         Button question = "question".equals(communityCategory) ? primaryButton("질문 게시판") : outlineButton("질문 게시판");
-        free.setOnClickListener(v -> { communityCategory = "free"; requestCommunityRefresh(); });
-        question.setOnClickListener(v -> { communityCategory = "question"; requestCommunityRefresh(); });
+        free.setOnClickListener(v -> switchCommunityCategory("free"));
+        question.setOnClickListener(v -> switchCommunityCategory("question"));
         LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, dp(46), 1);
         left.setMargins(0, 0, dp(5), 0);
         tabs.addView(free, left);
@@ -2653,60 +2668,134 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout searchCard = card();
         LinearLayout searchRow = row();
-        EditText search = inputField("제목·본문·작성자 검색", communityQuery);
-        searchRow.addView(search, new LinearLayout.LayoutParams(0, dp(48), 1));
+        communitySearchInput = inputField("제목·본문·작성자 검색", communityQuery);
+        communitySearchInput.setSingleLine(true);
+        searchRow.addView(communitySearchInput, new LinearLayout.LayoutParams(0, dp(48), 1));
         Button searchButton = primaryButton("검색");
         LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(dp(78), dp(48));
         searchParams.setMargins(dp(8), 0, 0, 0);
         searchRow.addView(searchButton, searchParams);
-        searchButton.setOnClickListener(v -> {
-            communityQuery = search.getText().toString().trim();
-            requestCommunityRefresh();
-        });
-        search.setOnEditorActionListener((v, actionId, event) -> {
-            communityQuery = search.getText().toString().trim();
-            requestCommunityRefresh();
+        searchButton.setOnClickListener(v -> runCommunitySearchNow());
+        communitySearchInput.setOnEditorActionListener((v, actionId, event) -> {
+            runCommunitySearchNow();
             return true;
         });
         searchCard.addView(searchRow);
-        if (!communityQuery.isEmpty()) {
-            Button clear = outlineButton("검색어 지우기");
-            clear.setOnClickListener(v -> { communityQuery = ""; requestCommunityRefresh(); });
-            searchCard.addView(clear, new LinearLayout.LayoutParams(-1, dp(42)));
-        }
+
+        communitySearchClearButton = outlineButton("검색어 지우기");
+        communitySearchClearButton.setVisibility(communityQuery.isEmpty() ? View.GONE : View.VISIBLE);
+        communitySearchClearButton.setOnClickListener(v -> {
+            if (communitySearchInput != null) {
+                communitySearchInput.setText("");
+                communitySearchInput.requestFocus();
+            }
+        });
+        searchCard.addView(communitySearchClearButton, new LinearLayout.LayoutParams(-1, dp(42)));
         content.addView(searchCard);
 
+        communitySearchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String nextQuery = editable == null ? "" : editable.toString().trim();
+                if (communitySearchClearButton != null) {
+                    communitySearchClearButton.setVisibility(nextQuery.isEmpty() ? View.GONE : View.VISIBLE);
+                }
+                if (nextQuery.equals(communityQuery)) return;
+                communityQuery = nextQuery;
+                scheduleCommunitySearch(nextQuery.isEmpty() ? 0L : COMMUNITY_SEARCH_DEBOUNCE_MS);
+            }
+        });
+
+        communityResultsContainer = new LinearLayout(this);
+        communityResultsContainer.setOrientation(LinearLayout.VERTICAL);
+        content.addView(communityResultsContainer, new LinearLayout.LayoutParams(-1, -2));
+        renderCommunityResults();
+
+        if (!communityInitialized && !communityLoading) requestCommunityRefresh();
+    }
+
+    private void switchCommunityCategory(String category) {
+        if (category == null || category.equals(communityCategory)) return;
+        cancelPendingCommunitySearch();
+        communityRequestVersion++;
+        communityCategory = category;
+        communityLoading = false;
+        communityInitialized = false;
+        communityError = "";
+        communityOffset = 0;
+        communityHasMore = true;
+        communityPosts.clear();
+        if (currentTab == 5) showApp(5);
+    }
+
+    private void scheduleCommunitySearch(long delayMs) {
+        cancelPendingCommunitySearch();
+        communitySearchRunnable = () -> {
+            communitySearchRunnable = null;
+            requestCommunityRefresh();
+        };
+        mainHandler.postDelayed(communitySearchRunnable, Math.max(0L, delayMs));
+    }
+
+    private void cancelPendingCommunitySearch() {
+        if (communitySearchRunnable == null) return;
+        mainHandler.removeCallbacks(communitySearchRunnable);
+        communitySearchRunnable = null;
+    }
+
+    private void runCommunitySearchNow() {
+        if (communitySearchInput != null) {
+            communityQuery = communitySearchInput.getText().toString().trim();
+        }
+        cancelPendingCommunitySearch();
+        requestCommunityRefresh();
+    }
+
+    private void renderCommunityResults() {
+        if (communityResultsContainer == null) return;
+        communityResultsContainer.removeAllViews();
+
         if (!communityError.isEmpty()) {
-            content.addView(note(communityError, DANGER));
+            communityResultsContainer.addView(note(communityError, DANGER));
             Button retry = primaryButton("다시 시도");
             retry.setOnClickListener(v -> requestCommunityRefresh());
             LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(-1, dp(48));
             retryParams.setMargins(0, 0, 0, dp(12));
-            content.addView(retry, retryParams);
+            communityResultsContainer.addView(retry, retryParams);
         }
+
         if (communityPosts.isEmpty() && communityLoading) {
             LinearLayout loading = card();
-            loading.addView(big("커뮤니티를 불러오고 있습니다"));
+            loading.addView(big(communityQuery.isEmpty()
+                    ? "커뮤니티를 불러오고 있습니다"
+                    : "검색 결과를 빠르게 찾고 있습니다"));
             loading.addView(new ProgressBar(this));
-            content.addView(loading);
+            communityResultsContainer.addView(loading);
             return;
         }
+
         if (communityPosts.isEmpty()) {
             LinearLayout empty = card();
             empty.addView(big(communityQuery.isEmpty() ? "아직 게시글이 없습니다" : "검색 결과가 없습니다"));
-            empty.addView(body(communityQuery.isEmpty() ? "첫 번째 해양 이야기를 남겨 보세요." : "다른 검색어를 입력해 보세요."));
-            content.addView(empty);
-            if (communityError.isEmpty() && !communityLoading && !communityInitialized) requestCommunityRefresh();
+            empty.addView(body(communityQuery.isEmpty()
+                    ? "첫 번째 해양 이야기를 남겨 보세요."
+                    : "다른 검색어를 입력해 보세요."));
+            communityResultsContainer.addView(empty);
             return;
         }
-        for (ApiModels.CommunityPostDto post : communityPosts) addCommunityPostCard(post);
+
+        for (ApiModels.CommunityPostDto post : communityPosts) {
+            addCommunityPostCard(communityResultsContainer, post);
+        }
         if (communityLoading) {
-            ProgressBar progress = new ProgressBar(this);
-            content.addView(progress);
+            communityResultsContainer.addView(new ProgressBar(this));
         } else if (communityHasMore) {
             Button more = outlineButton("게시글 더 보기");
             more.setOnClickListener(v -> requestCommunityPage(true));
-            content.addView(more, new LinearLayout.LayoutParams(-1, dp(48)));
+            communityResultsContainer.addView(more, new LinearLayout.LayoutParams(-1, dp(48)));
         }
     }
 
@@ -2715,20 +2804,36 @@ public class MainActivity extends AppCompatActivity {
         communityOffset = 0;
         communityHasMore = true;
         communityPosts.clear();
-        requestCommunityPage(false);
+        int requestVersion = ++communityRequestVersion;
+        loadCommunityPage(false, requestVersion);
     }
 
     private void requestCommunityPage(boolean append) {
-        if (communityLoading) return;
+        if (!append) {
+            requestCommunityRefresh();
+            return;
+        }
+        if (communityLoading || !communityHasMore) return;
+        loadCommunityPage(true, communityRequestVersion);
+    }
+
+    private void loadCommunityPage(boolean append, int requestVersion) {
         communityLoading = true;
         communityError = "";
-        if (currentTab == 5) showApp(5);
+        renderCommunityResults();
+
         final int requestedOffset = append ? communityOffset : 0;
-        executor.execute(() -> {
+        final String requestedCategory = communityCategory;
+        final String requestedQuery = communityQuery;
+        communityExecutor.execute(() -> {
             try {
                 List<ApiModels.CommunityPostDto> result = cloudRepository.communityPosts(
-                        communityCategory, communityQuery, COMMUNITY_PAGE_SIZE, requestedOffset);
+                        requestedCategory, requestedQuery, COMMUNITY_PAGE_SIZE, requestedOffset);
                 runOnUiThread(() -> {
+                    if (requestVersion != communityRequestVersion
+                            || !requestedCategory.equals(communityCategory)
+                            || !requestedQuery.equals(communityQuery)) return;
+
                     List<ApiModels.CommunityPostDto> page = result == null ? new ArrayList<>() : result;
                     if (!append) communityPosts = new ArrayList<>();
                     communityPosts.addAll(page);
@@ -2736,14 +2841,17 @@ public class MainActivity extends AppCompatActivity {
                     communityHasMore = page.size() == COMMUNITY_PAGE_SIZE;
                     communityLoading = false;
                     communityInitialized = true;
-                    if (currentTab == 5) showApp(5);
+                    renderCommunityResults();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
+                    if (requestVersion != communityRequestVersion
+                            || !requestedCategory.equals(communityCategory)
+                            || !requestedQuery.equals(communityQuery)) return;
                     communityLoading = false;
                     communityInitialized = true;
                     communityError = "커뮤니티 연결 실패: " + safeMessage(e);
-                    if (currentTab == 5) showApp(5);
+                    renderCommunityResults();
                 });
             }
         });
@@ -2755,7 +2863,7 @@ public class MainActivity extends AppCompatActivity {
         communityPostLauncher.launch(intent);
     }
 
-    private void addCommunityPostCard(ApiModels.CommunityPostDto post) {
+    private void addCommunityPostCard(LinearLayout parent, ApiModels.CommunityPostDto post) {
         LinearLayout card = card();
         LinearLayout authorRow = row();
         authorRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -2808,7 +2916,7 @@ public class MainActivity extends AppCompatActivity {
             addCommentChildren(comments, post, null, 0);
             card.addView(comments);
         }
-        content.addView(card);
+        parent.addView(card);
     }
 
     private void addCommentChildren(LinearLayout container, ApiModels.CommunityPostDto post, String parentId, int depth) {
@@ -4914,6 +5022,122 @@ public class MainActivity extends AppCompatActivity {
         content.addView(searchCard);
     }
 
+    /**
+     * Calls the configured LLM client without binding MainActivity to one historical
+     * answerAgent overload. Some project revisions expose three, four, or five
+     * parameters; this adapter supplies every supported context value by type.
+     */
+    private String invokeAgentAnswerCompat(String question, UserProfile profile) throws Exception {
+        List<ContentItem> recommendations = RecommendationEngine.recommendedContents(
+                profile, store.getTier(), store);
+        String promotionManual = PromotionRules.fullManualPlain();
+        java.lang.reflect.Method selected = null;
+        Object[] selectedArguments = null;
+
+        for (java.lang.reflect.Method method : llmClient.getClass().getMethods()) {
+            if (!"answerAgent".equals(method.getName())
+                    || !String.class.isAssignableFrom(method.getReturnType())) continue;
+            Object[] arguments = buildAgentArguments(
+                    method.getParameterTypes(), question, profile, recommendations, promotionManual);
+            if (arguments == null) continue;
+            if (selected == null || method.getParameterTypes().length > selected.getParameterTypes().length) {
+                selected = method;
+                selectedArguments = arguments;
+            }
+        }
+
+        if (selected == null) {
+            throw new NoSuchMethodException("지원 가능한 answerAgent 메서드를 찾지 못했습니다.");
+        }
+        Object result = invokeReflective(selected, llmClient, selectedArguments);
+        return result == null ? "" : result.toString();
+    }
+
+    private Object[] buildAgentArguments(Class<?>[] parameterTypes, String question,
+                                         UserProfile profile, List<ContentItem> recommendations,
+                                         String promotionManual) {
+        Object[] arguments = new Object[parameterTypes.length];
+        int stringIndex = 0;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> type = parameterTypes[i];
+            if (type == String.class) {
+                if (stringIndex == 0) arguments[i] = question;
+                else if (stringIndex == 1) arguments[i] = store.getTier();
+                else if (stringIndex == 2) arguments[i] = promotionManual;
+                else arguments[i] = "";
+                stringIndex++;
+            } else if (type.isAssignableFrom(UserProfile.class)) {
+                arguments[i] = profile;
+            } else if (List.class.isAssignableFrom(type)) {
+                arguments[i] = recommendations;
+            } else {
+                return null;
+            }
+        }
+        return arguments;
+    }
+
+    /**
+     * Supports repository revisions where aiSearch accepts only a query, a query
+     * plus resource type, or an additional numeric result limit.
+     */
+    private ApiModels.AiSearchResponse invokeAiSearchCompat(String query, String resourceType) throws Exception {
+        java.lang.reflect.Method selected = null;
+        Object[] selectedArguments = null;
+
+        for (java.lang.reflect.Method method : cloudRepository.getClass().getMethods()) {
+            if (!"aiSearch".equals(method.getName())
+                    || !ApiModels.AiSearchResponse.class.isAssignableFrom(method.getReturnType())) continue;
+            Object[] arguments = buildAiSearchArguments(method.getParameterTypes(), query, resourceType);
+            if (arguments == null) continue;
+            if (selected == null || method.getParameterTypes().length > selected.getParameterTypes().length) {
+                selected = method;
+                selectedArguments = arguments;
+            }
+        }
+
+        if (selected == null) {
+            throw new NoSuchMethodException("지원 가능한 aiSearch 메서드를 찾지 못했습니다.");
+        }
+        Object result = invokeReflective(selected, cloudRepository, selectedArguments);
+        return (ApiModels.AiSearchResponse) result;
+    }
+
+    private Object[] buildAiSearchArguments(Class<?>[] parameterTypes, String query, String resourceType) {
+        Object[] arguments = new Object[parameterTypes.length];
+        int stringIndex = 0;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> type = parameterTypes[i];
+            if (type == String.class) {
+                if (stringIndex == 0) arguments[i] = query;
+                else if (stringIndex == 1) arguments[i] = resourceType;
+                else arguments[i] = "";
+                stringIndex++;
+            } else if (type == int.class || type == Integer.class) {
+                arguments[i] = 12;
+            } else if (type == long.class || type == Long.class) {
+                arguments[i] = 12L;
+            } else if (type == boolean.class || type == Boolean.class) {
+                arguments[i] = false;
+            } else {
+                return null;
+            }
+        }
+        return arguments;
+    }
+
+    private Object invokeReflective(java.lang.reflect.Method method, Object receiver,
+                                    Object[] arguments) throws Exception {
+        try {
+            return method.invoke(receiver, arguments);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) throw (Exception) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new IllegalStateException(cause == null ? e : cause);
+        }
+    }
+
     private void requestAiSearch(String resourceType, String query) {
         String value = query == null ? "" : query.trim();
         if (value.isEmpty()) {
@@ -4925,7 +5149,7 @@ public class MainActivity extends AppCompatActivity {
         showApp(schedule ? 3 : 1);
         executor.execute(() -> {
             try {
-                ApiModels.AiSearchResponse result = cloudRepository.aiSearch(value, resourceType);
+                ApiModels.AiSearchResponse result = invokeAiSearchCompat(value, resourceType);
                 runOnUiThread(() -> {
                     if (schedule) {
                         scheduleSearchResponse = result;
