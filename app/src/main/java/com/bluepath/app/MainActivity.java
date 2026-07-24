@@ -3819,16 +3819,14 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout details = new LinearLayout(this);
         details.setOrientation(LinearLayout.VERTICAL);
         details.setVisibility(View.GONE);
+        if (completed) {
+            addContentReflectionBlock(details, item);
+        }
         details.addView(body("출처: " + item.source));
         details.addView(body("분야: " + item.topic + " · 연결 진로: " + item.careerTag));
         addReasonList(details, RecommendationEngine.contentReasons(item, p, tier, store));
         if (completed) {
             details.addView(note("학습 완료 인증 · XP 반영됨", SUCCESS));
-            String savedReflection = store.getContentReflection(item.id);
-            if (!savedReflection.isEmpty()) {
-                details.addView(label("내 학습 소감"));
-                details.addView(body(savedReflection));
-            }
         } else if (verified) {
             details.addView(note("시청 인증 완료 · 학습 완료하기를 눌러 XP를 받을 수 있습니다.", SUCCESS));
         } else if (started) {
@@ -3866,6 +3864,53 @@ public class MainActivity extends AppCompatActivity {
             detailToggle.setContentDescription(item.title + (expanded ? " 상세 정보 펼치기" : " 상세 정보 접기"));
         });
         content.addView(card);
+    }
+
+    private void addContentReflectionBlock(LinearLayout details, ContentItem item) {
+        String savedReflection = store.getContentReflection(item.id);
+        details.addView(label("내 학습 소감"));
+        if (!savedReflection.isEmpty()) {
+            details.addView(body(savedReflection));
+            Button edit = outlineButton("소감 수정하기");
+            edit.setOnClickListener(v -> showContentReflectionEditDialog(item));
+            details.addView(edit, new LinearLayout.LayoutParams(-1, dp(44)));
+        } else {
+            details.addView(body("아직 작성한 소감이 없습니다. 학습하며 새롭게 알게 된 점을 남겨 보세요."));
+            Button write = outlineButton("소감 작성하기");
+            write.setOnClickListener(v -> showContentReflectionEditDialog(item));
+            details.addView(write, new LinearLayout.LayoutParams(-1, dp(44)));
+        }
+        View divider = new View(this);
+        divider.setBackgroundColor(Color.parseColor("#D7E3E8"));
+        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(-1, dp(1));
+        dividerParams.setMargins(0, dp(10), 0, dp(6));
+        details.addView(divider, dividerParams);
+    }
+
+    private void showContentReflectionEditDialog(ContentItem item) {
+        EditText reflection = inputField("핵심 내용 또는 새롭게 알게 된 점", store.getContentReflection(item.id));
+        reflection.setSingleLine(false);
+        reflection.setMinLines(3);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("학습 소감")
+                .setMessage("학습하며 새롭게 알게 된 점을 10자 이상 기록해 주세요.")
+                .setView(reflection)
+                .setNegativeButton("취소", null)
+                .setPositiveButton("저장", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String value = reflection.getText().toString().trim();
+            if (value.length() < 10) {
+                reflection.setError("10자 이상 작성해 주세요.");
+                return;
+            }
+            store.saveContentReflection(item.id, value);
+            if (viewModel.isCloudConfigured()) viewModel.syncNow();
+            dialog.dismiss();
+            toast("학습 소감을 저장했습니다.");
+            showApp(currentTab);
+        }));
+        dialog.show();
     }
 
     private TextView tierChip(String tier) {
