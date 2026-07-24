@@ -123,12 +123,12 @@ public class BluePathRepository {
     }
 
 
-    public ApiModels.AiSearchResponse aiSearch(String query, String resourceType,
-                                               List<ApiModels.ChatMessage> history) throws IOException {
+    public ApiModels.AiSearchResponse aiSearch(String query, String resourceType) throws IOException {
         requireAuthenticated();
-        return requireBody(api.aiSearch(
-                bearer(), new ApiModels.AiSearchRequest(query, resourceType, 12, history)
-        ).execute(), "AI 자료 검색");
+        return requireBody(
+                api.aiSearch(bearer(), new ApiModels.AiSearchRequest(query, resourceType, 12)).execute(),
+                "AI 자료 검색"
+        );
     }
 
     public ApiModels.RoutePlanResponse planRoute(String targetCareer, String routeType) throws IOException {

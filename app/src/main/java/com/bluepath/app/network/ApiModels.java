@@ -314,6 +314,7 @@ public final class ApiModels {
         public ProfileSummary author;
         public String title;
         public String body;
+        public String imageUrl;
         public String createdAt;
         public String updatedAt;
         public boolean canEdit;
@@ -636,6 +637,21 @@ public final class ApiModels {
     }
 
     public static class PaperCompletionResponse {
+        public boolean verified;
+        public int xpAwarded;
+        public String message;
+        public String verifiedAt;
+    }
+
+    public static class VideoCompletionRequest {
+        public String contentId;
+        public String reflection;
+        public VideoCompletionRequest(String contentId, String reflection) {
+            this.contentId = contentId; this.reflection = reflection;
+        }
+    }
+
+    public static class VideoCompletionResponse {
         public boolean verified;
         public int xpAwarded;
         public String message;
