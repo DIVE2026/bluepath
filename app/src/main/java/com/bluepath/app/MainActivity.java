@@ -785,6 +785,11 @@ public class MainActivity extends AppCompatActivity {
             if (!guardianDialogVisible) showGuardianConsentDialog(true);
             return;
         }
+        // 일정 탭의 필터·달력·찜 등은 화면을 다시 렌더링하므로, 같은 탭 안에서
+        // 갱신될 때는 기존 스크롤 위치를 보존합니다. 다른 탭에서 처음 진입할 때는
+        // 평소처럼 맨 위에서 시작합니다.
+        boolean restoreScheduleScroll = tab == 3 && currentTab == 3 && contentScroll != null;
+        int scheduleScrollY = restoreScheduleScroll ? contentScroll.getScrollY() : 0;
         cancelQuizTimer();
         quizTimerRing = null;
         if (tab == 3 && currentTab != 3) scheduleReturnTab = currentTab;
@@ -922,6 +927,10 @@ public class MainActivity extends AppCompatActivity {
         if (tab == 5 && communityDetailPost == null && !isCommunityOverlayOpen(5)) addCommunityWriteFab();
 
         renderTab(tab);
+        if (restoreScheduleScroll && contentScroll != null) {
+            ScrollView scheduleScroll = contentScroll;
+            scheduleScroll.post(() -> scheduleScroll.scrollTo(0, scheduleScrollY));
+        }
         if (tab == 0) requestDailyAttendance();
     }
 
