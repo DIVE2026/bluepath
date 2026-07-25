@@ -564,6 +564,14 @@ public class UserStore {
         return prefs.getString("profileImageUrl", "");
     }
 
+    public void setAvatarEmoji(String emoji) {
+        prefs.edit().putString("avatarEmoji", emoji == null ? "" : emoji).apply();
+    }
+
+    public String getAvatarEmoji() {
+        return prefs.getString("avatarEmoji", "");
+    }
+
     public void setProfileImageUrl(String value) {
         prefs.edit().putString("profileImageUrl", value == null ? "" : value).apply();
     }

@@ -129,11 +129,12 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout content;
     private ScrollView contentScroll;
     private FrameLayout appRoot;
-    private LinearLayout sidebar;
-    private View sidebarScrim;
-    private Button headerMenuButton;
-    private Button headerManualButton;
+    // 퀴즈 응시 중 헤더의 일정·알림 버튼을 잠그기 위해 참조를 보관합니다.
+    private TextView headerCalendarButton;
+    private TextView headerBellButton;
     private int currentTab = 0;
+    // 일정 화면은 하단 내비게이션에 없으므로, 진입 직전 탭을 기억해 뒤로 가기에 사용합니다.
+    private int scheduleReturnTab = 0;
     private String learningSubTab = "video";
     private String communityCategory = "all";
     private String communityTag = "";
@@ -197,7 +198,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean quizAwaitingResult = false;
 
     private boolean agentLoading = false;
-    private String agentLastAnswer = "질문을 입력하면 BluePath AI가 상세한 답변을 제공합니다. 온라인 정보를 활용한 답변에는 참고한 근거 자료도 함께 표시됩니다.";
+    private final List<String[]> agentChat = new ArrayList<>();
+    private boolean profileEditOpen = false;
+    private boolean skillMapOpen = false;
 
     private boolean routeLoading = false;
     private boolean routeAttempted = false;
@@ -762,6 +765,7 @@ public class MainActivity extends AppCompatActivity {
         }
         cancelQuizTimer();
         quizTimerRing = null;
+        if (tab == 3 && currentTab != 3) scheduleReturnTab = currentTab;
         currentTab = tab;
         applyAppWindow();
         appRoot = new FrameLayout(this);
@@ -781,15 +785,18 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout headerRow = row();
         headerRow.setGravity(Gravity.CENTER_VERTICAL);
-        Button menu = outlineButton("☰");
-        menu.setTextSize(20);
-        menu.setOnClickListener(v -> openSidebar());
-        headerMenuButton = menu;
-        headerRow.addView(menu, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        if (tab == 3) {
+            // 일정은 하단 내비게이션에 없는 화면이라 헤더에서 이전 탭으로 돌아갑니다.
+            Button back = outlineButton("‹");
+            back.setTextSize(20);
+            back.setContentDescription("이전 화면으로");
+            back.setOnClickListener(v -> showApp(scheduleReturnTab));
+            headerRow.addView(back, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        }
 
         LinearLayout brand = new LinearLayout(this);
         brand.setOrientation(LinearLayout.VERTICAL);
-        brand.setPadding(dp(12), 0, 0, 0);
+        brand.setPadding(tab == 3 ? dp(12) : dp(2), 0, 0, 0);
 
         LinearLayout brandTitle = row();
         brandTitle.setGravity(
@@ -837,12 +844,15 @@ public class MainActivity extends AppCompatActivity {
         brand.addView(brandTitle);
         headerRow.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
 
-        if (tab != 5) {
-            Button manual = outlineButton("승급 기준");
-            manual.setTextSize(11);
-            manual.setOnClickListener(v -> showPromotionManual());
-            headerRow.addView(manual, new LinearLayout.LayoutParams(dp(88), dp(38)));
+        headerCalendarButton = null;
+        if (tab != 3) {
+            headerCalendarButton = homeIconButton("📅", "일정 열기", v -> showApp(3));
+            headerRow.addView(headerCalendarButton, new LinearLayout.LayoutParams(dp(36), dp(36)));
         }
+        LinearLayout.LayoutParams bellParams = new LinearLayout.LayoutParams(dp(36), dp(36));
+        bellParams.setMargins(dp(6), 0, 0, 0);
+        headerBellButton = homeIconButton("🔔", "알림함 열기", v -> showNotificationInbox());
+        headerRow.addView(headerBellButton, bellParams);
         header.addView(headerRow);
         if (tab != 0) main.addView(header);
 
@@ -859,95 +869,14 @@ public class MainActivity extends AppCompatActivity {
         scroll.addView(content);
         main.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
 
+        // AI 진로 상담 탭은 채팅 입력바를 화면 하단에 고정합니다. (키보드가 뜨면 함께 올라옴)
+        if (tab == 4) main.addView(buildAgentComposer());
+
+        // 퀴즈 응시 중에는 몰입을 위해 하단 내비게이션을 숨깁니다.
+        if (!isQuizTakingActive()) main.addView(buildBottomNav(tab));
+
         // 커뮤니티 탭에서만 우측 하단 플로팅 글쓰기 버튼을 표시합니다. (게시글 상세에서는 숨김)
         if (tab == 5 && communityDetailPost == null) addCommunityWriteFab();
-
-        sidebarScrim = new View(this);
-        sidebarScrim.setBackgroundColor(Color.parseColor("#7706223F"));
-        sidebarScrim.setVisibility(View.GONE);
-        sidebarScrim.setOnClickListener(v -> closeSidebar());
-        appRoot.addView(sidebarScrim, new FrameLayout.LayoutParams(-1, -1));
-
-        sidebar = new LinearLayout(this);
-        sidebar.setOrientation(LinearLayout.VERTICAL);
-        sidebar.setPadding(dp(16), dp(22), dp(16), dp(20));
-        sidebar.setBackgroundResource(R.drawable.bg_sidebar);
-        sidebar.setElevation(dp(14));
-        sidebar.setVisibility(View.GONE);
-        FrameLayout.LayoutParams sidebarParams = new FrameLayout.LayoutParams(dp(286), -1, Gravity.START);
-        appRoot.addView(sidebar, sidebarParams);
-
-        LinearLayout sideHead = row();
-        sideHead.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout sideBrand = new LinearLayout(this);
-        sideBrand.setOrientation(LinearLayout.VERTICAL);
-        sideBrand.addView(big("BLUEPATH"));
-        sideBrand.addView(label("나의 해양 스마트 해도"));
-        sideHead.addView(sideBrand, new LinearLayout.LayoutParams(0, -2, 1));
-        Button close = outlineButton("×");
-        close.setTextSize(22);
-        close.setOnClickListener(v -> closeSidebar());
-        sideHead.addView(close, new LinearLayout.LayoutParams(dp(44), dp(40)));
-        sidebar.addView(sideHead);
-
-        TextView navGuide = label("탭별 기능 안내");
-        navGuide.setPadding(dp(4), dp(14), dp(4), dp(6));
-        sidebar.addView(navGuide);
-
-        ScrollView navScroll = new ScrollView(this);
-        navScroll.setFillViewport(true);
-        navScroll.setVerticalScrollBarEnabled(false);
-        navScroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
-
-        LinearLayout navList = new LinearLayout(this);
-        navList.setOrientation(LinearLayout.VERTICAL);
-        navList.setPadding(0, 0, 0, dp(8));
-
-        addNavButton(
-                navList,
-                "✦  AI 진로 상담",
-                4,
-                "직무·전공·자격·프로젝트를 자유롭게 질문하고, 내 프로필과 앱 학습 자료 및 가능한 웹 근거를 반영한 맞춤 답변을 확인합니다. NCS 기반 추천 직무와 단계별 준비 항로도 함께 살펴볼 수 있습니다."
-        );
-        addNavButton(
-                navList,
-                "⌂  홈",
-                0,
-                "티어·XP·연도별 활동 기록을 한눈에 보고 AI 추천 학습 자료와 교육 일정을 확인합니다. 목표 직무별 맞춤 항로 생성, 미래 효과 시뮬레이션, 재항해와 QR 가족 협동 미션도 이용할 수 있습니다."
-        );
-        addNavButton(
-                navList,
-                "▶  학습 자료",
-                1,
-                "문장형 AI 검색으로 필요한 해양 자료를 찾고 영상·논문을 구분해 탐색합니다. 난도, 권장 티어, 연결 진로와 추천 근거를 확인하고 찜, 시청, 학습 완료 인증과 XP 기록을 관리합니다."
-        );
-        addNavButton(
-                navList,
-                "✓  퀴즈",
-                2,
-                "현재 티어에 맞는 제한 시간 퀴즈를 풀고 문항별 정답, 해설, 점수, XP와 승급 결과를 확인합니다. 주제별 강점과 부족한 역량은 다음 학습 및 진로 추천에 반영됩니다."
-        );
-        addNavButton(
-                navList,
-                "◷  일정",
-                3,
-                "지역·대상·시기·주제를 문장으로 검색하거나 태그와 모집 상태로 교육·행사를 필터링합니다. 월별 달력, 날짜별 일정, 온라인 활동, 찜과 기기 캘린더 추가 기능을 제공합니다."
-        );
-        addNavButton(
-                navList,
-                "≋  해양 커뮤니티",
-                5,
-                "자유·질문 게시판에서 글을 작성하고 최신 목록을 새로고침합니다. 작성자 팔로우, 게시글·댓글 공감, 댓글과 답글을 통해 다른 사용자와 학습 경험과 질문을 나눌 수 있습니다."
-        );
-        addNavButton(
-                navList,
-                "●  MY",
-                6,
-                "프로필, 티어, XP와 활동 통계를 관리하고 Ocean Skill Map에서 분야별 숙련도와 근거를 확인합니다. 포트폴리오 PDF, 완료·찜 기록, 알림, 동기화, 보호자 동의와 계정 설정도 관리합니다."
-        );
-
-        navScroll.addView(navList, new FrameLayout.LayoutParams(-1, -2));
-        sidebar.addView(navScroll, new LinearLayout.LayoutParams(-1, 0, 1));
 
         renderTab(tab);
         if (tab == 0) requestDailyAttendance();
@@ -955,8 +884,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String tabTitle(int tab) {
         switch (tab) {
-            case 1: return "학습 자료";
-            case 2: return "퀴즈";
+            case 1: return "학습";
+            case 2: return "학습";
             case 3: return "일정";
             case 4: return "AI 진로 상담";
             case 5: return "해양 커뮤니티";
@@ -965,54 +894,90 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openSidebar() {
-        if (sidebar == null || sidebarScrim == null || isQuizTakingActive()) return;
-        sidebarScrim.setAlpha(0f);
-        sidebarScrim.setVisibility(View.VISIBLE);
-        sidebarScrim.animate().alpha(1f).setDuration(180).start();
-        sidebar.setTranslationX(-dp(286));
-        sidebar.setVisibility(View.VISIBLE);
-        sidebar.animate().translationX(0f).setDuration(220).start();
+    /**
+     * 하단 고정 내비게이션 바입니다. 홈·학습·AI 진로 상담·커뮤니티·MY 다섯 항목으로 구성되며,
+     * 일정(3)은 헤더의 달력 아이콘 등 별도 경로로만 진입합니다. 학습(1)과 퀴즈(2)는 '학습' 하나로 묶입니다.
+     */
+    private LinearLayout buildBottomNav(int tab) {
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER);
+        bar.setBackgroundColor(Color.WHITE);
+        bar.setElevation(dp(14));
+        bar.setPadding(dp(4), dp(7), dp(4), dp(9));
+
+        bar.addView(bottomNavItem("⌂", "홈", tab == 0, v -> showApp(0)), bottomNavCell());
+        bar.addView(bottomNavItem("▶", "학습", tab == 1 || tab == 2, v -> showApp(1)), bottomNavCell());
+        bar.addView(bottomNavAiItem(tab == 4), bottomNavCell());
+        bar.addView(bottomNavItem("≋", "커뮤니티", tab == 5, v -> showApp(5)), bottomNavCell());
+        bar.addView(bottomNavItem("👤", "MY", tab == 6, v -> showApp(6)), bottomNavCell());
+        return bar;
     }
 
-    private void closeSidebar() {
-        if (sidebar == null || sidebarScrim == null || sidebar.getVisibility() != View.VISIBLE) return;
-        sidebarScrim.animate().alpha(0f).setDuration(160).withEndAction(() -> sidebarScrim.setVisibility(View.GONE)).start();
-        sidebar.animate().translationX(-dp(286)).setDuration(190).withEndAction(() -> sidebar.setVisibility(View.GONE)).start();
+    private LinearLayout.LayoutParams bottomNavCell() {
+        return new LinearLayout.LayoutParams(0, -2, 1);
     }
 
-    private void addNavButton(LinearLayout parent, String label, int tab, String description) {
+    private LinearLayout bottomNavItem(String icon, String labelText, boolean active, View.OnClickListener listener) {
         LinearLayout item = new LinearLayout(this);
         item.setOrientation(LinearLayout.VERTICAL);
-        item.setPadding(dp(4), dp(2), dp(4), dp(10));
-        item.setBackgroundResource(tab == currentTab
-                ? R.drawable.bg_nav_selected
-                : android.R.color.transparent);
-        item.setOnClickListener(v -> showApp(tab));
+        item.setGravity(Gravity.CENTER);
+        item.setClickable(true);
+        item.setFocusable(true);
+        item.setContentDescription(labelText);
+        item.setOnClickListener(listener);
 
-        Button b = new Button(this);
-        b.setText(label);
-        b.setTextSize(14);
-        b.setAllCaps(false);
-        b.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        b.setPadding(dp(12), 0, dp(8), 0);
-        b.setTextColor(tab == currentTab ? NAVY : TEXT);
-        b.setTypeface(Typeface.DEFAULT, tab == currentTab ? Typeface.BOLD : Typeface.NORMAL);
-        b.setBackgroundColor(Color.TRANSPARENT);
-        b.setOnClickListener(v -> showApp(tab));
-        item.addView(b, new LinearLayout.LayoutParams(-1, dp(44)));
+        TextView iconView = new TextView(this);
+        iconView.setText(icon);
+        iconView.setTextSize(19);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setTextColor(active ? OCEAN : MUTED);
+        iconView.setTypeface(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL);
+        item.addView(iconView, new LinearLayout.LayoutParams(-2, -2));
 
-        TextView detail = body(description);
-        detail.setTextSize(10.5f);
-        detail.setTextColor(tab == currentTab ? TEXT : MUTED);
-        detail.setLineSpacing(dp(1), 1.05f);
-        detail.setPadding(dp(12), 0, dp(10), 0);
-        detail.setOnClickListener(v -> showApp(tab));
-        item.addView(detail, new LinearLayout.LayoutParams(-1, -2));
+        TextView label = new TextView(this);
+        label.setText(labelText);
+        label.setTextSize(10);
+        label.setGravity(Gravity.CENTER);
+        label.setTextColor(active ? NAVY : MUTED);
+        label.setTypeface(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL);
+        item.addView(label, new LinearLayout.LayoutParams(-2, -2));
+        return item;
+    }
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.setMargins(0, 0, 0, dp(2));
-        parent.addView(item, params);
+    private LinearLayout bottomNavAiItem(boolean active) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER);
+        item.setClickable(true);
+        item.setFocusable(true);
+        item.setContentDescription("AI 진로 상담");
+        item.setOnClickListener(v -> showApp(4));
+
+        TextView orb = new TextView(this);
+        orb.setText("✦");
+        orb.setTextSize(19);
+        orb.setGravity(Gravity.CENTER);
+        orb.setTextColor(Color.WHITE);
+        orb.setTypeface(Typeface.DEFAULT_BOLD);
+        GradientDrawable orbBg = new GradientDrawable();
+        orbBg.setShape(GradientDrawable.OVAL);
+        orbBg.setColor(active ? NAVY : OCEAN);
+        orbBg.setStroke(dp(2), Color.parseColor("#9EF5F0"));
+        orb.setBackground(orbBg);
+        orb.setElevation(dp(6));
+        item.addView(orb, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        TextView label = new TextView(this);
+        label.setText("AI 진로 상담");
+        label.setTextSize(9);
+        label.setSingleLine(true);
+        label.setGravity(Gravity.CENTER);
+        label.setTextColor(active ? NAVY : MUTED);
+        label.setTypeface(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL);
+        label.setPadding(0, dp(2), 0, 0);
+        item.addView(label, new LinearLayout.LayoutParams(-2, -2));
+        return item;
     }
 
     private void renderTab(int tab) {
@@ -1031,13 +996,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 퀴즈 응시 화면에서는 상단 메뉴와 승급 기준 버튼을 숨겨 풀이 도중 다른 화면으로
+     * 퀴즈 응시 화면에서는 상단 일정·알림 버튼을 숨겨 풀이 도중 다른 화면으로
      * 이동하지 못하게 합니다. 퀴즈 종료는 응시 화면의 ✕ 버튼으로만 진행합니다.
      */
     private void applyHeaderQuizLock() {
         int visibility = isQuizTakingActive() ? View.GONE : View.VISIBLE;
-        if (headerMenuButton != null) headerMenuButton.setVisibility(visibility);
-        if (headerManualButton != null) headerManualButton.setVisibility(visibility);
+        if (headerCalendarButton != null) headerCalendarButton.setVisibility(visibility);
+        if (headerBellButton != null) headerBellButton.setVisibility(visibility);
     }
 
     private boolean isQuizTakingActive() {
@@ -1146,16 +1111,12 @@ public class MainActivity extends AppCompatActivity {
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(4), dp(10), dp(2), dp(12));
 
-        LinearLayout.LayoutParams menuParams = new LinearLayout.LayoutParams(dp(36), dp(36));
-        menuParams.setMargins(0, 0, dp(6), 0);
-        header.addView(homeIconButton("☰", "메뉴 열기", v -> openSidebar()), menuParams);
-
         View avatar = profileAvatar(store.getNickname(), store.getProfileImageUrl(), dp(48));
         if (avatar instanceof TextView) ((TextView) avatar).setTextSize(20);
         avatar.setClickable(true);
         avatar.setFocusable(true);
-        avatar.setContentDescription("메뉴 열기");
-        avatar.setOnClickListener(v -> openSidebar());
+        avatar.setContentDescription("MY 열기");
+        avatar.setOnClickListener(v -> showApp(6));
         header.addView(avatar, new LinearLayout.LayoutParams(dp(48), dp(48)));
 
         int hour = Calendar.getInstance(Locale.KOREA).get(Calendar.HOUR_OF_DAY);
@@ -1557,64 +1518,91 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addActivityHistorySection() {
-        content.addView(sectionTitle("나의 활동"));
         LinearLayout heatCard = card();
         int currentActivityYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
-        int joinedActivityYear = store.getAccountJoinedYear();
-        if (selectedActivityYear < joinedActivityYear || selectedActivityYear > currentActivityYear) {
-            selectedActivityYear = currentActivityYear;
-        }
+        int[] summary = activitySummary();
 
-        TextView heatmapTitle = big(selectedActivityYear + "년 활동");
-        heatCard.addView(heatmapTitle);
-        heatCard.addView(body("하루 한 번의 학습과 참여가 나만의 해양 커리어를 만듭니다. 오늘도 작은 활동 하나를 기록해 보세요."));
+        LinearLayout headRow = row();
+        headRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView heatmapTitle = big("나의 활동");
+        headRow.addView(heatmapTitle, new LinearLayout.LayoutParams(0, -2, 1));
+        if (summary[3] > 0) {
+            TextView streak = new TextView(this);
+            streak.setText("연속 " + summary[3] + "일 항해 중");
+            streak.setTextSize(11);
+            streak.setTypeface(Typeface.DEFAULT_BOLD);
+            streak.setTextColor(Color.parseColor("#C2571B"));
+            streak.setPadding(dp(10), dp(4), dp(10), dp(4));
+            GradientDrawable streakBg = new GradientDrawable();
+            streakBg.setColor(Color.parseColor("#FDEBDD"));
+            streakBg.setCornerRadius(dp(11));
+            streak.setBackground(streakBg);
+            headRow.addView(streak);
+        }
+        heatCard.addView(headRow);
+
         ActivityHeatmapView heatmap = new ActivityHeatmapView(this);
-        heatmap.setYear(selectedActivityYear);
+        heatmap.setYear(currentActivityYear);
         heatmap.setActivity(store.getActivityCounts());
         HorizontalScrollView heatmapScroll = new HorizontalScrollView(this);
-        heatmapScroll.setHorizontalScrollBarEnabled(true);
+        heatmapScroll.setHorizontalScrollBarEnabled(false);
         heatmapScroll.setFillViewport(false);
         heatmapScroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
         heatmapScroll.addView(heatmap, new FrameLayout.LayoutParams(-2, -2));
-        heatCard.addView(heatmapScroll, new LinearLayout.LayoutParams(-1, dp(188)));
-        heatCard.addView(label("연도별 보기"));
+        LinearLayout.LayoutParams heatmapParams = new LinearLayout.LayoutParams(-1, dp(188));
+        heatmapParams.setMargins(0, dp(6), 0, 0);
+        heatCard.addView(heatmapScroll, heatmapParams);
+        // 최근 달이 보이도록 오른쪽 끝으로 스크롤 (좌로 밀면 이전 달 확인 가능)
+        heatmapScroll.post(() -> heatmapScroll.fullScroll(View.FOCUS_RIGHT));
 
-        HorizontalScrollView yearScroll = new HorizontalScrollView(this);
-        yearScroll.setHorizontalScrollBarEnabled(false);
-        yearScroll.setFillViewport(false);
-        LinearLayout yearRow = new LinearLayout(this);
-        yearRow.setOrientation(LinearLayout.HORIZONTAL);
-        yearRow.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        for (int year = joinedActivityYear; year <= currentActivityYear; year++) {
-            final int targetYear = year;
-            Button yearButton = outlineButton(String.valueOf(year));
-            yearButton.setTag(year);
-            styleActivityYearButton(yearButton, year == selectedActivityYear);
-            yearButton.setOnClickListener(v -> {
-                selectedActivityYear = targetYear;
-                heatmapTitle.setText(targetYear + "년 활동");
-                heatmap.setYear(targetYear);
-                for (int i = 0; i < yearRow.getChildCount(); i++) {
-                    View child = yearRow.getChildAt(i);
-                    if (child instanceof Button && child.getTag() instanceof Integer) {
-                        styleActivityYearButton((Button) child, ((Integer) child.getTag()) == targetYear);
-                    }
-                }
-                heatmapScroll.post(() -> {
-                    if (targetYear == currentActivityYear) heatmapScroll.fullScroll(View.FOCUS_RIGHT);
-                    else heatmapScroll.scrollTo(0, 0);
-                });
-            });
-            LinearLayout.LayoutParams yearParams = new LinearLayout.LayoutParams(dp(82), dp(40));
-            yearParams.setMargins(0, dp(4), dp(8), dp(2));
-            yearRow.addView(yearButton, yearParams);
-        }
-        yearScroll.addView(yearRow, new FrameLayout.LayoutParams(-2, -2));
-        heatCard.addView(yearScroll, new LinearLayout.LayoutParams(-1, dp(48)));
-        heatmapScroll.post(() -> {
-            if (selectedActivityYear == currentActivityYear) heatmapScroll.fullScroll(View.FOCUS_RIGHT);
-        });
+        int currentMonth = Calendar.getInstance(Locale.KOREA).get(Calendar.MONTH) + 1;
+        heatCard.addView(label(currentMonth + "월 출석 " + summary[0] + "일 · 올해 활동 " + summary[1]
+                + "회 · 최장 연속 " + summary[2] + "일"));
         content.addView(heatCard);
+    }
+
+    /** {이번 달 출석일, 올해 활동 횟수, 올해 최장 연속일, 현재 연속일} */
+    private int[] activitySummary() {
+        Map<String, Integer> counts = store.getActivityCounts();
+        Calendar now = Calendar.getInstance(Locale.KOREA);
+        String yearPrefix = String.format(Locale.US, "%04d-", now.get(Calendar.YEAR));
+        String monthPrefix = String.format(Locale.US, "%04d-%02d-", now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1);
+        int monthDays = 0;
+        int yearTotal = 0;
+        Set<String> activeDays = new HashSet<>();
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() == null || entry.getValue() <= 0) continue;
+            activeDays.add(entry.getKey());
+            if (entry.getKey().startsWith(yearPrefix)) yearTotal += entry.getValue();
+            if (entry.getKey().startsWith(monthPrefix)) monthDays++;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+        int maxStreak = 0;
+        for (String day : activeDays) {
+            if (!day.startsWith(yearPrefix)) continue;
+            try {
+                Calendar cursor = Calendar.getInstance(Locale.KOREA);
+                cursor.setTime(format.parse(day));
+                cursor.add(Calendar.DAY_OF_MONTH, -1);
+                if (activeDays.contains(format.format(cursor.getTime()))) continue; // 연속 구간의 시작만 계산
+                int streak = 1;
+                cursor.add(Calendar.DAY_OF_MONTH, 2);
+                while (activeDays.contains(format.format(cursor.getTime()))) {
+                    streak++;
+                    cursor.add(Calendar.DAY_OF_MONTH, 1);
+                }
+                maxStreak = Math.max(maxStreak, streak);
+            } catch (Exception ignored) {
+            }
+        }
+        int currentStreak = 0;
+        Calendar cursor = Calendar.getInstance(Locale.KOREA);
+        if (!activeDays.contains(format.format(cursor.getTime()))) cursor.add(Calendar.DAY_OF_MONTH, -1);
+        while (activeDays.contains(format.format(cursor.getTime()))) {
+            currentStreak++;
+            cursor.add(Calendar.DAY_OF_MONTH, -1);
+        }
+        return new int[]{monthDays, yearTotal, maxStreak, currentStreak};
     }
 
     private void addVoyageTwinSection(UserProfile profile) {
@@ -2278,7 +2266,46 @@ public class MainActivity extends AppCompatActivity {
         return "항로 활동";
     }
 
+    /** 학습 탭 상단의 '학습 자료 | 승급 퀴즈' 전환 세그먼트입니다. */
+    private void addLearningSegment(int activeTab) {
+        LinearLayout segment = row();
+        segment.setGravity(Gravity.CENTER_VERTICAL);
+        GradientDrawable segmentBg = new GradientDrawable();
+        segmentBg.setColor(Color.parseColor("#E3EEF1"));
+        segmentBg.setCornerRadius(dp(24));
+        segment.setBackground(segmentBg);
+        segment.setPadding(dp(4), dp(4), dp(4), dp(4));
+        segment.addView(learningSegmentButton("학습 자료", activeTab == 1, 1),
+                new LinearLayout.LayoutParams(0, dp(40), 1));
+        segment.addView(learningSegmentButton("승급 퀴즈", activeTab == 2, 2),
+                new LinearLayout.LayoutParams(0, dp(40), 1));
+        LinearLayout.LayoutParams segmentParams = new LinearLayout.LayoutParams(-1, -2);
+        segmentParams.setMargins(0, 0, 0, dp(10));
+        content.addView(segment, segmentParams);
+    }
+
+    private Button learningSegmentButton(String labelText, boolean selected, int targetTab) {
+        Button button = new Button(this);
+        button.setText(labelText);
+        button.setAllCaps(false);
+        button.setTextSize(14);
+        button.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        button.setTextColor(selected ? NAVY : MUTED);
+        if (selected) {
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColor(Color.WHITE);
+            bg.setCornerRadius(dp(20));
+            button.setBackground(bg);
+            button.setElevation(dp(1));
+        } else {
+            button.setBackgroundColor(Color.TRANSPARENT);
+        }
+        button.setOnClickListener(v -> showApp(targetTab));
+        return button;
+    }
+
     private void renderLearning() {
+        addLearningSegment(1);
         addAiSearchBox(learningSubTab, "예: 해양환경 입문자가 20분 안에 볼 만한 영상이나 논문 찾아줘", learningSearchLoading, learningSearchResponse);
 
         LinearLayout tabs = row();
@@ -2353,20 +2380,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderQuiz() {
+        // 퀴즈 응시 중에는 몰입형 응시 화면만 표시합니다.
         if (isQuizTakingActive()) {
             renderQuizTaking();
             return;
         }
-        addTabIntro(
-                "",
-                "SKILL CHECK",
-                "퀴즈 · 역량 진단",
-                "현재 통합 티어와 다음 승급 기준을 확인한 뒤, 내 관심 분야와 학습 기록에 맞춘 4지선다 퀴즈에 도전해 보세요. "
-                        + "서버 연결 시에는 AI가 앱 자료와 공공·기관 근거를 바탕으로 문제를 만들고, 연결이 어려울 때는 검증된 해양 로컬 문제은행으로 자동 전환됩니다.\n\n"
-                        + "퀴즈는 한 문제씩 보면서 진행하고, 세션 전체에 문항 수 × 30초의 제한 시간이 적용됩니다. 남은 시간은 타이머로 표시되며 제한 시간이 끝나면 그 시점의 답안이 자동 제출됩니다. "
-                        + "제한 시간 안에는 이전·다음 버튼이나 문항 번호를 눌러 자유롭게 이동하며 답을 바꿀 수 있고, 준비가 되면 직접 제출할 수 있습니다. 제출 후에는 점수, 정답 여부, 내가 고른 답, 정답과 해설, 획득 XP와 승급 결과를 문항별로 확인할 수 있습니다. "
-                        + "각 주제의 정답·오답 기록은 MY의 역량 여권과 다음 학습·진로 추천에 반영되며, 같은 티어의 새 퀴즈에 다시 도전하거나 승급 기준 전체 매뉴얼을 확인할 수 있습니다."
-        );
+        addLearningSegment(2);
         String currentTier = store.getTier();
         content.addView(sectionTitle("승급 퀴즈"));
         LinearLayout currentTierCard = card();
@@ -3255,42 +3274,119 @@ public class MainActivity extends AppCompatActivity {
         UserProfile p = store.getProfile();
         String tier = store.getTier();
 
-        content.addView(sectionTitle("BluePath AI 진로 상담봇"));
-        content.addView(body(llmClient.isConfigured()
-                ? "보안 서버가 앱 데이터와 기관 자료를 검색하고, 설정된 경우 실시간 웹 검색·본문 추출 결과까지 함께 검토해 출처가 있는 답변을 제공합니다."
-                : "서버 연결 전에는 오프라인 해양 상담 엔진으로 기본 경로를 안내합니다."));
-        EditText input = new EditText(this);
-        input.setHint("예: 자율운항선박 분야로 진출하려면 어떤 전공·자격·프로젝트가 필요해?");
-        input.setMinLines(3);
-        input.setTextColor(TEXT);
-        input.setHintTextColor(MUTED);
-        input.setBackgroundResource(R.drawable.bg_input);
-        content.addView(input, new LinearLayout.LayoutParams(-1, -2));
-        Button ask = primaryButton("AI 진로 상담 받기");
-        ask.setOnClickListener(v -> requestAgentAnswer(input.getText().toString()));
-        LinearLayout.LayoutParams askParams = new LinearLayout.LayoutParams(-1, dp(50));
-        askParams.setMargins(0, dp(10), 0, dp(10));
-        content.addView(ask, askParams);
-
-        LinearLayout answerCard = card();
-        if (agentLoading) {
-            answerCard.addView(big("여러 자료를 검토해 답변을 구성하고 있습니다"));
-            answerCard.addView(new ProgressBar(this));
-        } else {
-            answerCard.addView(body(agentLastAnswer));
+        if (agentChat.isEmpty()) {
+            addAgentBubble(false, "안녕하세요, " + store.getNickname() + "님! 🌊 해양 진로·자격·교육에 대해 무엇이든 물어보세요. "
+                    + "현재 " + plainTierText(tier) + " 티어와 관심 분야(" + safeOr(p.interest, "해양") + ")에 맞춰 답해 드릴게요."
+                    + (llmClient.isConfigured() ? "" : "\n\n지금은 서버 연결 전이라 오프라인 해양 상담 엔진으로 기본 경로를 안내합니다."));
         }
-        content.addView(answerCard);
+        for (String[] message : agentChat) {
+            addAgentBubble("user".equals(message[0]), message[1]);
+        }
+        if (agentLoading) {
+            LinearLayout thinking = agentBubbleBox(false);
+            thinking.addView(body("여러 자료를 검토해 답변을 구성하고 있습니다…"));
+            thinking.addView(new ProgressBar(this));
+        }
 
+        if (!agentChat.isEmpty() && contentScroll != null) {
+            contentScroll.post(() -> contentScroll.fullScroll(View.FOCUS_DOWN));
+        }
+    }
+
+    /** AI 진로 상담 하단 고정 입력 영역 (추천 질문 칩 + 입력바). */
+    private LinearLayout buildAgentComposer() {
+        LinearLayout composer = new LinearLayout(this);
+        composer.setOrientation(LinearLayout.VERTICAL);
+        composer.setBackgroundColor(Color.WHITE);
+        composer.setElevation(dp(6));
+        composer.setPadding(dp(14), dp(8), dp(14), dp(12));
+
+        HorizontalScrollView chipScroll = new HorizontalScrollView(this);
+        chipScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout chipRow = row();
         String[] chips = {"내 티어에서 시작할 진로", "항해사 역량 로드맵", "스마트 항만 직무", "해양환경 연구자 준비", "최신 자격·교육 확인 방법"};
         for (String chip : chips) {
-            Button b = outlineButton(chip);
-            b.setOnClickListener(v -> requestAgentAnswer(chip));
-            content.addView(b, new LinearLayout.LayoutParams(-1, dp(44)));
+            TextView suggestion = new TextView(this);
+            suggestion.setText(chip);
+            suggestion.setTextSize(13);
+            suggestion.setTextColor(OCEAN);
+            suggestion.setPadding(dp(14), dp(9), dp(14), dp(9));
+            GradientDrawable chipBg = new GradientDrawable();
+            chipBg.setColor(Color.WHITE);
+            chipBg.setCornerRadius(dp(18));
+            chipBg.setStroke(dp(1), Color.parseColor("#B8D7DF"));
+            suggestion.setBackground(chipBg);
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(-2, -2);
+            chipParams.setMargins(0, 0, dp(8), 0);
+            suggestion.setLayoutParams(chipParams);
+            suggestion.setOnClickListener(v -> requestAgentAnswer(chip));
+            chipRow.addView(suggestion);
         }
+        chipScroll.addView(chipRow);
+        LinearLayout.LayoutParams chipScrollParams = new LinearLayout.LayoutParams(-1, -2);
+        chipScrollParams.setMargins(0, 0, 0, dp(8));
+        composer.addView(chipScroll, chipScrollParams);
 
-        content.addView(sectionTitle("NCS 기반 커리어 항로"));
-        content.addView(body("AI 답변 아래에서 관심 분야, 현재 통합 티어, 학습 목표를 직무·필요 역량·근무지·다음 학습으로 연결합니다."));
-        for (CareerItem c : RecommendationEngine.recommendedCareers(p, tier, store)) addCareerCard(c);
+        LinearLayout inputRow = row();
+        inputRow.setGravity(Gravity.CENTER_VERTICAL);
+        EditText input = inputField("궁금한 진로를 물어보세요…", "");
+        inputRow.addView(input, new LinearLayout.LayoutParams(0, dp(48), 1));
+        Button send = primaryButton("➤");
+        send.setEnabled(!agentLoading);
+        send.setOnClickListener(v -> requestAgentAnswer(input.getText().toString()));
+        LinearLayout.LayoutParams sendParams = new LinearLayout.LayoutParams(dp(56), dp(48));
+        sendParams.setMargins(dp(8), 0, 0, 0);
+        inputRow.addView(send, sendParams);
+        composer.addView(inputRow, new LinearLayout.LayoutParams(-1, -2));
+        return composer;
+    }
+
+    /** 대화 말풍선 컨테이너를 만들어 content에 붙이고 반환합니다. */
+    private LinearLayout agentBubbleBox(boolean fromUser) {
+        LinearLayout bubble = new LinearLayout(this);
+        bubble.setOrientation(LinearLayout.VERTICAL);
+        bubble.setPadding(dp(14), dp(10), dp(14), dp(10));
+        GradientDrawable bg = new GradientDrawable();
+        if (fromUser) {
+            bg.setColors(new int[]{NAVY, OCEAN});
+            bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+            bg.setCornerRadii(new float[]{dp(16), dp(16), dp(4), dp(4), dp(16), dp(16), dp(16), dp(16)});
+        } else {
+            bg.setColor(Color.WHITE);
+            bg.setStroke(dp(1), Color.parseColor("#DCEBEF"));
+            bg.setCornerRadii(new float[]{dp(4), dp(4), dp(16), dp(16), dp(16), dp(16), dp(16), dp(16)});
+        }
+        bubble.setBackground(bg);
+
+        LinearLayout lineRow = row();
+        lineRow.setGravity(fromUser ? Gravity.END : Gravity.START);
+        if (!fromUser) {
+            TextView avatar = new TextView(this);
+            avatar.setText("✦");
+            avatar.setTextColor(Color.WHITE);
+            avatar.setTextSize(14);
+            avatar.setGravity(Gravity.CENTER);
+            GradientDrawable avatarBg = new GradientDrawable();
+            avatarBg.setShape(GradientDrawable.OVAL);
+            avatarBg.setColor(OCEAN);
+            avatar.setBackground(avatarBg);
+            LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(28), dp(28));
+            avatarParams.setMargins(0, 0, dp(8), 0);
+            avatar.setLayoutParams(avatarParams);
+            lineRow.addView(avatar);
+        }
+        LinearLayout.LayoutParams bubbleParams = new LinearLayout.LayoutParams(-2, -2);
+        bubbleParams.setMargins(fromUser ? dp(48) : 0, dp(4), fromUser ? 0 : dp(48), dp(4));
+        lineRow.addView(bubble, bubbleParams);
+        content.addView(lineRow, new LinearLayout.LayoutParams(-1, -2));
+        return bubble;
+    }
+
+    private void addAgentBubble(boolean fromUser, String text) {
+        LinearLayout bubble = agentBubbleBox(fromUser);
+        TextView message = body(text);
+        if (fromUser) message.setTextColor(Color.WHITE);
+        bubble.addView(message);
     }
 
     private void requestAgentAnswer(String question) {
@@ -3299,6 +3395,7 @@ public class MainActivity extends AppCompatActivity {
             toast("질문을 입력해 주세요.");
             return;
         }
+        agentChat.add(new String[]{"user", trimmed});
         agentLoading = true;
         showApp(4);
         executor.execute(() -> {
@@ -3318,7 +3415,7 @@ public class MainActivity extends AppCompatActivity {
             final String result = answer;
             runOnUiThread(() -> {
                 agentLoading = false;
-                agentLastAnswer = result;
+                agentChat.add(new String[]{"assistant", result});
                 showApp(4);
             });
         });
@@ -3368,7 +3465,8 @@ public class MainActivity extends AppCompatActivity {
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 dp(106), dp(48), Gravity.END | Gravity.BOTTOM);
-        params.setMargins(dp(14), dp(14), dp(14), dp(18));
+        // 하단 내비게이션 바와 겹치지 않도록 바 높이만큼 띄웁니다.
+        params.setMargins(dp(14), dp(14), dp(14), dp(82));
         appRoot.addView(writeFab, params);
     }
 
@@ -4576,6 +4674,203 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /** Ocean Skill Map 상세 전체 화면: 인터랙티브 맵 + 노드 상세 + 전체 숙련도. */
+    private void renderSkillMapScreen() {
+        LinearLayout topBar = row();
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+        TextView back = sectionTitle("‹ Ocean Skill Map");
+        back.setOnClickListener(v -> {
+            skillMapOpen = false;
+            showApp(6);
+        });
+        topBar.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
+        content.addView(topBar);
+
+        Map<String, Integer> masteryMap = currentSkillMastery();
+        Map<String, Integer> evidenceMap = currentSkillEvidence();
+        String targetCareer = store.getTargetCareer();
+        int readiness = SkillProfileCatalog.careerReadiness(targetCareer, masteryMap);
+        int totalEvidence = 0;
+        for (String topic : SkillProfileCatalog.TOPICS) totalEvidence += evidenceMap.getOrDefault(topic, 0);
+        content.addView(label("목표 진로 " + targetCareer + " · 준비도 " + readiness + "점 · 증거 " + totalEvidence + "개"));
+
+        LinearLayout skillCard = card();
+        skillCard.addView(body("퀴즈 문항, 학습 완료와 현장 미션 증거를 분야별 노드로 연결합니다. 노드를 누르면 점수 근거, NCS 역량, 연결 진로와 다음 활동을 확인할 수 있습니다."));
+        OceanSkillMapView skillMap = new OceanSkillMapView(this);
+        skillMap.setSkillData(masteryMap, evidenceMap);
+        LinearLayout.LayoutParams mapParams = new LinearLayout.LayoutParams(-1, dp(390));
+        mapParams.setMargins(0, dp(8), 0, dp(8));
+        skillCard.addView(skillMap, mapParams);
+
+        LinearLayout skillDetail = new LinearLayout(this);
+        skillDetail.setOrientation(LinearLayout.VERTICAL);
+        String initialTopic = SkillProfileCatalog.weakestTopics(masteryMap, 1).get(0);
+        renderSkillMapDetail(skillDetail, initialTopic, masteryMap, evidenceMap);
+        skillMap.setOnSkillSelectedListener(topic -> renderSkillMapDetail(skillDetail, topic, masteryMap, evidenceMap));
+        skillCard.addView(skillDetail);
+        content.addView(skillCard);
+
+        content.addView(sectionTitle("전체 숙련도"));
+        LinearLayout masteryCard = card();
+        for (String topic : SkillProfileCatalog.TOPICS) addSkillProgress(masteryCard, topic);
+        content.addView(masteryCard);
+    }
+
+    /** 시안 기준 통합 프로필 편집 전체 화면: 아바타·닉네임·연령대·관심 분야·학습 목적·현재 수준. */
+    private void renderProfileEditScreen() {
+        UserProfile p = store.getProfile();
+
+        LinearLayout topBar = row();
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+        TextView back = sectionTitle("‹ 프로필 편집");
+        back.setOnClickListener(v -> {
+            profileEditOpen = false;
+            showApp(6);
+        });
+        topBar.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
+        content.addView(topBar);
+
+        // 아바타 선택 카드
+        LinearLayout avatarCard = card();
+        avatarCard.setGravity(Gravity.CENTER_HORIZONTAL);
+        String[] icons = {"🌊", "🐳", "⚓", "🐬", "⛵", "🪸", "🐚", "🧭"};
+        final String[] selectedEmoji = {store.getAvatarEmoji()};
+
+        TextView preview = new TextView(this);
+        preview.setTextSize(38);
+        preview.setGravity(Gravity.CENTER);
+        GradientDrawable previewBg = new GradientDrawable();
+        previewBg.setShape(GradientDrawable.OVAL);
+        previewBg.setColor(Color.parseColor("#D9F4FF"));
+        previewBg.setStroke(dp(2), OCEAN);
+        preview.setBackground(previewBg);
+        preview.setText(selectedEmoji[0].isEmpty() ? icons[0] : selectedEmoji[0]);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(84), dp(84));
+        previewParams.gravity = Gravity.CENTER_HORIZONTAL;
+        previewParams.setMargins(0, dp(4), 0, dp(12));
+        avatarCard.addView(preview, previewParams);
+
+        HorizontalScrollView emojiScroll = new HorizontalScrollView(this);
+        emojiScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout emojiRow = row();
+        List<TextView> emojiViews = new ArrayList<>();
+        Runnable restyleEmojis = () -> {
+            for (TextView view : emojiViews) {
+                boolean selected = view.getText().toString().equals(
+                        selectedEmoji[0].isEmpty() ? icons[0] : selectedEmoji[0]);
+                GradientDrawable bg = new GradientDrawable();
+                bg.setShape(GradientDrawable.OVAL);
+                bg.setColor(Color.parseColor("#EFF9F9"));
+                bg.setStroke(dp(2), selected ? OCEAN : Color.parseColor("#D8E4E8"));
+                view.setBackground(bg);
+            }
+        };
+        for (String icon : icons) {
+            TextView emoji = new TextView(this);
+            emoji.setText(icon);
+            emoji.setTextSize(20);
+            emoji.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams emojiParams = new LinearLayout.LayoutParams(dp(44), dp(44));
+            emojiParams.setMargins(0, 0, dp(8), 0);
+            emoji.setLayoutParams(emojiParams);
+            emoji.setOnClickListener(v -> {
+                selectedEmoji[0] = icon;
+                preview.setText(icon);
+                restyleEmojis.run();
+            });
+            emojiViews.add(emoji);
+            emojiRow.addView(emoji);
+        }
+        restyleEmojis.run();
+        emojiScroll.addView(emojiRow);
+        avatarCard.addView(emojiScroll, new LinearLayout.LayoutParams(-1, -2));
+
+        Button uploadPhoto = outlineButton("사진 업로드");
+        uploadPhoto.setOnClickListener(v -> profileImagePicker.launch(new String[]{"image/jpeg", "image/png", "image/webp"}));
+        LinearLayout.LayoutParams uploadParams = new LinearLayout.LayoutParams(dp(140), dp(42));
+        uploadParams.gravity = Gravity.CENTER_HORIZONTAL;
+        uploadParams.setMargins(0, dp(10), 0, 0);
+        avatarCard.addView(uploadPhoto, uploadParams);
+        content.addView(avatarCard);
+
+        content.addView(label("닉네임"));
+        EditText nicknameField = inputField("", store.getNickname());
+        nicknameField.setEnabled(false);
+        content.addView(nicknameField, new LinearLayout.LayoutParams(-1, dp(52)));
+
+        final String[] age = {p.ageGroup};
+        final String[] interest = {p.interest};
+        final String[] goal = {p.goal};
+        final String[] level = {p.level};
+        content.addView(label("연령대"));
+        addChoiceChipRows(new String[]{"초등학생", "중학생", "고등학생", "대학생", "성인", "직장인", "학부모/가족"}, 5, age);
+        content.addView(label("관심 분야"));
+        addChoiceChipRows(new String[]{"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류"}, 4, interest);
+        content.addView(label("학습 목적"));
+        addChoiceChipRows(new String[]{"흥미", "체험", "진로탐색", "자격증", "직무역량 강화", "가족 교육"}, 4, goal);
+        content.addView(label("현재 수준"));
+        addChoiceChipRows(new String[]{"입문", "기초", "중급", "심화", "실무"}, 5, level);
+
+        Button saveProfile = primaryButton("프로필 저장");
+        saveProfile.setOnClickListener(v -> {
+            store.setAvatarEmoji(selectedEmoji[0]);
+            store.saveProfile(new UserProfile(age[0], interest[0], goal[0], level[0],
+                    RecommendationEngine.persona(age[0], goal[0], interest[0]), p.xp));
+            toast("프로필을 저장했습니다.");
+            profileEditOpen = false;
+            if (store.requiresGuardianConsent() && !store.hasGuardianConsent()) {
+                showGuardianConsentDialog(false);
+            } else {
+                if (viewModel.isCloudConfigured()) viewModel.syncNow();
+                showApp(6);
+            }
+        });
+        LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(-1, dp(52));
+        saveParams.setMargins(0, dp(16), 0, dp(24));
+        content.addView(saveProfile, saveParams);
+    }
+
+    /** 단일 선택 pill 칩 그룹을 perRow개씩 줄바꿈해 content에 추가합니다. */
+    private void addChoiceChipRows(String[] options, int perRow, String[] selectedHolder) {
+        List<TextView> chips = new ArrayList<>();
+        Runnable restyle = () -> {
+            for (TextView chip : chips) {
+                boolean selected = chip.getText().toString().equals(selectedHolder[0]);
+                GradientDrawable bg = new GradientDrawable();
+                bg.setColor(selected ? NAVY : Color.WHITE);
+                bg.setCornerRadius(dp(20));
+                if (!selected) bg.setStroke(dp(1), Color.parseColor("#D8E4E8"));
+                chip.setBackground(bg);
+                chip.setTextColor(selected ? Color.WHITE : TEXT);
+                chip.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+            }
+        };
+        LinearLayout currentRow = null;
+        for (int i = 0; i < options.length; i++) {
+            if (i % perRow == 0) {
+                currentRow = row();
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
+                rowParams.setMargins(0, 0, 0, dp(8));
+                content.addView(currentRow, rowParams);
+            }
+            String option = options[i];
+            TextView chip = new TextView(this);
+            chip.setText(option);
+            chip.setTextSize(13);
+            chip.setPadding(dp(14), dp(9), dp(14), dp(9));
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(-2, -2);
+            chipParams.setMargins(0, 0, dp(8), 0);
+            chip.setLayoutParams(chipParams);
+            chip.setOnClickListener(v -> {
+                selectedHolder[0] = option;
+                restyle.run();
+            });
+            chips.add(chip);
+            currentRow.addView(chip);
+        }
+        restyle.run();
+    }
+
     private void toggleReaction(String targetType, String targetId, String emoji) {
         executor.execute(() -> {
             try {
@@ -4599,28 +4894,100 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderMyPage() {
+        if (profileEditOpen) {
+            renderProfileEditScreen();
+            return;
+        }
+        if (skillMapOpen) {
+            renderSkillMapScreen();
+            return;
+        }
         UserProfile p = store.getProfile();
         String tier = store.getTier();
 
-        LinearLayout profileCard = card();
+        // 시안 기준 컴팩트 프로필 카드: 네이비 배경 + 편집 칩 + XP 진행바
+        LinearLayout profileCard = new LinearLayout(this);
+        profileCard.setOrientation(LinearLayout.VERTICAL);
+        profileCard.setBackgroundResource(R.drawable.bg_ocean_header);
+        profileCard.setPadding(dp(16), dp(14), dp(16), dp(14));
+        LinearLayout.LayoutParams profileCardParams = new LinearLayout.LayoutParams(-1, -2);
+        profileCardParams.setMargins(0, 0, 0, dp(10));
+        profileCard.setLayoutParams(profileCardParams);
+
         LinearLayout profileTop = row();
         profileTop.setGravity(Gravity.CENTER_VERTICAL);
-        profileTop.addView(profileAvatar(store.getNickname(), store.getProfileImageUrl(), dp(72)), new LinearLayout.LayoutParams(dp(72), dp(72)));
+        profileTop.addView(profileAvatar(store.getNickname(), store.getProfileImageUrl(), dp(56)), new LinearLayout.LayoutParams(dp(56), dp(56)));
         LinearLayout profileText = new LinearLayout(this);
         profileText.setOrientation(LinearLayout.VERTICAL);
         profileText.setPadding(dp(12), 0, dp(8), 0);
-        profileText.addView(big(store.getNickname()));
-        profileText.addView(body(p.ageGroup + " · " + p.interest + " · " + p.goal));
-        profileText.addView(label(store.getAccountEmail()));
-        profileText.addView(body("팔로워 " + store.getFollowerCount() + " · 팔로잉 " + store.getFollowingCount()));
+        LinearLayout nameRow = row();
+        nameRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView myName = new TextView(this);
+        myName.setText(store.getNickname());
+        myName.setTextColor(Color.WHITE);
+        myName.setTextSize(18);
+        myName.setTypeface(Typeface.DEFAULT_BOLD);
+        myName.setPadding(0, 0, dp(8), 0);
+        nameRow.addView(myName);
+        nameRow.addView(communityTierBadge(plainTierText(tier)));
+        profileText.addView(nameRow);
+        TextView myMeta = new TextView(this);
+        myMeta.setText(p.ageGroup + " · " + p.interest + " · " + p.goal
+                + "\n팔로워 " + store.getFollowerCount() + " · 팔로잉 " + store.getFollowingCount());
+        myMeta.setTextColor(Color.parseColor("#C9FFFF"));
+        myMeta.setTextSize(12);
+        myMeta.setPadding(0, dp(3), 0, 0);
+        profileText.addView(myMeta);
         profileTop.addView(profileText, new LinearLayout.LayoutParams(0, -2, 1));
-        TierShieldView myShield = tierShield(tier);
-        profileTop.addView(myShield, new LinearLayout.LayoutParams(dp(88), dp(100)));
+        TextView editProfile = new TextView(this);
+        editProfile.setText("편집");
+        editProfile.setTextSize(13);
+        editProfile.setTypeface(Typeface.DEFAULT_BOLD);
+        editProfile.setTextColor(Color.WHITE);
+        editProfile.setGravity(Gravity.CENTER);
+        GradientDrawable editBg = new GradientDrawable();
+        editBg.setColor(Color.parseColor("#267B91"));
+        editBg.setCornerRadius(dp(16));
+        editProfile.setBackground(editBg);
+        editProfile.setOnClickListener(v -> {
+            profileEditOpen = true;
+            showApp(6);
+        });
+        profileTop.addView(editProfile, new LinearLayout.LayoutParams(dp(58), dp(32)));
         profileCard.addView(profileTop);
-        profileCard.addView(big("통합 티어 " + plainTierText(tier) + " · XP " + p.xp));
-        Button uploadPhoto = outlineButton("프로필 사진 업로드");
-        uploadPhoto.setOnClickListener(v -> profileImagePicker.launch(new String[]{"image/jpeg", "image/png", "image/webp"}));
-        profileCard.addView(uploadPhoto, new LinearLayout.LayoutParams(-1, dp(46)));
+
+        int xp = p.xp;
+        int base = UserStore.tierBaseXp(tier);
+        int next = UserStore.nextTierXp(tier);
+        int progress = "다이아".equals(tier)
+                ? 100
+                : Math.min(100, Math.max(0, (xp - base) * 100 / Math.max(1, next - base)));
+        LinearLayout xpRow = row();
+        xpRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView xpText = new TextView(this);
+        xpText.setText("XP " + xp + ("다이아".equals(tier) ? " · 최고 티어"
+                : " · " + plainTierText(PromotionRules.nextTier(tier)) + "까지 " + Math.max(0, next - xp)));
+        xpText.setTextColor(Color.WHITE);
+        xpText.setTextSize(13);
+        xpText.setTypeface(Typeface.DEFAULT_BOLD);
+        xpRow.addView(xpText, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView xpPercent = new TextView(this);
+        xpPercent.setText(progress + "%");
+        xpPercent.setTextColor(CYAN);
+        xpPercent.setTextSize(13);
+        xpPercent.setTypeface(Typeface.DEFAULT_BOLD);
+        xpRow.addView(xpPercent);
+        LinearLayout.LayoutParams xpRowParams = new LinearLayout.LayoutParams(-1, -2);
+        xpRowParams.setMargins(0, dp(12), 0, 0);
+        profileCard.addView(xpRow, xpRowParams);
+        ProgressBar xpBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        xpBar.setMax(100);
+        xpBar.setProgress(progress);
+        xpBar.setProgressTintList(ColorStateList.valueOf(CYAN));
+        xpBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#3B6983")));
+        LinearLayout.LayoutParams xpBarParams = new LinearLayout.LayoutParams(-1, dp(7));
+        xpBarParams.setMargins(0, dp(6), 0, 0);
+        profileCard.addView(xpBar, xpBarParams);
         content.addView(profileCard);
 
         LinearLayout stats = row();
@@ -4631,31 +4998,59 @@ public class MainActivity extends AppCompatActivity {
 
         addActivityHistorySection();
 
-        content.addView(sectionTitle("Ocean Skill Passport"));
         Map<String, Integer> masteryMap = currentSkillMastery();
         Map<String, Integer> evidenceMap = currentSkillEvidence();
+        LinearLayout passportHead = row();
+        passportHead.setGravity(Gravity.CENTER_VERTICAL);
+        passportHead.addView(sectionTitle("Ocean Skill Passport"), new LinearLayout.LayoutParams(0, -2, 1));
+        TextView openMap = label("자세히보기 ›");
+        openMap.setTextColor(OCEAN);
+        openMap.setTextSize(14);
+        openMap.setPadding(dp(12), dp(10), dp(2), dp(8));
+        openMap.setOnClickListener(v -> {
+            skillMapOpen = true;
+            showApp(6);
+        });
+        passportHead.addView(openMap);
+        content.addView(passportHead);
+
+        // 요약 카드: 준비도·강점·보강 팁만 보여주고, 자세한 내용은 스킬 맵 화면에서 확인
         LinearLayout skillCard = card();
-        skillCard.addView(big("인터랙티브 Ocean Skill Map"));
-        skillCard.addView(body("퀴즈 문항, 학습 완료와 현장 미션 증거를 분야별 노드로 연결합니다. 노드를 누르면 점수 근거, NCS 역량, 연결 진로와 다음 활동을 확인할 수 있습니다."));
         String targetCareer = store.getTargetCareer();
         int readiness = SkillProfileCatalog.careerReadiness(targetCareer, masteryMap);
-        skillCard.addView(note("목표 진로 " + targetCareer + " · 현재 준비도 " + readiness + "점", readiness >= 70 ? SUCCESS : OCEAN));
-
-        OceanSkillMapView skillMap = new OceanSkillMapView(this);
-        skillMap.setSkillData(masteryMap, evidenceMap);
-        LinearLayout.LayoutParams mapParams = new LinearLayout.LayoutParams(-1, dp(390));
-        mapParams.setMargins(0, dp(8), 0, dp(8));
-        skillCard.addView(skillMap, mapParams);
-
-        LinearLayout skillDetail = new LinearLayout(this);
-        skillDetail.setOrientation(LinearLayout.VERTICAL);
-        String initialTopic = SkillProfileCatalog.weakestTopics(masteryMap, 1).get(0);
-        renderSkillMapDetail(skillDetail, initialTopic, masteryMap, evidenceMap);
-        skillMap.setOnSkillSelectedListener(topic -> renderSkillMapDetail(skillDetail, topic, masteryMap, evidenceMap));
-        skillCard.addView(skillDetail);
-
-        skillCard.addView(label("전체 숙련도 목록"));
-        for (String topic : SkillProfileCatalog.TOPICS) addSkillProgress(skillCard, topic);
+        LinearLayout summaryRow = row();
+        summaryRow.setGravity(Gravity.CENTER_VERTICAL);
+        OceanSkillMapView miniMap = new OceanSkillMapView(this);
+        miniMap.setSkillData(masteryMap, evidenceMap);
+        miniMap.setCompactScale(0.5f);
+        summaryRow.addView(miniMap, new LinearLayout.LayoutParams(dp(175), dp(170)));
+        LinearLayout summaryText = new LinearLayout(this);
+        summaryText.setOrientation(LinearLayout.VERTICAL);
+        summaryText.setPadding(dp(10), 0, 0, 0);
+        TextView score = huge(readiness + "점");
+        score.setPadding(0, 0, 0, 0);
+        summaryText.addView(score);
+        summaryText.addView(label(targetCareer + " 준비도"));
+        String strongTopic = "";
+        String weakTopic = "";
+        int strongScore = -1;
+        int weakScore = Integer.MAX_VALUE;
+        for (String topic : SkillProfileCatalog.TOPICS) {
+            int value = masteryMap.getOrDefault(topic, 50);
+            if (value > strongScore) { strongScore = value; strongTopic = topic; }
+            if (value < weakScore) { weakScore = value; weakTopic = topic; }
+        }
+        summaryText.addView(note(strongTopic + " " + strongScore + " 강점", SUCCESS));
+        int predicted = SkillProfileCatalog.predictedNextScore(weakScore, evidenceMap.getOrDefault(weakTopic, 0));
+        if (predicted > weakScore) {
+            summaryText.addView(note(weakTopic + " 보강 시 +" + (predicted - weakScore) + "점", OCEAN));
+        }
+        summaryRow.addView(summaryText, new LinearLayout.LayoutParams(0, -2, 1));
+        skillCard.addView(summaryRow);
+        miniMap.setOnSkillSelectedListener(topic -> {
+            skillMapOpen = true;
+            showApp(6);
+        });
         content.addView(skillCard);
 
         content.addView(sectionTitle("검증형 해양 역량 포트폴리오"));
@@ -4677,38 +5072,6 @@ public class MainActivity extends AppCompatActivity {
         content.addView(sectionTitle("학습 기록"));
         addIdListCard("완료한 영상", store.getCompletedContentIds());
         addIdListCard("찜한 항목", store.getBookmarks());
-
-        content.addView(sectionTitle("프로필 편집"));
-        LinearLayout editCard = card();
-        Spinner age = spinner(new String[]{"초등학생", "중학생", "고등학생", "대학생", "성인", "직장인", "학부모/가족"});
-        Spinner interest = spinner(new String[]{"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류"});
-        Spinner goal = spinner(new String[]{"흥미", "체험", "진로탐색", "자격증", "직무역량 강화", "가족 교육"});
-        Spinner level = spinner(new String[]{"입문", "기초", "중급", "심화", "실무"});
-        setSpinnerSelection(age, p.ageGroup);
-        setSpinnerSelection(interest, p.interest);
-        setSpinnerSelection(goal, p.goal);
-        setSpinnerSelection(level, p.level);
-        editCard.addView(label("연령대")); editCard.addView(age);
-        editCard.addView(label("관심 분야")); editCard.addView(interest);
-        editCard.addView(label("학습 목적")); editCard.addView(goal);
-        editCard.addView(label("현재 수준")); editCard.addView(level);
-        Button saveProfile = primaryButton("프로필 저장");
-        saveProfile.setOnClickListener(v -> {
-            String a = age.getSelectedItem().toString();
-            String i = interest.getSelectedItem().toString();
-            String g = goal.getSelectedItem().toString();
-            String l = level.getSelectedItem().toString();
-            store.saveProfile(new UserProfile(a, i, g, l, RecommendationEngine.persona(a, g, i), p.xp));
-            toast("프로필을 저장했습니다.");
-            if (store.requiresGuardianConsent() && !store.hasGuardianConsent()) {
-                showGuardianConsentDialog(false);
-            } else {
-                if (viewModel.isCloudConfigured()) viewModel.syncNow();
-                showApp(6);
-            }
-        });
-        editCard.addView(saveProfile, new LinearLayout.LayoutParams(-1, dp(48)));
-        content.addView(editCard);
 
         content.addView(sectionTitle("계정과 클라우드 백업"));
         LinearLayout cloudCard = card();
@@ -5949,6 +6312,8 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setStatusBarColor(NAVY);
         getWindow().setNavigationBarColor(NAVY);
         getWindow().getDecorView().setSystemUiVisibility(0);
+        // 키보드가 올라오면 하단 고정 입력바(채팅 등)가 함께 올라오도록 리사이즈 모드 사용
+        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     private LinearLayout authCard() {
@@ -6556,7 +6921,8 @@ public class MainActivity extends AppCompatActivity {
         TextView fallback = new TextView(this);
         String name = nickname == null || nickname.trim().isEmpty() ? "B" : nickname.trim();
         String[] icons = {"🌊", "🐳", "⚓", "🐬", "⛵", "🪸", "🐚", "🧭"};
-        fallback.setText(icons[(name.hashCode() & 0x7fffffff) % icons.length]);
+        String chosen = store.getAvatarEmoji();
+        fallback.setText(chosen.isEmpty() ? icons[(name.hashCode() & 0x7fffffff) % icons.length] : chosen);
         fallback.setTextSize(24);
         fallback.setGravity(Gravity.CENTER);
         int[] colors = {Color.parseColor("#D9F4FF"), Color.parseColor("#DFFBFA"), Color.parseColor("#E5E7FF"), Color.parseColor("#E0F2FE"), Color.parseColor("#DCFCE7")};

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <gradient
-        android:angle="270"
-        android:startColor="#DDF4F5"
-        android:centerColor="#EFF9F9"
-        android:endColor="#FAFDFD" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FAFDFD" />
+        </shape>
+    </item>
+    <item android:height="220dp" android:gravity="top">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#DDF4F5"
+                android:endColor="#FAFDFD" />
+        </shape>
+    </item>
+</layer-list>
