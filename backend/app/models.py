@@ -379,6 +379,9 @@ class CommunityPost(Base):
     title: Mapped[str] = mapped_column(String(240))
     body: Mapped[str] = mapped_column(Text)
     image_url: Mapped[str] = mapped_column(Text, default="")
+    tags: Mapped[str] = mapped_column(Text, default="")
+    view_count: Mapped[int] = mapped_column(Integer, default=0)
+    accepted_comment_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 

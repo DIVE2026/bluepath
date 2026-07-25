@@ -53,6 +53,9 @@ public interface BluePathApi {
     @GET("api/v1/dashboard")
     Call<ApiModels.DashboardResponse> dashboard(@Header("Authorization") String authorization);
 
+    @POST("api/v1/attendance/check-in")
+    Call<ApiModels.AttendanceResponse> checkInAttendance(@Header("Authorization") String authorization);
+
     @Multipart
     @POST("api/v1/profile/image")
     Call<ApiModels.ProfileImageResponse> uploadProfileImage(
@@ -65,8 +68,23 @@ public interface BluePathApi {
             @Header("Authorization") String authorization,
             @Query("category") String category,
             @Query("q") String query,
+            @Query("tag") String tag,
+            @Query("sort") String sort,
             @Query("limit") int limit,
             @Query("offset") int offset
+    );
+
+    @GET("api/v1/community/feed-meta")
+    Call<ApiModels.CommunityFeedMetaDto> communityFeedMeta(
+            @Header("Authorization") String authorization,
+            @Query("category") String category
+    );
+
+    @POST("api/v1/community/posts/{postId}/accept/{commentId}")
+    Call<ApiModels.CommunityPostDto> acceptCommunityAnswer(
+            @Header("Authorization") String authorization,
+            @Path("postId") String postId,
+            @Path("commentId") String commentId
     );
 
     @GET("api/v1/community/posts/{postId}")

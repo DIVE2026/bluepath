@@ -11,6 +11,7 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.AlignmentSpan;
 import android.text.style.ForegroundColorSpan;
@@ -38,7 +39,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bluepath.app.repository.BluePathRepository;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,7 +52,10 @@ public class CommunityPostActivity extends AppCompatActivity {
     public static final String EXTRA_POST_ID = "community_post_id";
     public static final String EXTRA_POST_TITLE = "community_post_title";
     public static final String EXTRA_POST_BODY = "community_post_body";
+    public static final String EXTRA_POST_TAGS = "community_post_tags";
     public static final String RICH_BODY_MARKER = "<!--bluepath-rich-v1-->";
+    private static final String[] FREE_TAGS = {"후기", "정보공유", "진로고민", "자격증·시험", "모임·번개"};
+    private static final String[] QUESTION_TAGS = {"진로고민", "자격증·시험", "학습자료", "입시", "현직에게"};
 
     private final int NAVY = Color.parseColor("#06223F");
     private final int OCEAN = Color.parseColor("#0E7490");
@@ -60,6 +68,12 @@ public class CommunityPostActivity extends AppCompatActivity {
     private EditText titleInput;
     private EditText bodyInput;
     private Button submitButton;
+    private TextView headerTitle;
+    private Button freeCategoryButton;
+    private Button questionCategoryButton;
+    private EditText tagSearchInput;
+    private LinearLayout tagSuggestionRow;
+    private final Set<String> selectedTags = new LinkedHashSet<>();
     private String category;
     private String postId;
 
@@ -112,9 +126,9 @@ public class CommunityPostActivity extends AppCompatActivity {
         heading.setOrientation(LinearLayout.VERTICAL);
         heading.setPadding(dp(12), 0, 0, 0);
         String boardName = "question".equals(category) ? "질문 게시판" : "자유 게시판";
-        TextView title = text(boardName + (editing ? " 글 수정" : " 글쓰기"), 20, Color.WHITE, true);
+        headerTitle = text(boardName + (editing ? " 글 수정" : " 글쓰기"), 20, Color.WHITE, true);
         TextView subtitle = text(editing ? "게시글의 제목과 내용을 수정합니다" : "파일 링크와 서식을 포함해 새 글을 작성합니다", 11, Color.parseColor("#C9FFFF"), false);
-        heading.addView(title);
+        heading.addView(headerTitle);
         heading.addView(subtitle);
         header.addView(heading, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(header, new LinearLayout.LayoutParams(-1, -2));
@@ -123,7 +137,11 @@ public class CommunityPostActivity extends AppCompatActivity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(18), dp(18), dp(18));
 
-        form.addView(text(boardName, 13, OCEAN, true));
+        if (editing) {
+            form.addView(text(boardName, 13, OCEAN, true));
+        } else {
+            form.addView(buildCategorySelector());
+        }
 
         TextView titleLabel = text("제목", 13, TEXT, true);
         LinearLayout.LayoutParams titleLabelParams = new LinearLayout.LayoutParams(-1, -2);
@@ -133,6 +151,31 @@ public class CommunityPostActivity extends AppCompatActivity {
         titleInput = input("제목을 입력하세요");
         titleInput.setSingleLine(true);
         form.addView(titleInput, new LinearLayout.LayoutParams(-1, dp(56)));
+
+        TextView tagLabel = text("태그 · 최대 5개", 13, TEXT, true);
+        LinearLayout.LayoutParams tagLabelParams = new LinearLayout.LayoutParams(-1, -2);
+        tagLabelParams.setMargins(0, dp(16), 0, dp(7));
+        form.addView(tagLabel, tagLabelParams);
+
+        tagSearchInput = input("#을 입력해 태그 검색");
+        tagSearchInput.setSingleLine(true);
+        form.addView(tagSearchInput, new LinearLayout.LayoutParams(-1, dp(48)));
+
+        HorizontalScrollView tagScroll = new HorizontalScrollView(this);
+        tagScroll.setHorizontalScrollBarEnabled(false);
+        tagSuggestionRow = new LinearLayout(this);
+        tagSuggestionRow.setOrientation(LinearLayout.HORIZONTAL);
+        tagSuggestionRow.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        tagScroll.addView(tagSuggestionRow, new LinearLayout.LayoutParams(-2, -2));
+        LinearLayout.LayoutParams tagScrollParams = new LinearLayout.LayoutParams(-1, dp(42));
+        tagScrollParams.setMargins(0, dp(6), 0, 0);
+        form.addView(tagScroll, tagScrollParams);
+        refreshTagSuggestions();
+        tagSearchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable editable) { refreshTagSuggestions(); }
+        });
 
         TextView bodyLabel = text("내용", 13, TEXT, true);
         LinearLayout.LayoutParams bodyLabelParams = new LinearLayout.LayoutParams(-1, -2);
@@ -161,6 +204,61 @@ public class CommunityPostActivity extends AppCompatActivity {
 
         root.addView(form, new LinearLayout.LayoutParams(-1, 0, 1));
         return root;
+    }
+
+    private View buildCategorySelector() {
+        LinearLayout segment = new LinearLayout(this);
+        segment.setOrientation(LinearLayout.HORIZONTAL);
+        segment.setGravity(Gravity.CENTER_VERTICAL);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.parseColor("#E3EEF1"));
+        bg.setCornerRadius(dp(22));
+        segment.setBackground(bg);
+        segment.setPadding(dp(4), dp(4), dp(4), dp(4));
+
+        freeCategoryButton = new Button(this);
+        questionCategoryButton = new Button(this);
+        setupCategoryButton(freeCategoryButton, "자유 게시판", "free");
+        setupCategoryButton(questionCategoryButton, "질문 게시판", "question");
+        segment.addView(freeCategoryButton, new LinearLayout.LayoutParams(0, dp(40), 1));
+        segment.addView(questionCategoryButton, new LinearLayout.LayoutParams(0, dp(40), 1));
+        refreshCategoryButtons();
+        return segment;
+    }
+
+    private void setupCategoryButton(Button button, String labelText, String value) {
+        button.setText(labelText);
+        button.setAllCaps(false);
+        button.setTextSize(14);
+        button.setOnClickListener(v -> {
+            category = value;
+            retainTagsForCurrentCategory();
+            refreshCategoryButtons();
+            refreshTagSuggestions();
+            if (headerTitle != null) {
+                headerTitle.setText(("question".equals(category) ? "질문 게시판" : "자유 게시판") + " 글쓰기");
+            }
+        });
+    }
+
+    private void refreshCategoryButtons() {
+        styleCategoryButton(freeCategoryButton, "free".equals(category));
+        styleCategoryButton(questionCategoryButton, "question".equals(category));
+    }
+
+    private void styleCategoryButton(Button button, boolean selected) {
+        button.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        button.setTextColor(selected ? NAVY : MUTED);
+        if (selected) {
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColor(Color.WHITE);
+            bg.setCornerRadius(dp(18));
+            button.setBackground(bg);
+            button.setElevation(dp(1));
+        } else {
+            button.setBackgroundColor(Color.TRANSPARENT);
+            button.setElevation(0);
+        }
     }
 
     private View buildEditorToolbar() {
@@ -250,6 +348,10 @@ public class CommunityPostActivity extends AppCompatActivity {
     private void loadDraftForEditing() {
         if (postId.isEmpty()) return;
         titleInput.setText(clean(getIntent().getStringExtra(EXTRA_POST_TITLE)));
+        ArrayList<String> tags = getIntent().getStringArrayListExtra(EXTRA_POST_TAGS);
+        if (tags != null) selectedTags.addAll(tags);
+        retainTagsForCurrentCategory();
+        refreshTagSuggestions();
         String body = clean(getIntent().getStringExtra(EXTRA_POST_BODY));
         if (body.startsWith(RICH_BODY_MARKER)) {
             Spanned rich = Html.fromHtml(body.substring(RICH_BODY_MARKER.length()), Html.FROM_HTML_MODE_LEGACY);
@@ -275,10 +377,11 @@ public class CommunityPostActivity extends AppCompatActivity {
         }
 
         setSubmitting(true);
+        List<String> tags = new ArrayList<>(selectedTags);
         executor.execute(() -> {
             try {
-                if (postId.isEmpty()) repository.createCommunityPost(category, title, htmlBody);
-                else repository.updateCommunityPost(postId, title, htmlBody);
+                if (postId.isEmpty()) repository.createCommunityPost(category, title, htmlBody, tags);
+                else repository.updateCommunityPost(postId, title, htmlBody, tags);
                 runOnUiThread(() -> {
                     setResult(RESULT_OK);
                     Toast.makeText(this, postId.isEmpty() ? "게시글을 등록했습니다." : "게시글을 수정했습니다.", Toast.LENGTH_SHORT).show();
@@ -300,6 +403,91 @@ public class CommunityPostActivity extends AppCompatActivity {
         bodyInput.setEnabled(!submitting);
         submitButton.setEnabled(!submitting);
         submitButton.setText(submitting ? "저장 중…" : postId.isEmpty() ? "등록하기" : "수정 저장");
+    }
+
+    private void retainTagsForCurrentCategory() {
+        Set<String> available = new LinkedHashSet<>();
+        for (String tag : availableTags()) available.add(tag);
+        selectedTags.retainAll(available);
+    }
+
+    private String[] availableTags() {
+        return "question".equals(category) ? QUESTION_TAGS : FREE_TAGS;
+    }
+
+    private void refreshTagSuggestions() {
+        if (tagSuggestionRow == null) return;
+        tagSuggestionRow.removeAllViews();
+        String query = tagSearchInput == null ? "" : tagSearchInput.getText().toString().trim();
+        while (query.startsWith("#")) query = query.substring(1);
+        String normalizedQuery = query.trim();
+        for (String tag : availableTags()) {
+            if (!normalizedQuery.isEmpty() && !tag.contains(normalizedQuery)) continue;
+            tagSuggestionRow.addView(tagChoiceChip(tag, selectedTags.contains(tag)));
+        }
+        if (tagSuggestionRow.getChildCount() == 0) {
+            tagSuggestionRow.addView(text("선택할 수 있는 태그가 없습니다", 11, MUTED, false));
+        }
+    }
+
+    private TextView tagChoiceChip(String tag, boolean selected) {
+        TextView chip = text("#" + tag, 11, tagTextColor(tag), selected);
+        chip.setGravity(Gravity.CENTER);
+        chip.setPadding(dp(10), dp(5), dp(10), dp(5));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(tagBackgroundColor(tag));
+        background.setCornerRadius(dp(14));
+        background.setStroke(dp(selected ? 2 : 1), selected ? OCEAN : Color.parseColor("#D2E1E5"));
+        chip.setBackground(background);
+        chip.setContentDescription((selected ? "태그 선택 해제 " : "태그 선택 ") + tag);
+        chip.setOnClickListener(v -> {
+            if (selectedTags.contains(tag)) {
+                selectedTags.remove(tag);
+            } else {
+                if (selectedTags.size() >= 5) {
+                    toast("태그는 최대 5개까지 선택할 수 있습니다.");
+                    return;
+                }
+                selectedTags.add(tag);
+            }
+            if (tagSearchInput != null && !tagSearchInput.getText().toString().isEmpty()) {
+                tagSearchInput.setText("");
+            } else {
+                refreshTagSuggestions();
+            }
+        });
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(34));
+        params.setMargins(0, 0, dp(6), 0);
+        chip.setLayoutParams(params);
+        return chip;
+    }
+
+    private int tagBackgroundColor(String tag) {
+        switch (tag) {
+            case "후기": return Color.parseColor("#DDF6ED");
+            case "정보공유": return Color.parseColor("#DDF4F8");
+            case "진로고민": return Color.parseColor("#FFF1C9");
+            case "자격증·시험": return Color.parseColor("#E9E7FA");
+            case "모임·번개": return Color.parseColor("#FCE4EC");
+            case "학습자료": return Color.parseColor("#E1EEFF");
+            case "입시": return Color.parseColor("#FFE8D6");
+            case "현직에게": return Color.parseColor("#DDF3F0");
+            default: return Color.parseColor("#EEF4F6");
+        }
+    }
+
+    private int tagTextColor(String tag) {
+        switch (tag) {
+            case "후기": return Color.parseColor("#16765D");
+            case "정보공유": return Color.parseColor("#0E7490");
+            case "진로고민": return Color.parseColor("#8A5B00");
+            case "자격증·시험": return Color.parseColor("#5952A3");
+            case "모임·번개": return Color.parseColor("#A23A62");
+            case "학습자료": return Color.parseColor("#2E66A3");
+            case "입시": return Color.parseColor("#A35423");
+            case "현직에게": return Color.parseColor("#177369");
+            default: return TEXT;
+        }
     }
 
     private void applyCharacterSpan(Object span) {
