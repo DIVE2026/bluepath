@@ -22,11 +22,64 @@ from fastapi.testclient import TestClient
 
 from backend.app.main import app
 from backend.app.database import SessionLocal
-from backend.app.models import QuizSession
+from backend.app.models import Content, QuizSession
+from backend.app.services import schedule_matches_query
 
 
 def auth_header(token: str) -> dict[str, str]:
     return {'Authorization': f'Bearer {token}'}
+
+
+def test_schedule_search_rejects_incompatible_audience_season_and_test_data() -> None:
+    matching = Content(
+        id='matching-summer-high-school',
+        title='청소년 여름 해양진로교실',
+        content_type='program',
+        metadata_json={
+            'target': '중·고등학생',
+            'startAt': '2025-07-20',
+            'endAt': '2025-08-10',
+            'description': '과거 여름방학 운영 사례',
+        },
+    )
+    adult = Content(
+        id='adult-autumn-course',
+        title='해양문화 아카데미',
+        content_type='program',
+        metadata_json={
+            'target': '성인',
+            'startAt': '2025-09-18',
+            'endAt': '2025-10-30',
+            'description': '성인 강좌',
+        },
+    )
+    elementary = Content(
+        id='elementary-winter-course',
+        title='잠수정 이야기',
+        content_type='program',
+        metadata_json={
+            'target': '초등학생 포함 가족',
+            'startAt': '2026-02-07',
+            'endAt': '2026-02-08',
+            'description': '겨울 가족 교육',
+        },
+    )
+    test_record = Content(
+        id='test-course',
+        title='[테스트과정]TEST신청안됨',
+        content_type='program',
+        metadata_json={
+            'target': '청소년',
+            'startAt': '2025-07-01',
+            'endAt': '2025-08-31',
+        },
+    )
+    query = '고등학생이 여름방학에 참여하기 좋은 교육 프로그램'
+
+    assert schedule_matches_query(matching, query) is True
+    assert schedule_matches_query(adult, query) is False
+    assert schedule_matches_query(elementary, query) is False
+    assert schedule_matches_query(test_record, query) is False
 
 
 def test_daily_attendance_awards_xp_once() -> None:
