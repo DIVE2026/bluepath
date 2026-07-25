@@ -67,6 +67,16 @@ public final class ApiModels {
         public Map<String, Integer> activity;
     }
 
+    public static class AttendanceResponse {
+        public boolean checkedInToday;
+        public boolean newlyCheckedIn;
+        public int streak;
+        public int xpAwarded;
+        public int xp;
+        public String tier;
+        public List<String> attendedDates = new ArrayList<>();
+    }
+
     public static class ProfileImageResponse {
         public String profileImageUrl;
     }
@@ -320,17 +330,29 @@ public final class ApiModels {
         public boolean canEdit;
         public List<ReactionSummary> reactions = new ArrayList<>();
         public List<CommunityCommentDto> comments = new ArrayList<>();
+        public List<String> tags = new ArrayList<>();
+        public int viewCount;
+        public String acceptedCommentId;
+        public int commentCount;
+    }
+
+    public static class CommunityFeedMetaDto {
+        public int postCount;
+        public int unansweredCount;
+        public CommunityPostDto weeklyHot;
     }
 
     public static class CommunityPostRequest {
         public String category;
         public String title;
         public String body;
+        public List<String> tags = new ArrayList<>();
 
-        public CommunityPostRequest(String category, String title, String body) {
+        public CommunityPostRequest(String category, String title, String body, List<String> tags) {
             this.category = category;
             this.title = title;
             this.body = body;
+            if (tags != null) this.tags = tags;
         }
     }
 
@@ -348,7 +370,17 @@ public final class ApiModels {
     public static class CommunityPostUpdateRequest {
         public String title;
         public String body;
-        public CommunityPostUpdateRequest(String title, String body) { this.title = title; this.body = body; }
+        public List<String> tags;
+
+        public CommunityPostUpdateRequest(String title, String body) {
+            this(title, body, null);
+        }
+
+        public CommunityPostUpdateRequest(String title, String body, List<String> tags) {
+            this.title = title;
+            this.body = body;
+            this.tags = tags;
+        }
     }
 
     public static class CommunityCommentUpdateRequest {

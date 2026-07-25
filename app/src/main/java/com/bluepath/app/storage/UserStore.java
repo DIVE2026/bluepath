@@ -542,6 +542,14 @@ public class UserStore {
         return prefs.getString("accountEmail", "");
     }
 
+    public String getLastAttendanceCheckDate() {
+        return prefs.getString("lastAttendanceCheckDate", "");
+    }
+
+    public void setLastAttendanceCheckDate(String date) {
+        prefs.edit().putString("lastAttendanceCheckDate", date == null ? "" : date).apply();
+    }
+
     public String getAccountDisplayName() {
         return prefs.getString("accountDisplayName", "BluePath Learner");
     }

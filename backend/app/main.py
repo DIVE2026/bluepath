@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,10 +57,12 @@ from .schemas import (
     AiSearchResponse,
     AuthRequest,
     AuthResponse,
+    AttendanceResponse,
     CommunityBlockResponse,
     CommunityCommentCreate,
     CommunityCommentItem,
     CommunityCommentUpdate,
+    CommunityFeedMeta,
     CommunityModerationRequest,
     CommunityPostCreate,
     CommunityPostItem,
@@ -241,6 +244,12 @@ def apply_compatibility_migrations() -> None:
         columns = {column["name"] for column in inspector.get_columns("community_posts")}
         if "image_url" not in columns:
             statements.append("ALTER TABLE community_posts ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
+        if "tags" not in columns:
+            statements.append("ALTER TABLE community_posts ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+        if "view_count" not in columns:
+            statements.append("ALTER TABLE community_posts ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0")
+        if "accepted_comment_id" not in columns:
+            statements.append("ALTER TABLE community_posts ADD COLUMN accepted_comment_id VARCHAR(36)")
 
     with engine.begin() as connection:
         for statement in statements:
@@ -819,9 +828,9 @@ def dashboard(
 ) -> DashboardResponse:
     counts: dict[str, int] = {}
     for record in db.scalars(select(LearningRecord).where(LearningRecord.user_id == user.id)):
-        if record.record_type not in {"video", "paper"}:
+        if record.record_type not in {"video", "paper", "attendance"}:
             continue
-        day = record.synced_at.date().isoformat()
+        day = record.target_id if record.record_type == "attendance" else record.synced_at.date().isoformat()
         counts[day] = counts.get(day, 0) + 1
     for post in db.scalars(select(CommunityPost).where(CommunityPost.user_id == user.id)):
         day = post.created_at.date().isoformat()
@@ -830,6 +839,80 @@ def dashboard(
         day = comment.created_at.date().isoformat()
         counts[day] = counts.get(day, 0) + 1
     return DashboardResponse(profile=profile_summary(db, user, user), activity=counts)
+
+
+@app.post("/api/v1/attendance/check-in", response_model=AttendanceResponse)
+def attendance_check_in(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> AttendanceResponse:
+    today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+    today_key = today.isoformat()
+    progress = get_or_create_progress(db, user.id)
+    db.flush()
+    locked_progress = db.scalar(select(UserProgress).where(
+        UserProgress.user_id == user.id,
+    ).with_for_update())
+    if locked_progress is not None:
+        progress = locked_progress
+
+    records = list(db.scalars(select(LearningRecord).where(
+        LearningRecord.user_id == user.id,
+        LearningRecord.record_type == "attendance",
+    )))
+    attended = {record.target_id for record in records if record.target_id}
+    newly_checked_in = today_key not in attended
+
+    if newly_checked_in:
+        db.add(LearningRecord(
+            user_id=user.id,
+            client_record_id=f"attendance:{today_key}",
+            device_id="server",
+            record_type="attendance",
+            target_id=today_key,
+            title="Daily attendance",
+            status="checked_in",
+            client_updated_at=int(datetime.now(timezone.utc).timestamp() * 1000),
+        ))
+        attended.add(today_key)
+
+    streak = 0
+    cursor = today
+    while cursor.isoformat() in attended:
+        streak += 1
+        cursor -= timedelta(days=1)
+
+    xp_awarded = 0
+    if newly_checked_in:
+        xp_awarded = 10 + (50 if streak > 0 and streak % 7 == 0 else 0)
+        progress.xp = max(0, progress.xp + xp_awarded)
+
+    profile = db.get(UserProfile, user.id) or UserProfile(user_id=user.id, snapshot={}, version=0)
+    diamond = diamond_status_for(db, user, progress=progress)
+    profile.snapshot = apply_verified_evidence(
+        db,
+        user.id,
+        apply_account_state(
+            apply_authoritative_progress(profile.snapshot or {}, progress, diamond_eligible=diamond.eligible),
+            user,
+        ),
+    )
+    if newly_checked_in:
+        profile.version = int(profile.version or 0) + 1
+    db.add(profile)
+    db.commit()
+
+    week_start = today - timedelta(days=today.weekday())
+    week_dates = [(week_start + timedelta(days=index)).isoformat() for index in range(7)]
+    return AttendanceResponse(
+        checkedInToday=True,
+        newlyCheckedIn=newly_checked_in,
+        streak=streak,
+        xpAwarded=xp_awarded,
+        xp=progress.xp,
+        tier=progress_tier(progress, diamond.eligible),
+        attendedDates=[value for value in week_dates if value in attended],
+    )
 
 
 @app.post("/api/v1/profile/image", response_model=ProfileImageResponse)
@@ -882,15 +965,19 @@ def require_community_access(db: Session, actor_id: str, target_user_id: str) ->
 
 @app.get("/api/v1/community/posts", response_model=list[CommunityPostItem])
 def list_community_posts(
-    category: str = Query(default="free", pattern="^(free|question)$"),
+    category: str = Query(default="free", pattern="^(free|question|all)$"),
     q: str = Query(default="", max_length=200),
+    tag: str = Query(default="", max_length=40),
+    sort: str = Query(default="latest", pattern="^(latest|popular)$"),
     limit: int = Query(default=20, ge=1, le=50),
     offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[CommunityPostItem]:
     blocked_ids = list(blocked_user_ids(db, user.id))
-    statement = select(CommunityPost).where(CommunityPost.category == category)
+    statement = select(CommunityPost)
+    if category != "all":
+        statement = statement.where(CommunityPost.category == category)
     if blocked_ids:
         statement = statement.where(CommunityPost.user_id.not_in(blocked_ids))
     query = q.strip()
@@ -902,8 +989,75 @@ def list_community_posts(
             CommunityPost.body.ilike(pattern),
             CommunityPost.user_id.in_(author_ids),
         ))
-    rows = list(db.scalars(statement.order_by(CommunityPost.created_at.desc()).offset(offset).limit(limit)))
+    tag_value = tag.strip().lstrip("#")
+    if tag_value:
+        statement = statement.where(or_(
+            CommunityPost.tags == tag_value,
+            CommunityPost.tags.like(f"{tag_value},%"),
+            CommunityPost.tags.like(f"%,{tag_value}"),
+            CommunityPost.tags.like(f"%,{tag_value},%"),
+        ))
+    if sort == "popular":
+        statement = statement.order_by(community_engagement_score().desc(), CommunityPost.created_at.desc())
+    else:
+        statement = statement.order_by(CommunityPost.created_at.desc())
+    rows = list(db.scalars(statement.offset(offset).limit(limit)))
     return [community_post_schema(db, item, user) for item in rows]
+
+
+def community_engagement_score():
+    comment_count = (
+        select(func.count())
+        .where(CommunityComment.post_id == CommunityPost.id)
+        .correlate(CommunityPost)
+        .scalar_subquery()
+    )
+    reaction_count = (
+        select(func.count())
+        .where(CommunityReaction.target_type == "post", CommunityReaction.target_id == CommunityPost.id)
+        .correlate(CommunityPost)
+        .scalar_subquery()
+    )
+    return comment_count + reaction_count
+
+
+@app.get("/api/v1/community/feed-meta", response_model=CommunityFeedMeta)
+def community_feed_meta(
+    category: str = Query(default="free", pattern="^(free|question|all)$"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CommunityFeedMeta:
+    blocked_ids = list(blocked_user_ids(db, user.id))
+
+    count_statement = select(func.count()).select_from(CommunityPost)
+    if category != "all":
+        count_statement = count_statement.where(CommunityPost.category == category)
+    if blocked_ids:
+        count_statement = count_statement.where(CommunityPost.user_id.not_in(blocked_ids))
+    post_count = db.scalar(count_statement) or 0
+
+    unanswered = 0
+    if category == "question":
+        has_comment = select(CommunityComment.id).where(CommunityComment.post_id == CommunityPost.id).correlate(CommunityPost)
+        statement = select(func.count()).select_from(CommunityPost).where(
+            CommunityPost.category == "question", ~has_comment.exists())
+        if blocked_ids:
+            statement = statement.where(CommunityPost.user_id.not_in(blocked_ids))
+        unanswered = db.scalar(statement) or 0
+
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    hot_statement = select(CommunityPost).where(CommunityPost.created_at >= week_ago)
+    if category != "all":
+        hot_statement = hot_statement.where(CommunityPost.category == category)
+    if blocked_ids:
+        hot_statement = hot_statement.where(CommunityPost.user_id.not_in(blocked_ids))
+    hot = db.scalars(hot_statement.order_by(
+        community_engagement_score().desc(), CommunityPost.created_at.desc()).limit(1)).first()
+    return CommunityFeedMeta(
+        postCount=post_count,
+        unansweredCount=unanswered,
+        weeklyHot=community_post_schema(db, hot, user) if hot is not None else None,
+    )
 
 
 @app.get("/api/v1/community/posts/{post_id}", response_model=CommunityPostItem)
@@ -915,7 +1069,19 @@ def get_community_post(
     post = db.get(CommunityPost, post_id)
     if post is None or post.user_id in blocked_user_ids(db, user.id):
         raise HTTPException(status_code=404, detail="Post not found")
+    if post.user_id != user.id:
+        post.view_count = (post.view_count or 0) + 1
+        db.commit()
     return community_post_schema(db, post, user)
+
+
+def encode_post_tags(tags: list[str]) -> str:
+    cleaned: list[str] = []
+    for value in tags or []:
+        item = value.strip().lstrip("#")
+        if item and item not in cleaned:
+            cleaned.append(item[:40])
+    return ",".join(cleaned[:5])
 
 
 @app.post("/api/v1/community/posts", response_model=CommunityPostItem)
@@ -924,10 +1090,40 @@ def create_community_post(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CommunityPostItem:
-    post = CommunityPost(user_id=user.id, category=request.category, title=request.title.strip(), body=request.body.strip())
+    post = CommunityPost(
+        user_id=user.id,
+        category=request.category,
+        title=request.title.strip(),
+        body=request.body.strip(),
+        tags=encode_post_tags(request.tags),
+    )
     db.add(post)
     db.commit()
     db.refresh(post)
+    return community_post_schema(db, post, user)
+
+
+@app.post("/api/v1/community/posts/{post_id}/accept/{comment_id}", response_model=CommunityPostItem)
+def accept_community_answer(
+    post_id: str,
+    comment_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CommunityPostItem:
+    post = db.get(CommunityPost, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.category != "question":
+        raise HTTPException(status_code=400, detail="Only question posts can accept an answer")
+    if post.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the question author can accept an answer")
+    comment = db.get(CommunityComment, comment_id)
+    if comment is None or comment.post_id != post.id:
+        raise HTTPException(status_code=404, detail="Comment not found on this post")
+    if comment.user_id == user.id:
+        raise HTTPException(status_code=400, detail="You cannot accept your own answer")
+    post.accepted_comment_id = comment.id
+    db.commit()
     return community_post_schema(db, post, user)
 
 
@@ -1016,6 +1212,8 @@ def update_community_post(
         raise HTTPException(status_code=403, detail="You cannot edit this post")
     post.title = request.title.strip()
     post.body = request.body.strip()
+    if request.tags is not None:
+        post.tags = encode_post_tags(request.tags)
     post.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(post)
@@ -2485,6 +2683,10 @@ def community_post_schema(db: Session, post: CommunityPost, viewer: User) -> Com
         canEdit=post.user_id == viewer.id or is_admin(viewer),
         reactions=reaction_summaries(db, "post", post.id, viewer.id),
         comments=[community_comment_schema(db, item, viewer) for item in comments],
+        tags=[value for value in (post.tags or "").split(",") if value],
+        viewCount=post.view_count or 0,
+        acceptedCommentId=post.accepted_comment_id,
+        commentCount=len(comments),
     )
 
 

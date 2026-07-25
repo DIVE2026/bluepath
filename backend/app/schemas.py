@@ -69,11 +69,22 @@ class CommunityPostItem(CamelModel):
     canEdit: bool = False
     reactions: list[ReactionSummary] = Field(default_factory=list)
     comments: list[CommunityCommentItem] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    viewCount: int = 0
+    acceptedCommentId: str | None = None
+    commentCount: int = 0
+
+
+class CommunityFeedMeta(CamelModel):
+    postCount: int = 0
+    unansweredCount: int = 0
+    weeklyHot: CommunityPostItem | None = None
 
 
 class CommunityPostUpdate(CamelModel):
     title: str = Field(min_length=2, max_length=240)
     body: str = Field(min_length=2, max_length=8000)
+    tags: list[str] | None = Field(default=None, max_length=5)
 
 
 class CommunityCommentUpdate(CamelModel):
@@ -100,6 +111,7 @@ class CommunityPostCreate(CamelModel):
     category: str = Field(pattern="^(free|question)$")
     title: str = Field(min_length=2, max_length=240)
     body: str = Field(min_length=2, max_length=8000)
+    tags: list[str] = Field(default_factory=list, max_length=5)
 
 
 class CommunityCommentCreate(CamelModel):
@@ -127,6 +139,16 @@ class FollowResponse(CamelModel):
 class DashboardResponse(CamelModel):
     profile: ProfileSummary
     activity: dict[str, int] = Field(default_factory=dict)
+
+
+class AttendanceResponse(CamelModel):
+    checkedInToday: bool
+    newlyCheckedIn: bool
+    streak: int
+    xpAwarded: int
+    xp: int
+    tier: str
+    attendedDates: list[str] = Field(default_factory=list)
 
 
 class PasswordResetRequest(CamelModel):

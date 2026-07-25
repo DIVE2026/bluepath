@@ -218,14 +218,33 @@ public class BluePathRepository {
         return body;
     }
 
-    public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, int limit, int offset) throws IOException {
+    public ApiModels.AttendanceResponse checkInAttendance() throws IOException {
         requireAuthenticated();
-        return requireBody(api.communityPosts(bearer(), category, query == null ? "" : query, limit, offset)
+        ApiModels.AttendanceResponse body = requireBody(
+                api.checkInAttendance(bearer()).execute(), "출석 확인");
+        store.setXp(body.xp);
+        return body;
+    }
+
+    public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, String tag, String sort,
+                                                           int limit, int offset) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityPosts(bearer(), category, query == null ? "" : query,
+                tag == null ? "" : tag, sort == null || sort.isEmpty() ? "latest" : sort, limit, offset)
                 .execute(), "커뮤니티 불러오기");
+    }
+
+    public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, int limit, int offset) throws IOException {
+        return communityPosts(category, query, "", "latest", limit, offset);
     }
 
     public List<ApiModels.CommunityPostDto> communityPosts(String category) throws IOException {
         return communityPosts(category, "", 20, 0);
+    }
+
+    public ApiModels.CommunityFeedMetaDto communityFeedMeta(String category) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityFeedMeta(bearer(), category).execute(), "커뮤니티 요약 불러오기");
     }
 
     public ApiModels.CommunityPostDto communityPost(String postId) throws IOException {
@@ -233,12 +252,22 @@ public class BluePathRepository {
         return requireBody(api.communityPost(bearer(), postId).execute(), "게시글 불러오기");
     }
 
-    public ApiModels.CommunityPostDto createCommunityPost(String category, String title, String body) throws IOException {
+    public ApiModels.CommunityPostDto acceptCommunityAnswer(String postId, String commentId) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.acceptCommunityAnswer(bearer(), postId, commentId).execute(), "답변 채택");
+    }
+
+    public ApiModels.CommunityPostDto createCommunityPost(String category, String title, String body,
+                                                          List<String> tags) throws IOException {
         requireAuthenticated();
         ApiModels.CommunityPostDto result = requireBody(api.createCommunityPost(
-                bearer(), new ApiModels.CommunityPostRequest(category, title, body)).execute(), "게시글 작성");
+                bearer(), new ApiModels.CommunityPostRequest(category, title, body, tags)).execute(), "게시글 작성");
         store.recordActivity("community_post", 1);
         return result;
+    }
+
+    public ApiModels.CommunityPostDto createCommunityPost(String category, String title, String body) throws IOException {
+        return createCommunityPost(category, title, body, new ArrayList<>());
     }
 
     public ApiModels.CommunityPostDto uploadCommunityPostImage(String postId, Uri uri) throws IOException {
@@ -279,9 +308,14 @@ public class BluePathRepository {
     }
 
     public ApiModels.CommunityPostDto updateCommunityPost(String postId, String title, String body) throws IOException {
+        return updateCommunityPost(postId, title, body, null);
+    }
+
+    public ApiModels.CommunityPostDto updateCommunityPost(String postId, String title, String body,
+                                                          List<String> tags) throws IOException {
         requireAuthenticated();
         return requireBody(api.updateCommunityPost(bearer(), postId,
-                new ApiModels.CommunityPostUpdateRequest(title, body)).execute(), "게시글 수정");
+                new ApiModels.CommunityPostUpdateRequest(title, body, tags)).execute(), "게시글 수정");
     }
 
     public void deleteCommunityPost(String postId) throws IOException {
