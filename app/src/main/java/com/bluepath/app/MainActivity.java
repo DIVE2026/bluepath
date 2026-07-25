@@ -53,6 +53,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bluepath.app.data.DataRepository;
@@ -307,6 +312,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Android 15의 강제 edge-to-edge와 이전 버전에서 동일하게 동작하도록
+        // 시스템 바/키보드 영역은 각 화면의 WindowInsets로 직접 처리합니다.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         DataRepository.initialize(this);
         store = new UserStore(this);
         llmClient = new MarineLlmClient(store);
@@ -415,6 +423,7 @@ public class MainActivity extends AppCompatActivity {
         root.setPadding(dp(26), dp(26), dp(26), dp(28));
         screen.addView(root, new FrameLayout.LayoutParams(-1, -1));
         setContentView(screen);
+        applySafeWindowInsets(screen);
 
         TextView eyebrow = authLabel("MARINE · DATA · CAREER");
         eyebrow.setGravity(Gravity.CENTER);
@@ -799,6 +808,7 @@ public class MainActivity extends AppCompatActivity {
         appRoot = new FrameLayout(this);
         appRoot.setBackgroundResource(R.drawable.bg_app_surface);
         setContentView(appRoot);
+        applySafeWindowInsets(appRoot);
 
         LinearLayout main = new LinearLayout(this);
         main.setOrientation(LinearLayout.VERTICAL);
@@ -7072,21 +7082,58 @@ public class MainActivity extends AppCompatActivity {
         scroll.addView(layout, new ScrollView.LayoutParams(-1, -2));
         screen.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
         setContentView(screen);
+        applySafeWindowInsets(screen);
         return layout;
     }
 
     private void applyOceanWindow() {
-        getWindow().setStatusBarColor(Color.parseColor("#073642"));
-        getWindow().setNavigationBarColor(Color.parseColor("#03262F"));
-        getWindow().getDecorView().setSystemUiVisibility(0);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            getWindow().setStatusBarColor(Color.parseColor("#073642"));
+            getWindow().setNavigationBarColor(Color.parseColor("#03262F"));
+        }
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
     }
 
     private void applyAppWindow() {
-        getWindow().setStatusBarColor(NAVY);
-        getWindow().setNavigationBarColor(NAVY);
-        getWindow().getDecorView().setSystemUiVisibility(0);
-        // 키보드가 올라오면 하단 고정 입력바(채팅 등)가 함께 올라오도록 리사이즈 모드 사용
-        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        boolean edgeToEdge = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM;
+        if (!edgeToEdge) {
+            getWindow().setStatusBarColor(NAVY);
+            getWindow().setNavigationBarColor(NAVY);
+        }
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        // Android 15에서는 시스템 바가 투명하므로 밝은 앱 표면 위에 어두운 아이콘을 사용합니다.
+        controller.setAppearanceLightStatusBars(edgeToEdge);
+        controller.setAppearanceLightNavigationBars(edgeToEdge);
+    }
+
+    /**
+     * 시스템 바, 디스플레이 컷아웃 및 IME 영역을 루트 여백에 반영합니다.
+     * IME가 열리면 하단 고정 입력바를 키보드 위로 올리고, 닫히면 내비게이션 바 여백만 유지합니다.
+     */
+    private void applySafeWindowInsets(View view) {
+        final int initialLeft = view.getPaddingLeft();
+        final int initialTop = view.getPaddingTop();
+        final int initialRight = view.getPaddingRight();
+        final int initialBottom = view.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) -> {
+            Insets safeInsets = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
+            Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(
+                    initialLeft + safeInsets.left,
+                    initialTop + safeInsets.top,
+                    initialRight + safeInsets.right,
+                    initialBottom + Math.max(safeInsets.bottom, imeInsets.bottom)
+            );
+            return windowInsets;
+        });
+        ViewCompat.requestApplyInsets(view);
     }
 
     private LinearLayout authCard() {
