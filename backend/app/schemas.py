@@ -64,6 +64,7 @@ class CommunityPostItem(CamelModel):
     author: ProfileSummary
     title: str
     body: str
+    imageUrl: str = ""
     createdAt: datetime
     updatedAt: datetime
     canEdit: bool = False
