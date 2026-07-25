@@ -30,6 +30,8 @@ The bottom navigation has been removed. Every tab begins with an introduction pa
 
 ### Smart Nautical Chart
 
+<img src="assets/shot4.jpeg" alt="Smart Nautical Chart" width="300" height="400">
+
 The Home screen creates an explainable route from the learner’s current profile and activity history to a selected marine career.
 
 - Seven route modes: balanced, fastest, experience, family, career, weekend, and free-first
@@ -58,6 +60,8 @@ The server validates the signature, expiration time, session, mission ownership,
 
 ### Explainable Recommendations
 
+<img src="assets/shot5.png" alt="Explainable Recommendations" width="300" height="400">
+
 Recommendations consider:
 
 - Profile interests and learning goals
@@ -75,6 +79,8 @@ Every content, schedule, route, and career card can show why it was recommended 
 
 ### Verified Learning Completion
 
+<img src="assets/shot6.jpeg" alt="Verified Learning Completion" width="300" height="400">
+
 Opening a video does not immediately mark it complete or grant XP. The app records a learning start, requires a minimum learning interval, and asks the learner to submit a short reflection before completion is recognized.
 
 This separates:
@@ -86,6 +92,8 @@ Verified completion contributes to topic-level skill mastery and the learner’s
 
 ### Quiz Integrity and Skill Mastery
 
+<img src="assets/shot7.png" alt="Quiz Integrity and Skill Mastery" width="300" height="400">
+
 Promotion quizzes use delayed grading and detailed explanations, while repeated attempts cannot be exploited for unlimited XP.
 
 - First successful promotion: full achievement XP
@@ -96,6 +104,8 @@ Promotion quizzes use delayed grading and detailed explanations, while repeated 
 The **MY** tab displays mastery and evidence counts for marine environment, marine life, navigation, ships, maritime culture, safety, and port logistics. The same evidence is visualized as an interactive constellation-style Ocean Skill Map. Selecting a node explains the score source, related sub-skills, NCS-oriented competencies, connected careers, and the next recommended activity.
 
 ### Ocean Community
+
+<img src="assets/shot8.png" alt="Ocean Community" width="300" height="400"><img src="assets/shot9.jpeg" alt="Ocean Community" width="300" height="400">
 
 Ocean Community provides authenticated social learning through:
 
@@ -111,6 +121,8 @@ Ocean Community provides authenticated social learning through:
 The community uses the same learner identity and progression context shown in Home and MY.
 
 ### Ocean Skill Passport
+
+<img src="assets/shot10.jpeg" alt="Ocean Skill Passport" width="300" height="400">
 
 MY is an authenticated personal ocean passport that turns recorded activity into both an explorable skill profile and a reusable evidence portfolio. It includes:
 
@@ -132,6 +144,8 @@ MY is an authenticated personal ocean passport that turns recorded activity into
 - Logout and local-data reset
 
 ### Natural-Language Search and Marine AI
+
+<img src="assets/shot12.png" alt="Natural-Language Search and Marine AI" width="300" height="400">
 
 Learning Materials and Schedule each provide a natural-language search box. AI Career Counseling combines learner profile data, current tier, app knowledge, and optional live retrieval.
 
