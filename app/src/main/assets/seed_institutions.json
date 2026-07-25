@@ -3,61 +3,2248 @@
     "id": "institution-001",
     "category": "해운회사",
     "name": "㈜가나마린",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
   },
   {
     "id": "institution-002",
     "category": "해운회사",
     "name": "거영해운㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
   },
   {
     "id": "institution-003",
     "category": "해운회사",
     "name": "거제선박㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
   },
   {
     "id": "institution-004",
     "category": "해운회사",
     "name": "경일상운㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
   },
   {
     "id": "institution-005",
     "category": "해운회사",
     "name": "㈜고려에스엠",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
   },
   {
     "id": "institution-006",
     "category": "해운회사",
     "name": "고려해운㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
   },
   {
     "id": "institution-007",
     "category": "해운회사",
     "name": "골디락스쉬핑㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
   },
   {
     "id": "institution-008",
     "category": "해운회사",
     "name": "광명해운㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
   },
   {
     "id": "institution-009",
     "category": "해운회사",
     "name": "국민비투멘㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
   },
   {
     "id": "institution-010",
     "category": "해운회사",
     "name": "국양해운㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-dc1540521d23",
+    "category": "해운회사",
+    "name": "㈜국제선박투자운용",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f4be098f8a83",
+    "category": "해운회사",
+    "name": "㈜국제해양기술",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-901815046a2d",
+    "category": "해운회사",
+    "name": "㈜그린마리타임",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-78e5b8d46b11",
+    "category": "해운회사",
+    "name": "㈜그린에스엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-911e36cdeebe",
+    "category": "해운회사",
+    "name": "그린월드㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-acc90beebbef",
+    "category": "해운회사",
+    "name": "금강에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-af411e00a540",
+    "category": "해운회사",
+    "name": "금양상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7f1acb8ca2a6",
+    "category": "해운회사",
+    "name": "금진해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7f66ed00946b",
+    "category": "해운회사",
+    "name": "남성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-6ee0abbc803a",
+    "category": "해운회사",
+    "name": "㈜네비게이터해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-651e843ddd74",
+    "category": "해운회사",
+    "name": "뉴쉬핑코리아㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-af1fd61d286c",
+    "category": "해운회사",
+    "name": "㈜대광선박",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-4c1535bfc5bb",
+    "category": "해운회사",
+    "name": "㈜대림코퍼레이션",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8c79931a93d1",
+    "category": "해운회사",
+    "name": "대명상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-dd0798092628",
+    "category": "해운회사",
+    "name": "대복해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5cacf5831a60",
+    "category": "해운회사",
+    "name": "㈜대우로지스틱스",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7c5be93e7862",
+    "category": "해운회사",
+    "name": "대유상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-064feb7566b7",
+    "category": "해운회사",
+    "name": "대한상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-565e0f3556b4",
+    "category": "해운회사",
+    "name": "대한시멘트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b80500d43581",
+    "category": "해운회사",
+    "name": "대한해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-3fb26e38dca3",
+    "category": "해운회사",
+    "name": "대한해운엘엔지㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7ffd164c7bd3",
+    "category": "해운회사",
+    "name": "대호상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7a18d5f9322b",
+    "category": "해운회사",
+    "name": "대호해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5811c3228c80",
+    "category": "해운회사",
+    "name": "㈜더블유에스엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-8dc7c9646b15",
+    "category": "해운회사",
+    "name": "더블유에이치마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c445a3a17ad2",
+    "category": "해운회사",
+    "name": "㈜더블유오션",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-0ce1a3931f67",
+    "category": "해운회사",
+    "name": "덕양해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-4698fd2fbb4e",
+    "category": "해운회사",
+    "name": "델타마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-59d2bb4fb977",
+    "category": "해운회사",
+    "name": "㈜도리코",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-1d7a4d350e7b",
+    "category": "해운회사",
+    "name": "동국상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d70fe68952e9",
+    "category": "해운회사",
+    "name": "동림탱커㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-aa506476760d",
+    "category": "해운회사",
+    "name": "㈜동명상선",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-05f3c6e8e92b",
+    "category": "해운회사",
+    "name": "㈜동방",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-60c3fad5a4ed",
+    "category": "해운회사",
+    "name": "동성마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1440d067deb9",
+    "category": "해운회사",
+    "name": "동아탱커㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-2438f48834c8",
+    "category": "해운회사",
+    "name": "동양고속훼리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8fc625c279a7",
+    "category": "해운회사",
+    "name": "동영해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b2609102e4e8",
+    "category": "해운회사",
+    "name": "동주상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-8214305a66f2",
+    "category": "해운회사",
+    "name": "동주해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ebeb2ffe4d10",
+    "category": "해운회사",
+    "name": "동지해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-f88dd4f4c1fe",
+    "category": "해운회사",
+    "name": "동진상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-397ea14082d1",
+    "category": "해운회사",
+    "name": "동진상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-7e229f63a6a1",
+    "category": "해운회사",
+    "name": "동진해무㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-43fcdc0afc40",
+    "category": "해운회사",
+    "name": "동친해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e85b622bd74e",
+    "category": "해운회사",
+    "name": "동하상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-82e766fa5933",
+    "category": "해운회사",
+    "name": "㈜동화시해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-88e963c4ed75",
+    "category": "해운회사",
+    "name": "두광해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d15ffa23b839",
+    "category": "해운회사",
+    "name": "두라해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b010d7369b7b",
+    "category": "해운회사",
+    "name": "두레해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-751bfb31cce3",
+    "category": "해운회사",
+    "name": "두성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9e6181d4b4af",
+    "category": "해운회사",
+    "name": "두양상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e14907834352",
+    "category": "해운회사",
+    "name": "두우해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ec3a1a5a8793",
+    "category": "해운회사",
+    "name": "두원상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-663db3c71901",
+    "category": "해운회사",
+    "name": "㈜디에스아이마리타임파트너스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9a28a74615a7",
+    "category": "해운회사",
+    "name": "디에이티마리타임㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c3ae882faf30",
+    "category": "해운회사",
+    "name": "디엘에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b99ebaacfb2c",
+    "category": "해운회사",
+    "name": "㈜디엠쉽핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1a782cab4c77",
+    "category": "해운회사",
+    "name": "디와이에스엠씨㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b8437e0f6abf",
+    "category": "해운회사",
+    "name": "라파즈한라시멘트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5612a1b0f700",
+    "category": "해운회사",
+    "name": "㈜로드스타마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9d91a27467db",
+    "category": "해운회사",
+    "name": "로라스선박관리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ef716aa28a0a",
+    "category": "해운회사",
+    "name": "㈜리앤쉽핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d30f939eb962",
+    "category": "해운회사",
+    "name": "릭스해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-fda1c119712f",
+    "category": "해운회사",
+    "name": "㈜마리소",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-99de5beab40f",
+    "category": "해운회사",
+    "name": "㈜마린벤쳐스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d79a1f9744a2",
+    "category": "해운회사",
+    "name": "마젤란마린솔루션즈㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e29c69e27a90",
+    "category": "해운회사",
+    "name": "명성선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6a03570f3724",
+    "category": "해운회사",
+    "name": "명신해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-39f7484159c0",
+    "category": "해운회사",
+    "name": "명진선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9c94c04e32d2",
+    "category": "해운회사",
+    "name": "㈜문영",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-cbac3d0c7651",
+    "category": "해운회사",
+    "name": "범주해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-85fce0ef0226",
+    "category": "해운회사",
+    "name": "범진상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6bf2b5f8b064",
+    "category": "해운회사",
+    "name": "보람해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1f063a680a3b",
+    "category": "해운회사",
+    "name": "부관훼리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9dbcea1c58ff",
+    "category": "해운회사",
+    "name": "부국해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-90d23be81c80",
+    "category": "해운회사",
+    "name": "부산선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ffa7462972a2",
+    "category": "해운회사",
+    "name": "부산신호선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-1a876c04f52a",
+    "category": "해운회사",
+    "name": "블루마리타임㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6d02663e6287",
+    "category": "해운회사",
+    "name": "비에스쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-0a32809f1182",
+    "category": "해운회사",
+    "name": "㈜비와이쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e23ba886bcee",
+    "category": "해운회사",
+    "name": "삼목해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8eaf5b6b1871",
+    "category": "해운회사",
+    "name": "삼부해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-57f4de3521ae",
+    "category": "해운회사",
+    "name": "삼주에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-12b279f7c878",
+    "category": "해운회사",
+    "name": "㈜삼표",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-3d5e82407b1b",
+    "category": "해운회사",
+    "name": "삼표시멘트",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-515ef4d0ebbc",
+    "category": "해운회사",
+    "name": "삼호아이앤디㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-41482d1c8028",
+    "category": "해운회사",
+    "name": "㈜삼흥로지스틱",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-17d93aba09c2",
+    "category": "해운회사",
+    "name": "상지해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c620fbf562a2",
+    "category": "해운회사",
+    "name": "새한선관㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-af3271f58c77",
+    "category": "해운회사",
+    "name": "새한해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-dffde8562acf",
+    "category": "해운회사",
+    "name": "서림해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9cdff91ca7ce",
+    "category": "해운회사",
+    "name": "㈜서밋마린서비스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-25dc888dd5e7",
+    "category": "해운회사",
+    "name": "서양해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6223e4fb002d",
+    "category": "해운회사",
+    "name": "㈜서일에이젼시",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-be503db18992",
+    "category": "해운회사",
+    "name": "석도국제훼리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-6c534c3da661",
+    "category": "해운회사",
+    "name": "선도해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-c379b711b1ce",
+    "category": "해운회사",
+    "name": "선라이즈쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-a66f947aa82b",
+    "category": "해운회사",
+    "name": "선우탱커㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-510c6f55ed15",
+    "category": "해운회사",
+    "name": "선한로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-79435fd2f3ba",
+    "category": "해운회사",
+    "name": "성경상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-02d563ea6105",
+    "category": "해운회사",
+    "name": "성신선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bd68521f1aec",
+    "category": "해운회사",
+    "name": "성안해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-febf7168f111",
+    "category": "해운회사",
+    "name": "㈜성우마린서비스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-bed03251af06",
+    "category": "해운회사",
+    "name": "성호해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-73191c0477d5",
+    "category": "해운회사",
+    "name": "세강해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7a84f465af7e",
+    "category": "해운회사",
+    "name": "세기해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-87acebb41895",
+    "category": "해운회사",
+    "name": "세동상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-eb78553d976c",
+    "category": "해운회사",
+    "name": "세명해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-25882f5dac13",
+    "category": "해운회사",
+    "name": "세방㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-5b4f91f9e843",
+    "category": "해운회사",
+    "name": "㈜서안해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-654030a8616b",
+    "category": "해운회사",
+    "name": "세양쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-6bc94e9544c5",
+    "category": "해운회사",
+    "name": "세영선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-bb1ec6f42e9c",
+    "category": "해운회사",
+    "name": "세운해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-f12d4ae2707a",
+    "category": "해운회사",
+    "name": "세인해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9e74adbe8162",
+    "category": "해운회사",
+    "name": "세진상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a41632dd43c3",
+    "category": "해운회사",
+    "name": "세진선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-3426bb904133",
+    "category": "해운회사",
+    "name": "㈜세하",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-df37b26dfcc3",
+    "category": "해운회사",
+    "name": "수성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9df9fa796f60",
+    "category": "해운회사",
+    "name": "수일해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-4584efa7f2ca",
+    "category": "해운회사",
+    "name": "㈜쉬핑랜드",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-c2de46ef0588",
+    "category": "해운회사",
+    "name": "쉬핑뱅크㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9257409b6d92",
+    "category": "해운회사",
+    "name": "㈜쉽맨코",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-dffcbe59fbca",
+    "category": "해운회사",
+    "name": "쉽맨서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-568311c8c77f",
+    "category": "해운회사",
+    "name": "시노코쉽매니저먼트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-7744d77be920",
+    "category": "해운회사",
+    "name": "시노코토메선박관리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-eb0bcbcc68b2",
+    "category": "해운회사",
+    "name": "시도상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-1e420722a2f5",
+    "category": "해운회사",
+    "name": "시스코마린서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-db3a19ab48a3",
+    "category": "해운회사",
+    "name": "㈜시앤에스엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-aa990f791d0f",
+    "category": "해운회사",
+    "name": "시워드십매니저먼트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-aadd8303b51c",
+    "category": "해운회사",
+    "name": "신성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-300f6db48b8a",
+    "category": "해운회사",
+    "name": "신정선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-4438ac5b1c13",
+    "category": "해운회사",
+    "name": "신창해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-3034a52fd2fa",
+    "category": "해운회사",
+    "name": "싱크로해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-2e5101b97ba0",
+    "category": "해운회사",
+    "name": "쌍용C&E",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-190a1c5f178d",
+    "category": "해운회사",
+    "name": "㈜썬라이즈탱커",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-c94ec4f794bd",
+    "category": "해운회사",
+    "name": "씨넷쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-cf4a363d5fa5",
+    "category": "해운회사",
+    "name": "씨로드쉽핑엔에이전시㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-3b43b53a94ef",
+    "category": "해운회사",
+    "name": "㈜씨엠에스마리타임",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a3e7b9c241f7",
+    "category": "해운회사",
+    "name": "CJ대한통운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e12c9cacba11",
+    "category": "해운회사",
+    "name": "씨케이마리타임코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-75d97646876e",
+    "category": "해운회사",
+    "name": "씨트라스해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c154ada6337c",
+    "category": "해운회사",
+    "name": "㈜아로텍",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-af0dadf2cbeb",
+    "category": "해운회사",
+    "name": "아르코마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b650a6767480",
+    "category": "해운회사",
+    "name": "아산상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bf6ed4ce135a",
+    "category": "해운회사",
+    "name": "아시아마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6884264778c9",
+    "category": "해운회사",
+    "name": "아시아용선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-4e97c43bc76f",
+    "category": "해운회사",
+    "name": "아이에스해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ee11d9a57242",
+    "category": "해운회사",
+    "name": "㈜아이엔케이",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-fcf4fa52fa6d",
+    "category": "해운회사",
+    "name": "㈜아이엠에스코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-8f71eda9d3e9",
+    "category": "해운회사",
+    "name": "㈜아이엠티인코퍼레이션",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9811e73c5867",
+    "category": "해운회사",
+    "name": "㈜아이티더블유메가라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8ee0bf80911e",
+    "category": "해운회사",
+    "name": "알파해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1fa12012cb82",
+    "category": "해운회사",
+    "name": "SW해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7c91634b8969",
+    "category": "해운회사",
+    "name": "에스씨마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a5d7ca741e68",
+    "category": "해운회사",
+    "name": "에스앤피해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8acb0c0966c1",
+    "category": "해운회사",
+    "name": "㈜에스에이치엘마리타임",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-961425e3dbb5",
+    "category": "해운회사",
+    "name": "㈜에스엔글로벌",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9456d748b418",
+    "category": "해운회사",
+    "name": "에스엘해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b488eed057b6",
+    "category": "해운회사",
+    "name": "에스엠리터㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c2ab8636572e",
+    "category": "해운회사",
+    "name": "㈜에스엠마리타임",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-4893baaeafcb",
+    "category": "해운회사",
+    "name": "SM상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-876380654033",
+    "category": "해운회사",
+    "name": "SM창명해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-3f297b484f46",
+    "category": "해운회사",
+    "name": "에스엠해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-96b01ed34f52",
+    "category": "해운회사",
+    "name": "SMTECH선박관리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-aea301cb0a3e",
+    "category": "해운회사",
+    "name": "㈜에스제이마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-45335874ed37",
+    "category": "해운회사",
+    "name": "㈜에스제이탱커",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e76e37603497",
+    "category": "해운회사",
+    "name": "SK해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-525c93b798b3",
+    "category": "해운회사",
+    "name": "에스토라해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9e0fd2d8e09f",
+    "category": "해운회사",
+    "name": "에스티마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-f95d1309e8e0",
+    "category": "해운회사",
+    "name": "stx썬에이스해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ce8095c05bd5",
+    "category": "해운회사",
+    "name": "stx오션서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-4d8f263d7f66",
+    "category": "해운회사",
+    "name": "에스티엘글로벌㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f0e73067fef0",
+    "category": "해운회사",
+    "name": "에스티오차터링코리아㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f30c69cb7dbf",
+    "category": "해운회사",
+    "name": "에이치라인해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-30f67ecb6fc0",
+    "category": "해운회사",
+    "name": "에이치씨해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ad9606570807",
+    "category": "해운회사",
+    "name": "에이치에스마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a97a6657c312",
+    "category": "해운회사",
+    "name": "에이치엠엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5f9b48f7aa35",
+    "category": "해운회사",
+    "name": "에이치엠엠오션서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9160e5f20ecd",
+    "category": "해운회사",
+    "name": "㈜에이치엠티메가라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-6db060cb87f3",
+    "category": "해운회사",
+    "name": "엔제이에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9571fb2845fa",
+    "category": "해운회사",
+    "name": "엠스타해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8eb8db068d6e",
+    "category": "해운회사",
+    "name": "엠에스에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9dc48f80faf4",
+    "category": "해운회사",
+    "name": "㈜영창기업사",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-906aa4068bc3",
+    "category": "해운회사",
+    "name": "㈜오션제이드쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-874a25ce8eff",
+    "category": "해운회사",
+    "name": "오션해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-144da8970637",
+    "category": "해운회사",
+    "name": "오주쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9c120a71b3c1",
+    "category": "해운회사",
+    "name": "우남케미칼해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-42a638fa9db1",
+    "category": "해운회사",
+    "name": "㈜우림선박",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d9318e0d8740",
+    "category": "해운회사",
+    "name": "우림해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1394b632c8c8",
+    "category": "해운회사",
+    "name": "이민해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e553bc28ee37",
+    "category": "해운회사",
+    "name": "우양상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b57a10e9965f",
+    "category": "해운회사",
+    "name": "우일상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-58e603b9ec68",
+    "category": "해운회사",
+    "name": "우진선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f60acc3ee003",
+    "category": "해운회사",
+    "name": "㈜우현쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-61850bdb02db",
+    "category": "해운회사",
+    "name": "㈜원우선박",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e33503d612e1",
+    "category": "해운회사",
+    "name": "윌헴슨쉽매니저먼트코리아㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-516587c730f5",
+    "category": "해운회사",
+    "name": "㈜웨스턴쉽핑 코포레이션",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-74a367629b89",
+    "category": "해운회사",
+    "name": "웰체인쉽핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-7956f1b2d6cb",
+    "category": "해운회사",
+    "name": "유진상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-4aa3485665d5",
+    "category": "해운회사",
+    "name": "유진해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-67bc3d4f23cb",
+    "category": "해운회사",
+    "name": "유코카캐리어스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e6d09c7692ab",
+    "category": "해운회사",
+    "name": "유하마린서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-2a00f039a099",
+    "category": "해운회사",
+    "name": "이마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-2ec854c02f10",
+    "category": "해운회사",
+    "name": "㈜이에스마리타임",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-8310183c1ca4",
+    "category": "해운회사",
+    "name": "이이노마린서비스부산㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ec0f44b08e09",
+    "category": "해운회사",
+    "name": "㈜이하해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bc5a93c10eb9",
+    "category": "해운회사",
+    "name": "㈜인터렉스메가라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b6e4fa6b2b68",
+    "category": "해운회사",
+    "name": "인터지스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-92b62e94bce9",
+    "category": "해운회사",
+    "name": "인터해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-a8abd7cf583c",
+    "category": "해운회사",
+    "name": "인피쎄스해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-94dda2b7890b",
+    "category": "해운회사",
+    "name": "일신해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5cee1e42dcbb",
+    "category": "해운회사",
+    "name": "임스코쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e23175443f6c",
+    "category": "해운회사",
+    "name": "장금마리타임㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-7d9598e5ed83",
+    "category": "해운회사",
+    "name": "장금상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f223b807085e",
+    "category": "해운회사",
+    "name": "장호해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-cd0427de9973",
+    "category": "해운회사",
+    "name": "정양해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-7955e27c91be",
+    "category": "해운회사",
+    "name": "제오마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b192b4e25bc7",
+    "category": "해운회사",
+    "name": "제이더블유해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e2b5b800b719",
+    "category": "해운회사",
+    "name": "제이쉽메니저먼트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ecf647971cc7",
+    "category": "해운회사",
+    "name": "제이알크리스탈해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-dcd7337fa419",
+    "category": "해운회사",
+    "name": "제이앤코퍼레이션㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6d03fc3ec401",
+    "category": "해운회사",
+    "name": "㈜제이앤제이트러스트",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5d4465d0f1ed",
+    "category": "해운회사",
+    "name": "JSM 인터내셔날㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-0635e453e286",
+    "category": "해운회사",
+    "name": "제이케이마리타임㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b8df9184d2a1",
+    "category": "해운회사",
+    "name": "제일인터내셔널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b38bf0aa29f0",
+    "category": "해운회사",
+    "name": "조강해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ff2a6cd556ae",
+    "category": "해운회사",
+    "name": "조광해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-2e1d21b02906",
+    "category": "해운회사",
+    "name": "㈜조양",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-c3bc94b9f3a5",
+    "category": "해운회사",
+    "name": "중앙상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-c67a5f777a52",
+    "category": "해운회사",
+    "name": "㈜지마린서비스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9d67e83b6ae3",
+    "category": "해운회사",
+    "name": "㈜지성쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-4aec868626d0",
+    "category": "해운회사",
+    "name": "지성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-0f39169bf032",
+    "category": "해운회사",
+    "name": "㈜지스코선박",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-5acb584d4ebe",
+    "category": "해운회사",
+    "name": "GS칼텍스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-45ffd65d3dcb",
+    "category": "해운회사",
+    "name": "㈜지앤엠쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-3c32dcf5cba2",
+    "category": "해운회사",
+    "name": "지에프에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-c0006b6c7aae",
+    "category": "해운회사",
+    "name": "지엘비해운부산㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-495c66912c2e",
+    "category": "해운회사",
+    "name": "진양해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-198817042e9e",
+    "category": "해운회사",
+    "name": "진우선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e5ebb1a98bd3",
+    "category": "해운회사",
+    "name": "천경해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-85453ee5d53a",
+    "category": "해운회사",
+    "name": "㈜청야해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bd47097fb5ee",
+    "category": "해운회사",
+    "name": "청양해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-9c53f9d29505",
+    "category": "해운회사",
+    "name": "케이씨에이치해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-89abe020c7e2",
+    "category": "해운회사",
+    "name": "KS선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-39f0c37af592",
+    "category": "해운회사",
+    "name": "㈜케이에스마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-dcfae94bc54a",
+    "category": "해운회사",
+    "name": "㈜케이에스아이엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b26bc85bf51e",
+    "category": "해운회사",
+    "name": "㈜KSS 해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-0655979f8253",
+    "category": "해운회사",
+    "name": "케이에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-6cbc0c2f2732",
+    "category": "해운회사",
+    "name": "케이엘씨에스엠㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-8d740e438362",
+    "category": "해운회사",
+    "name": "케이엠씨해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1bb38c19e78f",
+    "category": "해운회사",
+    "name": "케이엘쉽핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-56297a58ec6d",
+    "category": "해운회사",
+    "name": "케이엠키씨벌크㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-da00c9c67736",
+    "category": "해운회사",
+    "name": "㈜케이월드라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1158a30a7760",
+    "category": "해운회사",
+    "name": "㈜케이티 마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e8bb54d60f95",
+    "category": "해운회사",
+    "name": "㈜케이티엠 쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e00487159be2",
+    "category": "해운회사",
+    "name": "㈜케이티서브마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ab720da4ffe3",
+    "category": "해운회사",
+    "name": "코리아마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b0da39129e6d",
+    "category": "해운회사",
+    "name": "㈜코리아쉽메니져스",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-61a60b011d8a",
+    "category": "해운회사",
+    "name": "코리아엘엔지트레이딩㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-8b1a54b71a7c",
+    "category": "해운회사",
+    "name": "코리아탱커매니저먼트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-7508573b6aba",
+    "category": "해운회사",
+    "name": "코리아해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-58e50c88d962",
+    "category": "해운회사",
+    "name": "코린스타㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bb2cde0670c6",
+    "category": "해운회사",
+    "name": "㈜코스코탱커쉽매니지먼트",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-83049c59ec74",
+    "category": "해운회사",
+    "name": "킹스오션쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bc447caf8f4b",
+    "category": "해운회사",
+    "name": "킹스웨이해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1acab6511f7e",
+    "category": "해운회사",
+    "name": "㈜타이쿤쉽핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a64fb2f2e51b",
+    "category": "해운회사",
+    "name": "태경탱커㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-fedf77206c67",
+    "category": "해운회사",
+    "name": "대영상선㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-3bf4fc23faf5",
+    "category": "해운회사",
+    "name": "태영선무㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-878d700058e7",
+    "category": "해운회사",
+    "name": "㈜태진해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-131a09b7da55",
+    "category": "해운회사",
+    "name": "㈜트랜스포트메가라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-aab0af1c0c5b",
+    "category": "해운회사",
+    "name": "티에스마리타임코포레이션㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-24eba7bdce1e",
+    "category": "해운회사",
+    "name": "티엠선박관리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d99d57d1c7d3",
+    "category": "해운회사",
+    "name": "㈜티엠에스코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-eeff8a86bed8",
+    "category": "해운회사",
+    "name": "㈜티제이에스엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a469c2dac775",
+    "category": "해운회사",
+    "name": "㈜티피아이메가라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-53753508347d",
+    "category": "해운회사",
+    "name": "㈜팬스타라인닷컴",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f6372cbcba91",
+    "category": "해운회사",
+    "name": "㈜팬스타트리",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-cf33ecd011e6",
+    "category": "해운회사",
+    "name": "팬오션㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-bfbb3f359f0b",
+    "category": "해운회사",
+    "name": "페트로플러스로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-2a6fc6cdd8ad",
+    "category": "해운회사",
+    "name": "㈜포스에스엠",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-0af021dd2286",
+    "category": "해운회사",
+    "name": "펨스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-9e54253b6c47",
+    "category": "해운회사",
+    "name": "㈜포스텍",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-a567bcd38359",
+    "category": "해운회사",
+    "name": "포천마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-84085fd7e2e5",
+    "category": "해운회사",
+    "name": "㈜포트만",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-0489ee381764",
+    "category": "해운회사",
+    "name": "폴라리스쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-fd1a3512c3de",
+    "category": "해운회사",
+    "name": "피아선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-eeb7f1ea9b0c",
+    "category": "해운회사",
+    "name": "㈜피아해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-5c0dcd1a9f3c",
+    "category": "해운회사",
+    "name": "피엔에프선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-4ae4211b9b68",
+    "category": "해운회사",
+    "name": "㈜피오마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e72a28556fbd",
+    "category": "해운회사",
+    "name": "하나로해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-1f603375125a",
+    "category": "해운회사",
+    "name": "하나마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-e5621322ecbc",
+    "category": "해운회사",
+    "name": "하나쉬핑㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-a39941e7ef2e",
+    "category": "해운회사",
+    "name": "한국선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-2a23e0ceac9c",
+    "category": "해운회사",
+    "name": "한선해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-dd1ecc98a4e4",
+    "category": "해운회사",
+    "name": "㈜한성라인",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-ee42a947fe80",
+    "category": "해운회사",
+    "name": "㈜한유",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-f916ed59a5d1",
+    "category": "해운회사",
+    "name": "한일해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-62762b534d2b",
+    "category": "해운회사",
+    "name": "한주상운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-22816e0e2ac7",
+    "category": "해운회사",
+    "name": "㈜한진",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-b5bb7f098b0a",
+    "category": "해운회사",
+    "name": "한창코퍼레이션㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-d29aab042609",
+    "category": "해운회사",
+    "name": "현대글로비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-06e9d02717fe",
+    "category": "해운회사",
+    "name": "현대LNG해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-53c73ab33edf",
+    "category": "해운회사",
+    "name": "현대해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-462083684d9d",
+    "category": "해운회사",
+    "name": "㈜화이브오션",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-034bd1c837af",
+    "category": "해운회사",
+    "name": "효동선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-b0174c7cea85",
+    "category": "해운회사",
+    "name": "훼어선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-1ed3c9e7389b",
+    "category": "해운회사",
+    "name": "훼어쉽핑코리아㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-e2fc024f8e40",
+    "category": "해운회사",
+    "name": "흥아라인㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
+  },
+  {
+    "id": "institution-76c063359f3b",
+    "category": "해운회사",
+    "name": "흥아마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "관리"
+  },
+  {
+    "id": "institution-ea27a926a99b",
+    "category": "해운회사",
+    "name": "흥아해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "선주"
   },
   {
     "id": "institution-011",
@@ -93,6 +2280,108 @@
     "id": "institution-016",
     "category": "여객선사",
     "name": "범영훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fc8d318fe5c3",
+    "category": "여객선사",
+    "name": "부관훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-472811bcedaa",
+    "category": "여객선사",
+    "name": "석도국제훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-53b1188aa59c",
+    "category": "여객선사",
+    "name": "㈜스타라인",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4db75b96feb0",
+    "category": "여객선사",
+    "name": "씨월드고속훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c6dde593f892",
+    "category": "여객선사",
+    "name": "연운항훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ebd05b614717",
+    "category": "여객선사",
+    "name": "연태훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b22fe8f4abf7",
+    "category": "여객선사",
+    "name": "영성대룡해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8da3e63d228c",
+    "category": "여객선사",
+    "name": "울릉크루즈㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-507149f3adc3",
+    "category": "여객선사",
+    "name": "위동항운(유)",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b48eb3b5c580",
+    "category": "여객선사",
+    "name": "일조국제훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-98e9a76274ad",
+    "category": "여객선사",
+    "name": "진인해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5f0924f84988",
+    "category": "여객선사",
+    "name": "㈜진천국제객화항운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2c5f9f430b7e",
+    "category": "여객선사",
+    "name": "㈜팬스타라인닷컴",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7d25bf3c2d6a",
+    "category": "여객선사",
+    "name": "평택교동훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-23a803f05a4d",
+    "category": "여객선사",
+    "name": "한일고속훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e5bc6bd62b67",
+    "category": "여객선사",
+    "name": "㈜한중훼리",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-780d346d6b5d",
+    "category": "여객선사",
+    "name": "㈜화동해운",
     "source": "해양기관 현황 데이터"
   },
   {
@@ -156,6 +2445,450 @@
     "source": "해양기관 현황 데이터"
   },
   {
+    "id": "institution-a0b8799fc10c",
+    "category": "예선업체",
+    "name": "대륙상운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1aa851c7f1a0",
+    "category": "예선업체",
+    "name": "대산예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0d54350fc0ac",
+    "category": "예선업체",
+    "name": "㈜대성항업",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-110d59c6169b",
+    "category": "예선업체",
+    "name": "㈜대성항운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e77d482dc095",
+    "category": "예선업체",
+    "name": "대진예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3a7f6f1cf9dd",
+    "category": "예선업체",
+    "name": "도양선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d7d36a5831cc",
+    "category": "예선업체",
+    "name": "동보선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1a6f68511f20",
+    "category": "예선업체",
+    "name": "동신해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e7b22e7cd6c2",
+    "category": "예선업체",
+    "name": "동양예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0c36919f1f99",
+    "category": "예선업체",
+    "name": "㈜동진",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7a4d784e31ba",
+    "category": "예선업체",
+    "name": "㈜마성선박",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c3cb98e92fbc",
+    "category": "예선업체",
+    "name": "마중예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d5a79401faa2",
+    "category": "예선업체",
+    "name": "메타예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-37d3256cb1fe",
+    "category": "예선업체",
+    "name": "명성기공(자)",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8cb790fdb2cb",
+    "category": "예선업체",
+    "name": "명진선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9076376589d7",
+    "category": "예선업체",
+    "name": "미래마린서비스㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-83b4d465c5ca",
+    "category": "예선업체",
+    "name": "바다해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-30628a2e8a59",
+    "category": "예선업체",
+    "name": "바로예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8f5ad19464c8",
+    "category": "예선업체",
+    "name": "보고선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-94479f5cdb59",
+    "category": "예선업체",
+    "name": "보고예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6dc1be735268",
+    "category": "예선업체",
+    "name": "보령쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-408c95f3467a",
+    "category": "예선업체",
+    "name": "빅스타마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4a259bada8ea",
+    "category": "예선업체",
+    "name": "㈜삼성예선",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ea11a1ac0ff8",
+    "category": "예선업체",
+    "name": "삼척예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6d6dd8292fa5",
+    "category": "예선업체",
+    "name": "서남해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-349954df6c6c",
+    "category": "예선업체",
+    "name": "서울쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-52f90cdb1a50",
+    "category": "예선업체",
+    "name": "서해선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d0f8f9b2c0eb",
+    "category": "예선업체",
+    "name": "서호선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-41f30c66504e",
+    "category": "예선업체",
+    "name": "선진종합㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-45245b2858bb",
+    "category": "예선업체",
+    "name": "㈜선화",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a502ce487495",
+    "category": "예선업체",
+    "name": "성보해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ca61196cf105",
+    "category": "예선업체",
+    "name": "㈜세경해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-844e74b7ccb9",
+    "category": "예선업체",
+    "name": "세종예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a3988d37ee59",
+    "category": "예선업체",
+    "name": "세진예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-93e6ba72a0c3",
+    "category": "예선업체",
+    "name": "㈜신광",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9734226be912",
+    "category": "예선업체",
+    "name": "신광선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a9c7af57fc71",
+    "category": "예선업체",
+    "name": "신기에스앤에이㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0d0de91ea886",
+    "category": "예선업체",
+    "name": "신성예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5ab64c6a1f5a",
+    "category": "예선업체",
+    "name": "신정선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a4b2f20ab67a",
+    "category": "예선업체",
+    "name": "㈜에이치쉬핑",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-546debc8d366",
+    "category": "예선업체",
+    "name": "영운선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5617cd20ba59",
+    "category": "예선업체",
+    "name": "오양선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1144230d3911",
+    "category": "예선업체",
+    "name": "㈜용남",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0c8bc7233c54",
+    "category": "예선업체",
+    "name": "용마선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-876cd84dd126",
+    "category": "예선업체",
+    "name": "용호선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-22c9234d4383",
+    "category": "예선업체",
+    "name": "우정선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9b8b9d00f886",
+    "category": "예선업체",
+    "name": "㈜융창",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-243ad04f2a21",
+    "category": "예선업체",
+    "name": "인천예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-42bfd2388ab2",
+    "category": "예선업체",
+    "name": "일우선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7445784c2ac8",
+    "category": "예선업체",
+    "name": "(유)정승해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4a998b673571",
+    "category": "예선업체",
+    "name": "㈜조광선박",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1f839fac979c",
+    "category": "예선업체",
+    "name": "㈜종합해양",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a3a096f56aef",
+    "category": "예선업체",
+    "name": "㈜신성마린",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fa99772e8039",
+    "category": "예선업체",
+    "name": "(유)지성실업",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c7e652988ef1",
+    "category": "예선업체",
+    "name": "충남예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-786026c3ca06",
+    "category": "예선업체",
+    "name": "㈜케이피에스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4190bfb12891",
+    "category": "예선업체",
+    "name": "㈜킹스마린",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e942fd15800b",
+    "category": "예선업체",
+    "name": "태영선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9caa57367b41",
+    "category": "예선업체",
+    "name": "통영예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ab1cedfff9a2",
+    "category": "예선업체",
+    "name": "파트너마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-63be8da68ff2",
+    "category": "예선업체",
+    "name": "포항예선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6b340adfd822",
+    "category": "예선업체",
+    "name": "한국가스해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7c984358245d",
+    "category": "예선업체",
+    "name": "(유)한국예선",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5f118e2ae293",
+    "category": "예선업체",
+    "name": "㈜한려쉬핑",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-52207785cd2b",
+    "category": "예선업체",
+    "name": "한창산업㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1782f8f90822",
+    "category": "예선업체",
+    "name": "㈜한창선박",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a159c1cd6c5a",
+    "category": "예선업체",
+    "name": "해강선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9cdda0ab7fc8",
+    "category": "예선업체",
+    "name": "㈜해나루항만",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e8474fad3290",
+    "category": "예선업체",
+    "name": "해도선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-04cc8a146251",
+    "category": "예선업체",
+    "name": "(자)해양선박",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d204b6607d0d",
+    "category": "예선업체",
+    "name": "해양환경공단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-99c50378383c",
+    "category": "예선업체",
+    "name": "협성해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ba89f9eb40da",
+    "category": "예선업체",
+    "name": "흥진상운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ed1141f845a6",
+    "category": "예선업체",
+    "name": "㈜흥해",
+    "source": "해양기관 현황 데이터"
+  },
+  {
     "id": "institution-027",
     "category": "국제해운대리점업체",
     "name": "가나마린㈜",
@@ -213,6 +2946,642 @@
     "id": "institution-036",
     "category": "국제해운대리점업체",
     "name": "늘푸른해운항공㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c8ebdf388cb1",
+    "category": "국제해운대리점업체",
+    "name": "대기글로벌㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-29a5528807cd",
+    "category": "국제해운대리점업체",
+    "name": "대우해상㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e8412afb8dca",
+    "category": "국제해운대리점업체",
+    "name": "덕상티에스라인즈㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-336402987f16",
+    "category": "국제해운대리점업체",
+    "name": "동방선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3bc8de1df3a0",
+    "category": "국제해운대리점업체",
+    "name": "동주선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-cfdcaa90ff7f",
+    "category": "국제해운대리점업체",
+    "name": "동주해상㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-03dcb24c3da4",
+    "category": "국제해운대리점업체",
+    "name": "동진상운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8257b40dd44e",
+    "category": "국제해운대리점업체",
+    "name": "동진선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b182d585bff1",
+    "category": "국제해운대리점업체",
+    "name": "두성해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-505b389c275e",
+    "category": "국제해운대리점업체",
+    "name": "두우해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-249aba485249",
+    "category": "국제해운대리점업체",
+    "name": "디와이유엘씨",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-26731d85e0ba",
+    "category": "국제해운대리점업체",
+    "name": "리버마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3859e281c6ee",
+    "category": "국제해운대리점업체",
+    "name": "리인터내셔날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-75acae6d195e",
+    "category": "국제해운대리점업체",
+    "name": "만해항운한국㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-db22e863a50c",
+    "category": "국제해운대리점업체",
+    "name": "범주해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f38c7593efbf",
+    "category": "국제해운대리점업체",
+    "name": "베스트윈",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-296ab5f9e4fc",
+    "category": "국제해운대리점업체",
+    "name": "벤라인에이전시즈코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fecab64161e0",
+    "category": "국제해운대리점업체",
+    "name": "벵가드코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9a28f1cdc556",
+    "category": "국제해운대리점업체",
+    "name": "부관훼리㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-54c4d8a8cab5",
+    "category": "국제해운대리점업체",
+    "name": "부산선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-753771fd13be",
+    "category": "국제해운대리점업체",
+    "name": "BIGLIFT",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5932c1c70b78",
+    "category": "국제해운대리점업체",
+    "name": "삼진선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-398dbeb59daf",
+    "category": "국제해운대리점업체",
+    "name": "새한운항㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b25997237900",
+    "category": "국제해운대리점업체",
+    "name": "시울라인서비스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-79783ce74c1b",
+    "category": "국제해운대리점업체",
+    "name": "서중물류",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a49837c7d998",
+    "category": "국제해운대리점업체",
+    "name": "성경상선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-245e3fd7e788",
+    "category": "국제해운대리점업체",
+    "name": "성지해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6e74f46add53",
+    "category": "국제해운대리점업체",
+    "name": "세아라인㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9cb445be44bf",
+    "category": "국제해운대리점업체",
+    "name": "세진선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-675a4d12ff11",
+    "category": "국제해운대리점업체",
+    "name": "소진해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8208154c50c3",
+    "category": "국제해운대리점업체",
+    "name": "소패스트코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d1f5ceb822c1",
+    "category": "국제해운대리점업체",
+    "name": "시노트란스코리아쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6fa8ac6bc3e9",
+    "category": "국제해운대리점업체",
+    "name": "쌍용씨앤이㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9bdf0486d33a",
+    "category": "국제해운대리점업체",
+    "name": "씨리드쉬핑사우스코리아(유)",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-17273852e96b",
+    "category": "국제해운대리점업체",
+    "name": "씨앤피인터내셔날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6cf1d2df65c9",
+    "category": "국제해운대리점업체",
+    "name": "씨엠에이씨지엠코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-bcc7fb1aa40c",
+    "category": "국제해운대리점업체",
+    "name": "씨트랜스해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e9fad805a77e",
+    "category": "국제해운대리점업체",
+    "name": "아리스타쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-293c684af2b1",
+    "category": "국제해운대리점업체",
+    "name": "아산인터내셔날㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-83a61b73419e",
+    "category": "국제해운대리점업체",
+    "name": "아스트로해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-203e8e8ef5bd",
+    "category": "국제해운대리점업체",
+    "name": "아시아용선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9ef47d45c0a7",
+    "category": "국제해운대리점업체",
+    "name": "아이에스에이상운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ff76a860d7e1",
+    "category": "국제해운대리점업체",
+    "name": "양밍한국㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1ddd689c5b4c",
+    "category": "국제해운대리점업체",
+    "name": "에버그린코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-26aeb4f11278",
+    "category": "국제해운대리점업체",
+    "name": "에스아이티씨컨테이너라인스코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-80d70b941050",
+    "category": "국제해운대리점업체",
+    "name": "에스앤에이치쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5d063ce16296",
+    "category": "국제해운대리점업체",
+    "name": "에스티엘글로벌㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-94335f872339",
+    "category": "국제해운대리점업체",
+    "name": "에이치에스효성",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b21236015c3a",
+    "category": "국제해운대리점업체",
+    "name": "엔와이케이벌크쉽코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b85f50a23871",
+    "category": "국제해운대리점업체",
+    "name": "엠에스씨코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1d984b5a4233",
+    "category": "국제해운대리점업체",
+    "name": "엠오엘코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-919b7703305d",
+    "category": "국제해운대리점업체",
+    "name": "오션네트워크익스프레스코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a1dcfc883e92",
+    "category": "국제해운대리점업체",
+    "name": "오오씨엘코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-07c21d09d798",
+    "category": "국제해운대리점업체",
+    "name": "올베스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fa1303498684",
+    "category": "국제해운대리점업체",
+    "name": "우성마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-085a4362fb10",
+    "category": "국제해운대리점업체",
+    "name": "우일선박㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9e1384749ba2",
+    "category": "국제해운대리점업체",
+    "name": "우진글로벌로지스틱스㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b42dba4d98eb",
+    "category": "국제해운대리점업체",
+    "name": "윌럼쉬핑코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-724d0c7516db",
+    "category": "국제해운대리점업체",
+    "name": "위이포인트포트서비스코리아리미티드",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d058ca9b96d0",
+    "category": "국제해운대리점업체",
+    "name": "위너스마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-388fbceeaf3e",
+    "category": "국제해운대리점업체",
+    "name": "위동해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4932355d4400",
+    "category": "국제해운대리점업체",
+    "name": "윌헴슨협운포트서비스㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-24c40eb3110c",
+    "category": "국제해운대리점업체",
+    "name": "유니푸로스해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a625f5dd8ae5",
+    "category": "국제해운대리점업체",
+    "name": "이글쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-dfb0f2ee9267",
+    "category": "국제해운대리점업체",
+    "name": "이에이에스쉽핑코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a6c694c2cbf6",
+    "category": "국제해운대리점업체",
+    "name": "이카고웨이로지스틱스코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-024658dce4f5",
+    "category": "국제해운대리점업체",
+    "name": "인치케이프쉽핑코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c8ca33329605",
+    "category": "국제해운대리점업체",
+    "name": "인터아시아라인즈코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b5c8e950ab94",
+    "category": "국제해운대리점업체",
+    "name": "인터포트코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f27d6fa64028",
+    "category": "국제해운대리점업체",
+    "name": "일성해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-34f7974cd8b0",
+    "category": "국제해운대리점업체",
+    "name": "제이비케이 에이전시즈㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1d98830d4d12",
+    "category": "국제해운대리점업체",
+    "name": "제이쉽마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f110682ca360",
+    "category": "국제해운대리점업체",
+    "name": "제이에스엠인터내셔날㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0c9632a78452",
+    "category": "국제해운대리점업체",
+    "name": "조광해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8427d5b4cb02",
+    "category": "국제해운대리점업체",
+    "name": "지성해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-79ddb4b2754d",
+    "category": "국제해운대리점업체",
+    "name": "지에이씨쉬핑앤로지스틱스코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1c85211ffff4",
+    "category": "국제해운대리점업체",
+    "name": "진양해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3068b78cda64",
+    "category": "국제해운대리점업체",
+    "name": "캡틴석유화학㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5fd6ab22b9da",
+    "category": "국제해운대리점업체",
+    "name": "케이라인마리타임코리아",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f7822fb53d36",
+    "category": "국제해운대리점업체",
+    "name": "케이티아이",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3c296c948893",
+    "category": "국제해운대리점업체",
+    "name": "㈜코르웰",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-09c93ad2fedf",
+    "category": "국제해운대리점업체",
+    "name": "코리아나오션쉽핑",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2b51224c0afc",
+    "category": "국제해운대리점업체",
+    "name": "코리아마린서비스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-091c46cdba0d",
+    "category": "국제해운대리점업체",
+    "name": "코리아쉬핑",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-40f1b7ee2408",
+    "category": "국제해운대리점업체",
+    "name": "코스모스마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7ca6947e6d3e",
+    "category": "국제해운대리점업체",
+    "name": "코스코쉬핑라인스한국㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b850c28e2e5a",
+    "category": "국제해운대리점업체",
+    "name": "코스코쉬핑한국㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-cd83a8b8c773",
+    "category": "국제해운대리점업체",
+    "name": "코엘인터내셔날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ce62951c8f33",
+    "category": "국제해운대리점업체",
+    "name": "태영상선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-914099affee4",
+    "category": "국제해운대리점업체",
+    "name": "팜코지엘에스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-925f1faa4dbe",
+    "category": "국제해운대리점업체",
+    "name": "팬스타라인닷컴",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2b06a75276bd",
+    "category": "국제해운대리점업체",
+    "name": "페스코라인즈코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3c6401213eca",
+    "category": "국제해운대리점업체",
+    "name": "피아이엘코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e3b5ddb702d0",
+    "category": "국제해운대리점업체",
+    "name": "하나마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-69d61ee66fe4",
+    "category": "국제해운대리점업체",
+    "name": "하파그로이드코리아㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f923d3d454db",
+    "category": "국제해운대리점업체",
+    "name": "한국마서크㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-76ab3a8cd363",
+    "category": "국제해운대리점업체",
+    "name": "한길선무㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-60500071651e",
+    "category": "국제해운대리점업체",
+    "name": "한로해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-da7d349697ce",
+    "category": "국제해운대리점업체",
+    "name": "한보에이전시㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-500d6b4b3a5c",
+    "category": "국제해운대리점업체",
+    "name": "한외해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e0c883659538",
+    "category": "국제해운대리점업체",
+    "name": "한중훼리",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-da707dc68e29",
+    "category": "국제해운대리점업체",
+    "name": "해왕해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-471da15bb1ff",
+    "category": "국제해운대리점업체",
+    "name": "현익운수㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8abd662e9196",
+    "category": "국제해운대리점업체",
+    "name": "협성선박",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-04acbae7b6fe",
+    "category": "국제해운대리점업체",
+    "name": "협운인터내셔날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5121ec650fb4",
+    "category": "국제해운대리점업체",
+    "name": "협운해운㈜",
     "source": "해양기관 현황 데이터"
   },
   {
@@ -276,34 +3645,1720 @@
     "source": "해양기관 현황 데이터"
   },
   {
+    "id": "institution-9b418b54a835",
+    "category": "한국해운중개업체",
+    "name": "에스엠아이오션㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4b2283b1122a",
+    "category": "한국해운중개업체",
+    "name": "에이스차터링㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1397bd413faa",
+    "category": "한국해운중개업체",
+    "name": "영해해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-84fbfc2b6f17",
+    "category": "한국해운중개업체",
+    "name": "이글마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-accbc6a27f5e",
+    "category": "한국해운중개업체",
+    "name": "인터링크씨브로커즈",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-91c894f70cc6",
+    "category": "한국해운중개업체",
+    "name": "일도해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-30e78a07c9f3",
+    "category": "한국해운중개업체",
+    "name": "자이로마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1f6abffc2335",
+    "category": "한국해운중개업체",
+    "name": "장수에스엔피",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6d4b82778ea2",
+    "category": "한국해운중개업체",
+    "name": "장수해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-dc0c10bfe086",
+    "category": "한국해운중개업체",
+    "name": "제일상선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-af803c50189c",
+    "category": "한국해운중개업체",
+    "name": "조광해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a9d96c63d1e8",
+    "category": "한국해운중개업체",
+    "name": "지지네트윅스㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a8306db84c4f",
+    "category": "한국해운중개업체",
+    "name": "㈜코엘인터내셔날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0178d27eea7d",
+    "category": "한국해운중개업체",
+    "name": "㈜킴스마리타임",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-289a76246222",
+    "category": "한국해운중개업체",
+    "name": "㈜테크마린",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2ec16a850810",
+    "category": "한국해운중개업체",
+    "name": "㈜한바다코퍼레이션",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-069aed66037e",
+    "category": "한국해운중개업체",
+    "name": "㈜해영인터내쇼날",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f7170ae09484",
+    "category": "한국해운중개업체",
+    "name": "㈜현대익스프레스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4966c2504b06",
+    "category": "한국해운중개업체",
+    "name": "㈜코르웰",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c844e9afb391",
+    "category": "한국해운중개업체",
+    "name": "코리아나벌크해운",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4d3a64066f1b",
+    "category": "한국해운중개업체",
+    "name": "코리아마리타임㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b6bc815eef42",
+    "category": "한국해운중개업체",
+    "name": "콤파스해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-90891906a5d9",
+    "category": "한국해운중개업체",
+    "name": "태우해운㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-71de60e73464",
+    "category": "한국해운중개업체",
+    "name": "플스타마린㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-635603a0ae26",
+    "category": "한국해운중개업체",
+    "name": "플러스쉬핑㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-78335151b9f1",
+    "category": "한국해운중개업체",
+    "name": "㈜피데스",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-020dbbc0886b",
+    "category": "한국해운중개업체",
+    "name": "훼어브릿지글로벌㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
     "id": "institution-047",
     "category": "한국항만물류업체",
     "name": "삼성중공업㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "고현"
   },
   {
     "id": "institution-048",
     "category": "한국항만물류업체",
     "name": "광양항서부컨테이너터미널㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
   },
   {
     "id": "institution-049",
     "category": "한국항만물류업체",
     "name": "대주기업㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
   },
   {
     "id": "institution-050",
     "category": "한국항만물류업체",
     "name": "대주중공업㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
   },
   {
     "id": "institution-051",
     "category": "한국항만물류업체",
     "name": "㈜동방",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-522a1df35285",
+    "category": "한국항만물류업체",
+    "name": "동원로엑스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-c3e9e9771922",
+    "category": "한국항만물류업체",
+    "name": "세방㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-224dfd4bcd5d",
+    "category": "한국항만물류업체",
+    "name": "㈜신창",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-8d8e48fd8d27",
+    "category": "한국항만물류업체",
+    "name": "씨제이대한통운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-326ab104a041",
+    "category": "한국항만물류업체",
+    "name": "OCI㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-8f9c4c50d90a",
+    "category": "한국항만물류업체",
+    "name": "일신해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-ad81c83f0708",
+    "category": "한국항만물류업체",
+    "name": "㈜포스로지텍",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-0a8f7ecf8f89",
+    "category": "한국항만물류업체",
+    "name": "㈜POSCO",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-22c6a9ecd383",
+    "category": "한국항만물류업체",
+    "name": "포트엘㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-67c4012318e1",
+    "category": "한국항만물류업체",
+    "name": "㈜한진",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-75b1646aea18",
+    "category": "한국항만물류업체",
+    "name": "한화오션에코텍㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "광양"
+  },
+  {
+    "id": "institution-40f8c5a77b47",
+    "category": "한국항만물류업체",
+    "name": "군산컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-fc71dbea30ca",
+    "category": "한국항만물류업체",
+    "name": "군산항7부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-e43c3939e4c9",
+    "category": "한국항만물류업체",
+    "name": "군장신항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-81720b39ec0b",
+    "category": "한국항만물류업체",
+    "name": "㈜선광",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-593f2d611f3d",
+    "category": "한국항만물류업체",
+    "name": "㈜제범",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-09485acde87a",
+    "category": "한국항만물류업체",
+    "name": "한솔로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "군산"
+  },
+  {
+    "id": "institution-803ec4dae936",
+    "category": "한국항만물류업체",
+    "name": "민경산업㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "노화"
+  },
+  {
+    "id": "institution-a2d1cb8886ca",
+    "category": "한국항만물류업체",
+    "name": "㈜한국분체완도광업소",
+    "source": "해양기관 현황 데이터",
+    "classification": "노화"
+  },
+  {
+    "id": "institution-a415cc0ed64a",
+    "category": "한국항만물류업체",
+    "name": "당진고대부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-c231f324f915",
+    "category": "한국항만물류업체",
+    "name": "당진항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-1e71902473bf",
+    "category": "한국항만물류업체",
+    "name": "당진해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-5ecfc0a18c81",
+    "category": "한국항만물류업체",
+    "name": "㈜삼표",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-f1c324703ef3",
+    "category": "한국항만물류업체",
+    "name": "인터지스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-5acb32508ee7",
+    "category": "한국항만물류업체",
+    "name": "KGG엔에스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "당진"
+  },
+  {
+    "id": "institution-b2d4d1ec88b4",
+    "category": "한국항만물류업체",
+    "name": "대산항만운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "대산"
+  },
+  {
+    "id": "institution-b180d4c37efb",
+    "category": "한국항만물류업체",
+    "name": "글로벌포트",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-5776a4d854b1",
+    "category": "한국항만물류업체",
+    "name": "금강로지스텍스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-1a9d1c78f6ef",
+    "category": "한국항만물류업체",
+    "name": "㈜덕진",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-e9782e65af2f",
+    "category": "한국항만물류업체",
+    "name": "동석물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-cb9d36f9a518",
+    "category": "한국항만물류업체",
+    "name": "㈜동해물류",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-adb561bb08bf",
+    "category": "한국항만물류업체",
+    "name": "미래해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-019078e097d5",
+    "category": "한국항만물류업체",
+    "name": "㈜미르",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-9bbb7b7e0441",
+    "category": "한국항만물류업체",
+    "name": "㈜삼표시멘트",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-12cf09f0748d",
+    "category": "한국항만물류업체",
+    "name": "㈜설안안전서비스",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-c1ed55b12c27",
+    "category": "한국항만물류업체",
+    "name": "쌍용로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-d12dfae20786",
+    "category": "한국항만물류업체",
+    "name": "㈜아이엘",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-76bc8462566f",
+    "category": "한국항만물류업체",
+    "name": "㈜아이온",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-c18c3103af26",
+    "category": "한국항만물류업체",
+    "name": "영신육운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-05ed87045618",
+    "category": "한국항만물류업체",
+    "name": "㈜용문기업",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-7d96f4d2217a",
+    "category": "한국항만물류업체",
+    "name": "㈜우진물류",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-e66212d522d1",
+    "category": "한국항만물류업체",
+    "name": "㈜울릉해양해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-c58095a4f3c9",
+    "category": "한국항만물류업체",
+    "name": "이스트크랩㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-cc1eed0a4917",
+    "category": "한국항만물류업체",
+    "name": "코레일유통㈜ 동해본부",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-4ab7b4b9abf8",
+    "category": "한국항만물류업체",
+    "name": "㈜코리아포트",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-60b2a487e71b",
+    "category": "한국항만물류업체",
+    "name": "㈜필릭스",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-ad41987415aa",
+    "category": "한국항만물류업체",
+    "name": "한라시멘트㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "동해"
+  },
+  {
+    "id": "institution-efd41fed7dbe",
+    "category": "한국항만물류업체",
+    "name": "㈜강동",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-c83f84d58bc3",
+    "category": "한국항만물류업체",
+    "name": "거솔물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-0e1079bc3e84",
+    "category": "한국항만물류업체",
+    "name": "㈜고려강재장",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-d450d7f58b1b",
+    "category": "한국항만물류업체",
+    "name": "델디씨㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-a4f524d263b4",
+    "category": "한국항만물류업체",
+    "name": "㈜동원 F&B",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-a795b44d939d",
+    "category": "한국항만물류업체",
+    "name": "마산신항운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-27ae28bc8b8d",
+    "category": "한국항만물류업체",
+    "name": "마산항 5부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-e9c455e9757b",
+    "category": "한국항만물류업체",
+    "name": "삼양마린㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-a9b4465fda12",
+    "category": "한국항만물류업체",
+    "name": "㈜성산로직스",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-b9f4f03696db",
+    "category": "한국항만물류업체",
+    "name": "㈜L.S.L",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-89172a421fdd",
+    "category": "한국항만물류업체",
+    "name": "㈜영흥",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-c09c5ca298c5",
+    "category": "한국항만물류업체",
+    "name": "KCTC",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-aa47a647104a",
+    "category": "한국항만물류업체",
+    "name": "㈜팬스타엔터프라이즈",
+    "source": "해양기관 현황 데이터",
+    "classification": "마산"
+  },
+  {
+    "id": "institution-0bb6759af4e6",
+    "category": "한국항만물류업체",
+    "name": "㈜금호해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-7a911bf444e4",
+    "category": "한국항만물류업체",
+    "name": "㈜대명특수대명크레인",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-379bd1170947",
+    "category": "한국항만물류업체",
+    "name": "㈜대불공단운수",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-d1df96d7fbe3",
+    "category": "한국항만물류업체",
+    "name": "대불부두㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-7e7c8c283973",
+    "category": "한국항만물류업체",
+    "name": "㈜대양운수",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-4d8a09ba7311",
+    "category": "한국항만물류업체",
+    "name": "(유)동아모래",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-67aab21615ac",
+    "category": "한국항만물류업체",
+    "name": "㈜리드코프",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-ccacfd5a7bad",
+    "category": "한국항만물류업체",
+    "name": "목포국제자동차부두㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-ea1c9ce70f1b",
+    "category": "한국항만물류업체",
+    "name": "목포신항만운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-7e92d82b7a5f",
+    "category": "한국항만물류업체",
+    "name": "목포신항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-6edf5253da95",
+    "category": "한국항만물류업체",
+    "name": "(유)삼호건업",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-908b53bbb21b",
+    "category": "한국항만물류업체",
+    "name": "씨월드로지스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-18f019afb3eb",
+    "category": "한국항만물류업체",
+    "name": "제2목포신항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-88cf5b4c3e15",
+    "category": "한국항만물류업체",
+    "name": "한남양적㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-f9d78f6da963",
+    "category": "한국항만물류업체",
+    "name": "(유)한국그린건설",
+    "source": "해양기관 현황 데이터",
+    "classification": "목포"
+  },
+  {
+    "id": "institution-f59379941be7",
+    "category": "한국항만물류업체",
+    "name": "고려사일로㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-3405ba1a6635",
+    "category": "한국항만물류업체",
+    "name": "㈜국보",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-0f69f3effdc6",
+    "category": "한국항만물류업체",
+    "name": "국양로지텍㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-e78cd8923dd8",
+    "category": "한국항만물류업체",
+    "name": "그로발스타로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-f16012a4a396",
+    "category": "한국항만물류업체",
+    "name": "㈜도림로지스틱",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-5c9ee300d8e0",
+    "category": "한국항만물류업체",
+    "name": "동원산업㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-dd729e243aa7",
+    "category": "한국항만물류업체",
+    "name": "동진로직스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-105bef761810",
+    "category": "한국항만물류업체",
+    "name": "디앤케이물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-6fc33f9ced6e",
+    "category": "한국항만물류업체",
+    "name": "부산신항국제터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-e2ea2da2345d",
+    "category": "한국항만물류업체",
+    "name": "부산신항다목적터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-7d635a51269c",
+    "category": "한국항만물류업체",
+    "name": "부산신항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-ae492c1d9fc1",
+    "category": "한국항만물류업체",
+    "name": "부산컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-682b1e95f676",
+    "category": "한국항만물류업체",
+    "name": "㈜모든",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-fe1e9ef03fd4",
+    "category": "한국항만물류업체",
+    "name": "㈜비엔씨티",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-77735ac81514",
+    "category": "한국항만물류업체",
+    "name": "삼익물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-4362ca142c18",
+    "category": "한국항만물류업체",
+    "name": "㈜성암벌크",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-174e4fca3de7",
+    "category": "한국항만물류업체",
+    "name": "㈜세주",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-8764f87b458a",
+    "category": "한국항만물류업체",
+    "name": "신선대감만터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-08a61298bb64",
+    "category": "한국항만물류업체",
+    "name": "㈜신우물류",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-20dcdf1de413",
+    "category": "한국항만물류업체",
+    "name": "씨로드로지스틱㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-a896e01fd018",
+    "category": "한국항만물류업체",
+    "name": "에이스로지스틱㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-f7fb4694825f",
+    "category": "한국항만물류업체",
+    "name": "㈜에스엘와이",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-8f7f40a57570",
+    "category": "한국항만물류업체",
+    "name": "㈜에스지기업",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-acec7dfabb28",
+    "category": "한국항만물류업체",
+    "name": "에이알에이물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-0caca62e494f",
+    "category": "한국항만물류업체",
+    "name": "에이치엠에피에스에이신항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-eb503d82ec20",
+    "category": "한국항만물류업체",
+    "name": "우성해상㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-9327d952a76f",
+    "category": "한국항만물류업체",
+    "name": "㈜재우로지스틱스",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-fc0c47390b35",
+    "category": "한국항만물류업체",
+    "name": "정일글로벌㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-694f79a7728a",
+    "category": "한국항만물류업체",
+    "name": "천일정기화물자동차㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-4cf8a2b2d108",
+    "category": "한국항만물류업체",
+    "name": "㈜청해",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-8f8527e6a8c3",
+    "category": "한국항만물류업체",
+    "name": "㈜케이엠코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-31ff67361d1c",
+    "category": "한국항만물류업체",
+    "name": "㈜태성로지스",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-f3cbc4566d11",
+    "category": "한국항만물류업체",
+    "name": "한국허치슨터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-cc6c8ffa31ff",
+    "category": "한국항만물류업체",
+    "name": "효동선박㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "부산"
+  },
+  {
+    "id": "institution-24eb8232ecae",
+    "category": "한국항만물류업체",
+    "name": "㈜부영",
+    "source": "해양기관 현황 데이터",
+    "classification": "삼천포"
+  },
+  {
+    "id": "institution-c116498feb56",
+    "category": "한국항만물류업체",
+    "name": "㈜현성MCT",
+    "source": "해양기관 현황 데이터",
+    "classification": "삼천포"
+  },
+  {
+    "id": "institution-43f79ea7f2b4",
+    "category": "한국항만물류업체",
+    "name": "삼성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "서귀포"
+  },
+  {
+    "id": "institution-831cfe4ea561",
+    "category": "한국항만물류업체",
+    "name": "삼진해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "서귀포"
+  },
+  {
+    "id": "institution-873b23afefa8",
+    "category": "한국항만물류업체",
+    "name": "㈜안정해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "서귀포"
+  },
+  {
+    "id": "institution-19faa0dbcec3",
+    "category": "한국항만물류업체",
+    "name": "금호티엔엘㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "여수"
+  },
+  {
+    "id": "institution-12fa115a6de3",
+    "category": "한국항만물류업체",
+    "name": "동방에스엔에스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "여수"
+  },
+  {
+    "id": "institution-b9a6e3b6855a",
+    "category": "한국항만물류업체",
+    "name": "㈜마린글로리",
+    "source": "해양기관 현황 데이터",
+    "classification": "여수"
+  },
+  {
+    "id": "institution-43d15b2b343e",
+    "category": "한국항만물류업체",
+    "name": "효동항업㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "여수"
+  },
+  {
+    "id": "institution-708f06bc6b1e",
+    "category": "한국항만물류업체",
+    "name": "한화오션㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "옥포"
+  },
+  {
+    "id": "institution-700f39711788",
+    "category": "한국항만물류업체",
+    "name": "(유)나라통상",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-5ab920b0d476",
+    "category": "한국항만물류업체",
+    "name": "동명수산(유)",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-b303cafcb0ae",
+    "category": "한국항만물류업체",
+    "name": "동아물산(유)",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-e0d78fb09582",
+    "category": "한국항만물류업체",
+    "name": "㈜동원운수",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-d7b912f06e8c",
+    "category": "한국항만물류업체",
+    "name": "㈜석포물류",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-effba51d179d",
+    "category": "한국항만물류업체",
+    "name": "(유)주도물류",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-620de0d16480",
+    "category": "한국항만물류업체",
+    "name": "한일운송㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-214b2e3f0974",
+    "category": "한국항만물류업체",
+    "name": "(유)합동해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "완도"
+  },
+  {
+    "id": "institution-a27a054c2c79",
+    "category": "한국항만물류업체",
+    "name": "고려항만㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-7d961f90363a",
+    "category": "한국항만물류업체",
+    "name": "광진글로비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-156f2ab2393e",
+    "category": "한국항만물류업체",
+    "name": "㈜글로벌",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-a58b5ddf1c2c",
+    "category": "한국항만물류업체",
+    "name": "대한유화㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-b436c3137f86",
+    "category": "한국항만물류업체",
+    "name": "㈜신흥사",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-8b0df2b84b12",
+    "category": "한국항만물류업체",
+    "name": "LS니꼬동제련㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-0f0dc1d04d7a",
+    "category": "한국항만물류업체",
+    "name": "울산로지스틱㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-e54daa97025f",
+    "category": "한국항만물류업체",
+    "name": "울산항 6·7부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-4077354b4a7c",
+    "category": "한국항만물류업체",
+    "name": "울산항만운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-7cefbfd2910d",
+    "category": "한국항만물류업체",
+    "name": "울산해상하역㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-d9cfc3e3584d",
+    "category": "한국항만물류업체",
+    "name": "㈜정일스톨트헤븐",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-a980b4af8316",
+    "category": "한국항만물류업체",
+    "name": "캡스코",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-40ea2170f91f",
+    "category": "한국항만물류업체",
+    "name": "KG케미칼㈜ 온산지점",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-37b9fe484c6f",
+    "category": "한국항만물류업체",
+    "name": "(유)태안",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-a9a124924427",
+    "category": "한국항만물류업체",
+    "name": "센트럴터미널코리아㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-40d48fee92ee",
+    "category": "한국항만물류업체",
+    "name": "㈜한국보팍터미날",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-d0d8a58cad07",
+    "category": "한국항만물류업체",
+    "name": "㈜한국통운",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-c4d355f58eef",
+    "category": "한국항만물류업체",
+    "name": "한진울산신항운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-098326ad418e",
+    "category": "한국항만물류업체",
+    "name": "HD현대중공업㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "울산"
+  },
+  {
+    "id": "institution-b641fa25ba2c",
+    "category": "한국항만물류업체",
+    "name": "글로벌인천북항㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-85880c048c26",
+    "category": "한국항만물류업체",
+    "name": "대한싸이로㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-ace6565ab5c3",
+    "category": "한국항만물류업체",
+    "name": "삼양베이커탱크터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-4f5d4ca057a6",
+    "category": "한국항만물류업체",
+    "name": "㈜삼한강",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-1f0a7d338d11",
+    "category": "한국항만물류업체",
+    "name": "선광신컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-d9c699328a8d",
+    "category": "한국항만물류업체",
+    "name": "성진소재㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-e713a7495794",
+    "category": "한국항만물류업체",
+    "name": "㈜아이엔티씨",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-55280bb62861",
+    "category": "한국항만물류업체",
+    "name": "에이치엘비글로벌㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-ef90fdaeae73",
+    "category": "한국항만물류업체",
+    "name": "㈜영진공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-422d2dfefaed",
+    "category": "한국항만물류업체",
+    "name": "우련통운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-c20d6b825ff9",
+    "category": "한국항만물류업체",
+    "name": "유진기업㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-8259da3ab510",
+    "category": "한국항만물류업체",
+    "name": "E1컨테이너터미널",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-c8d9ab2373f7",
+    "category": "한국항만물류업체",
+    "name": "인천국제페리부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-c80dd823f70b",
+    "category": "한국항만물류업체",
+    "name": "인천남항부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-b68b714798e9",
+    "category": "한국항만물류업체",
+    "name": "인천내항부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-0dd8ef866114",
+    "category": "한국항만물류업체",
+    "name": "인천북항다목적부두㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-62032742a5b1",
+    "category": "한국항만물류업체",
+    "name": "인천북항부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-4e8de0efcadb",
+    "category": "한국항만물류업체",
+    "name": "인천컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-97de212ece4e",
+    "category": "한국항만물류업체",
+    "name": "인터지스㈜ 인천지점",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-b0374e9592a1",
+    "category": "한국항만물류업체",
+    "name": "㈜한국티비티",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-6c0564345bc7",
+    "category": "한국항만물류업체",
+    "name": "한일탱크터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-aa86b9ab168e",
+    "category": "한국항만물류업체",
+    "name": "한진인천컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "인천"
+  },
+  {
+    "id": "institution-b733756c5147",
+    "category": "한국항만물류업체",
+    "name": "㈜풍농",
+    "source": "해양기관 현황 데이터",
+    "classification": "장항"
+  },
+  {
+    "id": "institution-736e532ca4f3",
+    "category": "한국항만물류업체",
+    "name": "㈜한중하역",
+    "source": "해양기관 현황 데이터",
+    "classification": "장항"
+  },
+  {
+    "id": "institution-6a66982cbaeb",
+    "category": "한국항만물류업체",
+    "name": "거성물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-846d16815b4a",
+    "category": "한국항만물류업체",
+    "name": "금강해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-c457b8ede878",
+    "category": "한국항만물류업체",
+    "name": "대성종합물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-ca6c8c9740a1",
+    "category": "한국항만물류업체",
+    "name": "동아물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-8b055381ab2d",
+    "category": "한국항만물류업체",
+    "name": "동광해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-f4021c25787c",
+    "category": "한국항만물류업체",
+    "name": "성우해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-f3891f8a20ba",
+    "category": "한국항만물류업체",
+    "name": "㈜신광",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-97708f9cc292",
+    "category": "한국항만물류업체",
+    "name": "오성로지스틱스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-38df0c42c5b0",
+    "category": "한국항만물류업체",
+    "name": "㈜우리자원해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-15044e513644",
+    "category": "한국항만물류업체",
+    "name": "㈜우진에스피",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-5d605bf29733",
+    "category": "한국항만물류업체",
+    "name": "㈜제이비엘해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-f0ea5268bc1f",
+    "category": "한국항만물류업체",
+    "name": "㈜한동",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-218f9cefeed7",
+    "category": "한국항만물류업체",
+    "name": "㈜한라로지스틱",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-39210424f6de",
+    "category": "한국항만물류업체",
+    "name": "㈜현성 MCT",
+    "source": "해양기관 현황 데이터",
+    "classification": "제주"
+  },
+  {
+    "id": "institution-b38cac0105b6",
+    "category": "한국항만물류업체",
+    "name": "동원글로벌터미널부산㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-ed5de8d9ee6e",
+    "category": "한국항만물류업체",
+    "name": "(유)돌코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-2c812eddbca9",
+    "category": "한국항만물류업체",
+    "name": "㈜오광티엘",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-45d624834b63",
+    "category": "한국항만물류업체",
+    "name": "㈜중앙교역",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-2fb5b7b1b256",
+    "category": "한국항만물류업체",
+    "name": "㈜지모스",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-5d8dfa818e02",
+    "category": "한국항만물류업체",
+    "name": "㈜진원무역",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-26c62c64fe0b",
+    "category": "한국항만물류업체",
+    "name": "㈜케이비마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-94dcf67e2e9f",
+    "category": "한국항만물류업체",
+    "name": "한국항만물류㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-ce323a0a87a3",
+    "category": "한국항만물류업체",
+    "name": "한진부산컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "진해"
+  },
+  {
+    "id": "institution-e5e0d45353f5",
+    "category": "한국항만물류업체",
+    "name": "통영로지스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "통영"
+  },
+  {
+    "id": "institution-6a2a08168999",
+    "category": "한국항만물류업체",
+    "name": "천일통운",
+    "source": "해양기관 현황 데이터",
+    "classification": "통영"
+  },
+  {
+    "id": "institution-27aeea893171",
+    "category": "한국항만물류업체",
+    "name": "통일로지스틱스",
+    "source": "해양기관 현황 데이터",
+    "classification": "통영"
+  },
+  {
+    "id": "institution-054cfbe724ca",
+    "category": "한국항만물류업체",
+    "name": "㈜해양",
+    "source": "해양기관 현황 데이터",
+    "classification": "통영"
+  },
+  {
+    "id": "institution-486a9292013f",
+    "category": "한국항만물류업체",
+    "name": "대아항운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-41923e494ffd",
+    "category": "한국항만물류업체",
+    "name": "㈜대주중공업",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-88ad3fe4d4b4",
+    "category": "한국항만물류업체",
+    "name": "㈜유성티엔에스",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-e56fca3a3d8e",
+    "category": "한국항만물류업체",
+    "name": "㈜태영그레인터미널",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-ab84fcf5e09c",
+    "category": "한국항만물류업체",
+    "name": "평택국제자동차부두㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-84230590093a",
+    "category": "한국항만물류업체",
+    "name": "평택당진중앙부두㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-d78471af9ee3",
+    "category": "한국항만물류업체",
+    "name": "㈜평택당진항만",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-ab6bdb37c18c",
+    "category": "한국항만물류업체",
+    "name": "평택컨테이너터미널㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-88374cee0913",
+    "category": "한국항만물류업체",
+    "name": "㈜평택항만",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-3525858192fe",
+    "category": "한국항만물류업체",
+    "name": "현대글로비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "평택"
+  },
+  {
+    "id": "institution-e126ef9e33e4",
+    "category": "한국항만물류업체",
+    "name": "대저페리㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-d0e014691729",
+    "category": "한국항만물류업체",
+    "name": "㈜미래해운",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-a89ccf30f202",
+    "category": "한국항만물류업체",
+    "name": "㈜삼일",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-97c5e32367e8",
+    "category": "한국항만물류업체",
+    "name": "㈜세아엘엔에스",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-6d6b13960a0d",
+    "category": "한국항만물류업체",
+    "name": "㈜예스피네이쳐",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-8dd9f66f8c49",
+    "category": "한국항만물류업체",
+    "name": "일성해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-d9364fef838b",
+    "category": "한국항만물류업체",
+    "name": "㈜티디",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-64cff8070f42",
+    "category": "한국항만물류업체",
+    "name": "포항영일만항운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-74ea4dda6954",
+    "category": "한국항만물류업체",
+    "name": "포항항7부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
+  },
+  {
+    "id": "institution-96524a585a67",
+    "category": "한국항만물류업체",
+    "name": "포항항8부두운영㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "포항"
   },
   {
     "id": "institution-052",
@@ -336,6 +5391,60 @@
     "source": "해양기관 현황 데이터"
   },
   {
+    "id": "institution-535ee4dc0462",
+    "category": "협회",
+    "name": "마산항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0def475afad1",
+    "category": "협회",
+    "name": "목포항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2732affb6e23",
+    "category": "협회",
+    "name": "부산항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5145119678cd",
+    "category": "협회",
+    "name": "여수항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-05aa27234192",
+    "category": "협회",
+    "name": "울산항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-42b2287f5559",
+    "category": "협회",
+    "name": "인천항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a44cabfb8efc",
+    "category": "협회",
+    "name": "제주항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7266025d068b",
+    "category": "협회",
+    "name": "평택·당진항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-45e28c94125f",
+    "category": "협회",
+    "name": "포항항도선사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
     "id": "institution-057",
     "category": "정부기관",
     "name": "해양수산부",
@@ -363,6 +5472,144 @@
     "id": "institution-061",
     "category": "정부기관",
     "name": "마산지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f60387d6d756",
+    "category": "정부기관",
+    "name": "목포지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-52d38a51ca91",
+    "category": "정부기관",
+    "name": "부산지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-93e2fa645f09",
+    "category": "정부기관",
+    "name": "여수지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8ead2a8e635d",
+    "category": "정부기관",
+    "name": "울산지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d2b9e71c06ec",
+    "category": "정부기관",
+    "name": "인천지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ba04d3eab7c8",
+    "category": "정부기관",
+    "name": "제주해양수산관리단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-62107b7ebb6e",
+    "category": "정부기관",
+    "name": "평택지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ba18bae92c4a",
+    "category": "정부기관",
+    "name": "포항지방해양수산청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5e8eb0786959",
+    "category": "정부기관",
+    "name": "중앙해양안전심판원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b2c4c66b1b50",
+    "category": "정부기관",
+    "name": "동해지방해양안전심판원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3572042f4580",
+    "category": "정부기관",
+    "name": "목포지방해양안전심판원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-13708ff6ab1a",
+    "category": "정부기관",
+    "name": "부산지방해양안전심판원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5fb7317f2d34",
+    "category": "정부기관",
+    "name": "인천지방해양안전심판원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-648c6b356cdc",
+    "category": "정부기관",
+    "name": "해양경찰청",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0c10d580207d",
+    "category": "정부기관",
+    "name": "국립해양조사원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-072",
+    "category": "선박금융",
+    "name": "㈜국제선박투자운용",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-073",
+    "category": "선박금융",
+    "name": "세계로선박금융㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-074",
+    "category": "선박금융",
+    "name": "캠코선박운용㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-075",
+    "category": "선박금융",
+    "name": "KSF선박금융㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-085680e1d4a1",
+    "category": "선박금융",
+    "name": "한국선박금융㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6a9467a660f4",
+    "category": "선박금융",
+    "name": "한국자산관리공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-953b1d54ac21",
+    "category": "선박금융",
+    "name": "한국해양진흥공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-79825300da11",
+    "category": "선박금융",
+    "name": "해양금융종합센터",
     "source": "해양기관 현황 데이터"
   },
   {
@@ -426,27 +5673,447 @@
     "source": "해양기관 현황 데이터"
   },
   {
-    "id": "institution-072",
-    "category": "선박금융",
-    "name": "㈜국제선박투자운용",
+    "id": "institution-6cd07b9e161a",
+    "category": "유관기관∙단체",
+    "name": "부산항만공사",
     "source": "해양기관 현황 데이터"
   },
   {
-    "id": "institution-073",
-    "category": "선박금융",
-    "name": "세계로선박금융㈜",
+    "id": "institution-72f38ee82f8f",
+    "category": "유관기관∙단체",
+    "name": "부산항발전협의회",
     "source": "해양기관 현황 데이터"
   },
   {
-    "id": "institution-074",
-    "category": "선박금융",
-    "name": "캠코선박운용㈜",
+    "id": "institution-70891120a58c",
+    "category": "유관기관∙단체",
+    "name": "(사)부산항만산업협회",
     "source": "해양기관 현황 데이터"
   },
   {
-    "id": "institution-075",
-    "category": "선박금융",
-    "name": "KSF선박금융㈜",
+    "id": "institution-07e7b1dcc41b",
+    "category": "유관기관∙단체",
+    "name": "부산항보안공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e1b776489a6b",
+    "category": "유관기관∙단체",
+    "name": "부산항선원복지위원회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-799aa6e445a6",
+    "category": "유관기관∙단체",
+    "name": "(사)부산항시설관리센터",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-92ed98c98d27",
+    "category": "유관기관∙단체",
+    "name": "부산항운노동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-018da9852c8d",
+    "category": "유관기관∙단체",
+    "name": "부산항크리스챤해양연합회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b889951e7a44",
+    "category": "유관기관∙단체",
+    "name": "(사)부산해양연맹",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4086cdd31f4e",
+    "category": "유관기관∙단체",
+    "name": "(사)북극항로경제연구소",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-942f8ed13922",
+    "category": "유관기관∙단체",
+    "name": "법무법인 삼양",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3e29f7f2f340",
+    "category": "유관기관∙단체",
+    "name": "의료법인 송산의료재단 해양병원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ccd7578640e5",
+    "category": "유관기관∙단체",
+    "name": "수협중앙회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2cd095e02c1b",
+    "category": "유관기관∙단체",
+    "name": "여수광양항만공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a2b8c0cad06f",
+    "category": "유관기관∙단체",
+    "name": "울산항만공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-81b62e6d2687",
+    "category": "유관기관∙단체",
+    "name": "인천항만공사",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-604d2d7da35c",
+    "category": "유관기관∙단체",
+    "name": "전국선박관리선원노동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6c3e32f97bda",
+    "category": "유관기관∙단체",
+    "name": "전국원양선원노동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-05fc1bd2fc47",
+    "category": "유관기관∙단체",
+    "name": "(사)전국해운노동조합협의회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2573703579e1",
+    "category": "유관기관∙단체",
+    "name": "전국해상선원노동조합연맹",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-40aa51421344",
+    "category": "유관기관∙단체",
+    "name": "천주교 부산교구 해양사목",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-541b98f1604b",
+    "category": "유관기관∙단체",
+    "name": "법무법인 PK",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-7f41d52132e7",
+    "category": "유관기관∙단체",
+    "name": "포르투갈 영사관",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2344555ed1ce",
+    "category": "유관기관∙단체",
+    "name": "(사)한국검수검정협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-666118dfda20",
+    "category": "유관기관∙단체",
+    "name": "한국관세사회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8d5b2176d3e2",
+    "category": "유관기관∙단체",
+    "name": "(사)한국국제해운대리점협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3c64100d4628",
+    "category": "유관기관∙단체",
+    "name": "한국급유선선주협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c5efdcfcd1c3",
+    "category": "유관기관∙단체",
+    "name": "(사)한국마린엔지니어링학회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4419dfd10965",
+    "category": "유관기관∙단체",
+    "name": "(사)한국발전연구원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0be1f180e922",
+    "category": "유관기관∙단체",
+    "name": "한국방송통신전파진흥원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2e5070b8ee59",
+    "category": "유관기관∙단체",
+    "name": "(특)한국선박관리산업협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-72b607e1adce",
+    "category": "유관기관∙단체",
+    "name": "(사)한국선박통신사협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a068bef51edb",
+    "category": "유관기관∙단체",
+    "name": "한국선원납세조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6a2496e9d03c",
+    "category": "유관기관∙단체",
+    "name": "한국선원복지고용센터",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-cdad367ce0a0",
+    "category": "유관기관∙단체",
+    "name": "(사)한국선장포럼",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-19297a7e19b0",
+    "category": "유관기관∙단체",
+    "name": "한국선원선교회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-477748d1531f",
+    "category": "유관기관∙단체",
+    "name": "한국선주상호보험",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ddd20f080549",
+    "category": "유관기관∙단체",
+    "name": "한국원양산업협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-79926e06be26",
+    "category": "유관기관∙단체",
+    "name": "한국어촌어항공단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c34241dce91a",
+    "category": "유관기관∙단체",
+    "name": "(사)한국여성해사인협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0856bac83ed9",
+    "category": "유관기관∙단체",
+    "name": "한국예선업협동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3efcaaa3b275",
+    "category": "유관기관∙단체",
+    "name": "(재)한국조선해양기자재연구원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5bc1354daaf0",
+    "category": "유관기관∙단체",
+    "name": "한국조선해양플랜트협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0d9e7f9b8448",
+    "category": "유관기관∙단체",
+    "name": "한국중소조선공업협동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f092ea1c2d67",
+    "category": "유관기관∙단체",
+    "name": "한국항로표지기술원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-76e5e2dfce4f",
+    "category": "유관기관∙단체",
+    "name": "(사)한국항해항만학회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c117ecbbc916",
+    "category": "유관기관∙단체",
+    "name": "한국항만물류협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-ec3e5dcf5822",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해법학회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5af095152af7",
+    "category": "유관기관∙단체",
+    "name": "(재)한국해사문제연구소",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e19b950a0a22",
+    "category": "유관기관∙단체",
+    "name": "한국해사법학회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-018530a94b72",
+    "category": "유관기관∙단체",
+    "name": "(재)한국해사위험물검사원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fe73784d15cf",
+    "category": "유관기관∙단체",
+    "name": "한국해양교통안전공단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-43eb043a78fb",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해사포럼",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c8efa1452c66",
+    "category": "유관기관∙단체",
+    "name": "한국해양과학기술원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c95f529179ad",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해양구조협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e955d11c11dc",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해양문학가협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9303d63531bf",
+    "category": "유관기관∙단체",
+    "name": "한국해양방제업협동조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f89b6832431f",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해양산업총연합회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1510b38e2866",
+    "category": "유관기관∙단체",
+    "name": "한국해양수산개발원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-57c175177f93",
+    "category": "유관기관∙단체",
+    "name": "한국해양소년단연맹",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-eff777fd086b",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해양안전진흥협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-817f3b2b88fe",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해양안전심판변론인협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b1171114cf9d",
+    "category": "유관기관∙단체",
+    "name": "(재)한국해양재단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b406f2e2003f",
+    "category": "유관기관∙단체",
+    "name": "한국해양정책연합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-68b212a7529d",
+    "category": "유관기관∙단체",
+    "name": "한국해외취업선원납세조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d09eab61f93b",
+    "category": "유관기관∙단체",
+    "name": "한국해운조합",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-96a7a7e5c572",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해운물류학회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e419060266d2",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해운중개업협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-17501ad914c7",
+    "category": "유관기관∙단체",
+    "name": "(사)한국해운협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-00b11fc2da9f",
+    "category": "유관기관∙단체",
+    "name": "해양수산과학기술진흥원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a917f7fbb79f",
+    "category": "유관기관∙단체",
+    "name": "(재)한국해운항만물류연구원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1a44f2e10fea",
+    "category": "유관기관∙단체",
+    "name": "해양환경공단",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-225a65aace84",
+    "category": "유관기관∙단체",
+    "name": "해양환경교육원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5bf039211c54",
+    "category": "유관기관∙단체",
+    "name": "(사)해양환경안전학회",
     "source": "해양기관 현황 데이터"
   },
   {
@@ -474,6 +6141,138 @@
     "source": "해양기관 현황 데이터"
   },
   {
+    "id": "institution-ef92b6597865",
+    "category": "교육기관∙동창회",
+    "name": "국립목포해양대학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-68235928ba12",
+    "category": "교육기관∙동창회",
+    "name": "국립목포해양대학교 총동창회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-71b1d4c73fe7",
+    "category": "교육기관∙동창회",
+    "name": "국립한국해양대학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-966040d7dddc",
+    "category": "교육기관∙동창회",
+    "name": "산학연ETRS센터",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f6f2d5e27454",
+    "category": "교육기관∙동창회",
+    "name": "국립한국해양대학교 총동창회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3a36c3b2bc1b",
+    "category": "교육기관∙동창회",
+    "name": "부경대학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f55050a57d85",
+    "category": "교육기관∙동창회",
+    "name": "부산해사고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-40f59a1a3396",
+    "category": "교육기관∙동창회",
+    "name": "부산해사고등학교 총동창회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c6791a0db2fa",
+    "category": "교육기관∙동창회",
+    "name": "부산해양고등학교 총동창회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fdf589580e77",
+    "category": "교육기관∙동창회",
+    "name": "성산고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-63b24e4c6f78",
+    "category": "교육기관∙동창회",
+    "name": "완도수산고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-34cb93384fe3",
+    "category": "교육기관∙동창회",
+    "name": "울릉고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d68d21ae5052",
+    "category": "교육기관∙동창회",
+    "name": "인천해사고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f064ccd1f8a9",
+    "category": "교육기관∙동창회",
+    "name": "인천해사고등학교 총동문회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-48fa4d4f5fb3",
+    "category": "교육기관∙동창회",
+    "name": "인천해양과학고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-de7977ab3be7",
+    "category": "교육기관∙동창회",
+    "name": "전남대학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8a1f8d42c874",
+    "category": "교육기관∙동창회",
+    "name": "제주대학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0e081e96d34f",
+    "category": "교육기관∙동창회",
+    "name": "중앙대학교 대학원 글로벌물류학과 총동문회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8df70aeb3a78",
+    "category": "교육기관∙동창회",
+    "name": "충남해양과학고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f3a47a245aba",
+    "category": "교육기관∙동창회",
+    "name": "한국해양대학교 A.M.P 총동창회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c117bf0b3d12",
+    "category": "교육기관∙동창회",
+    "name": "한국해양마이스터고등학교",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-4474eb25dad4",
+    "category": "교육기관∙동창회",
+    "name": "한국해양수산연수원",
+    "source": "해양기관 현황 데이터"
+  },
+  {
     "id": "institution-080",
     "category": "선급",
     "name": "라이베리아 기국 한국등록처 법인",
@@ -498,33 +6297,819 @@
     "source": "해양기관 현황 데이터"
   },
   {
+    "id": "institution-8eb0192fcfbd",
+    "category": "선급",
+    "name": "미국선급협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-b7251f432553",
+    "category": "선급",
+    "name": "벨리즈 국제선박등록국 한국사무소",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fc2062fd8d6b",
+    "category": "선급",
+    "name": "벨리즈·토고 선박등록 검사국",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a9650006d66c",
+    "category": "선급",
+    "name": "씨 로드 쉽핑 엔 에이젠시㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-055e341e95e1",
+    "category": "선급",
+    "name": "㈜씨엠비",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-01c487c1d64f",
+    "category": "선급",
+    "name": "㈜아이앤에이케이",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f79a95e0d440",
+    "category": "선급",
+    "name": "에이존 쉽핑 뷰류",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-0b2951e7f2c9",
+    "category": "선급",
+    "name": "이스트쉽핑뷰류",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f32e09fbc6b3",
+    "category": "선급",
+    "name": "ABS. QE",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-be6f3162bcab",
+    "category": "선급",
+    "name": "(재)일본해사협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1de5ba63f411",
+    "category": "선급",
+    "name": "이탈리아선급협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-458db1a97ab0",
+    "category": "선급",
+    "name": "주한파나마대사관 파나마기국 등록처",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c8d9199ae7dc",
+    "category": "선급",
+    "name": "중국선급협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6c37e1012d7c",
+    "category": "선급",
+    "name": "토고국제선박등록국 한국사무소",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-2711a8b14d4d",
+    "category": "선급",
+    "name": "토고국제선박등록청 아시아본부",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d1c7d0f01505",
+    "category": "선급",
+    "name": "ClassIBS 파나마",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d2b3f5cccc06",
+    "category": "선급",
+    "name": "프랑스 선급협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d2360dc5fc06",
+    "category": "선급",
+    "name": "폴란드선급 협회",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-6a3a4ba90838",
+    "category": "선급",
+    "name": "(사)한국선급",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-108290435a21",
+    "category": "선급",
+    "name": "피와이케이쉬핑뷰류",
+    "source": "해양기관 현황 데이터"
+  },
+  {
     "id": "institution-084",
     "category": "검수검정업체",
     "name": "㈜고려해운",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
   },
   {
     "id": "institution-085",
     "category": "검수검정업체",
     "name": "국보기업㈜",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
   },
   {
     "id": "institution-086",
     "category": "검수검정업체",
     "name": "(유)국제검수공사",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
   },
   {
     "id": "institution-087",
     "category": "검수검정업체",
     "name": "(합자)국제선박항영사",
-    "source": "해양기관 현황 데이터"
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
   },
   {
     "id": "institution-088",
     "category": "검수검정업체",
     "name": "㈜그린마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-21ec71dab06c",
+    "category": "검수검정업체",
+    "name": "대산검수㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-eadcbf587e37",
+    "category": "검수검정업체",
+    "name": "㈜동광양산업",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-832cfdb66bed",
+    "category": "검수검정업체",
+    "name": "㈜미래검수",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-c67f51a1f938",
+    "category": "검수검정업체",
+    "name": "㈜미성에스엔피",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-b6770c3150b2",
+    "category": "검수검정업체",
+    "name": "범아검수㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-bda9976bb939",
+    "category": "검수검정업체",
+    "name": "㈜범아상사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-a4000b167592",
+    "category": "검수검정업체",
+    "name": "㈜범아상사울산",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-1b27024dd5e0",
+    "category": "검수검정업체",
+    "name": "㈜범양해무공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-41d75935d4be",
+    "category": "검수검정업체",
+    "name": "삼성검수㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-decb3b7e533b",
+    "category": "검수검정업체",
+    "name": "㈜삼영",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-418e2cdef99d",
+    "category": "검수검정업체",
+    "name": "㈜서우",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-5bb0e4bce16b",
+    "category": "검수검정업체",
+    "name": "(유)서우마린",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-db1911f84180",
+    "category": "검수검정업체",
+    "name": "(합자)신양선박대행사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-26c4682db7eb",
+    "category": "검수검정업체",
+    "name": "㈜신한선박",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-32df6d05aee5",
+    "category": "검수검정업체",
+    "name": "씨코리아검수협동조합",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-b8903c417bf2",
+    "category": "검수검정업체",
+    "name": "아르고마린토탈㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-f4669e1820d1",
+    "category": "검수검정업체",
+    "name": "㈜에이식",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-b0009639fa21",
+    "category": "검수검정업체",
+    "name": "(합명)용마검수공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-eaff15837307",
+    "category": "검수검정업체",
+    "name": "울산로지스틱㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-fe825dd4897b",
+    "category": "검수검정업체",
+    "name": "㈜정방",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-a037ef33b344",
+    "category": "검수검정업체",
+    "name": "㈜제범",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-f662025675dd",
+    "category": "검수검정업체",
+    "name": "㈜제이에스쉬핑",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-90d7d705ce27",
+    "category": "검수검정업체",
+    "name": "충청해운㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-e5462147dca7",
+    "category": "검수검정업체",
+    "name": "㈜케이에스씨검수",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-71c8d2cae66c",
+    "category": "검수검정업체",
+    "name": "㈜코리아탤리서비스",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-88ee15da1afc",
+    "category": "검수검정업체",
+    "name": "태성검수㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-cb5c2acae598",
+    "category": "검수검정업체",
+    "name": "㈜해사공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-79ac2d9070ef",
+    "category": "검수검정업체",
+    "name": "해성검수㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-d1fd96e1d08b",
+    "category": "검수검정업체",
+    "name": "㈜해양공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검수"
+  },
+  {
+    "id": "institution-f0c6bd00ac1d",
+    "category": "검수검정업체",
+    "name": "㈜국제검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-8eeb60ecadbc",
+    "category": "검수검정업체",
+    "name": "㈜극동검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-1edb6da3c3f0",
+    "category": "검수검정업체",
+    "name": "(합명)내쇼날검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-ab478e025ff3",
+    "category": "검수검정업체",
+    "name": "㈜농검",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-0ac3dc6c5119",
+    "category": "검수검정업체",
+    "name": "㈜대덕분석기술연구원",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-4d669571ebf5",
+    "category": "검수검정업체",
+    "name": "대한검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-7ca6a9a984dc",
+    "category": "검수검정업체",
+    "name": "㈜대한해사검정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-8fd96d1807fd",
+    "category": "검수검정업체",
+    "name": "동아검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-ad1dbd81a31b",
+    "category": "검수검정업체",
+    "name": "㈜동화검정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-c5d7a4ce4a29",
+    "category": "검수검정업체",
+    "name": "레온세이볼트인스펙션(유)",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-079fafe23db9",
+    "category": "검수검정업체",
+    "name": "범세검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-c85f4c49b61d",
+    "category": "검수검정업체",
+    "name": "범한검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-1eb3c969ddfc",
+    "category": "검수검정업체",
+    "name": "뷰로베리타스",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-6c27d9265d3d",
+    "category": "검수검정업체",
+    "name": "㈜스파크인터내쇼날",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-fd0f9798fd91",
+    "category": "검수검정업체",
+    "name": "㈜신한검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-a8f55aa5afd7",
+    "category": "검수검정업체",
+    "name": "㈜씨에스씨",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-3eaf0e8b16af",
+    "category": "검수검정업체",
+    "name": "㈜아이에스씨",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-702da624c7fa",
+    "category": "검수검정업체",
+    "name": "㈜아이엠에스검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-76a78b43384a",
+    "category": "검수검정업체",
+    "name": "연합검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-8cdcf5b85aa2",
+    "category": "검수검정업체",
+    "name": "㈜유닉검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-be7b9ed1316d",
+    "category": "검수검정업체",
+    "name": "㈜인스팩토래트",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-affa3311e9c2",
+    "category": "검수검정업체",
+    "name": "㈜인터텍김스코",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-5a6c75b0d49a",
+    "category": "검수검정업체",
+    "name": "스탠다드코리아검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-29fddd10b5a3",
+    "category": "검수검정업체",
+    "name": "㈜중앙검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-b7cf2c6c5b0c",
+    "category": "검수검정업체",
+    "name": "창대검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-366c0dcc059a",
+    "category": "검수검정업체",
+    "name": "㈜컨트롤유니온코리아",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-828af1c3cb58",
+    "category": "검수검정업체",
+    "name": "㈜컨티넨탈검사정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-48ebd66d70aa",
+    "category": "검수검정업체",
+    "name": "㈜케스코검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-1d124872f433",
+    "category": "검수검정업체",
+    "name": "㈜케이에스씨",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-5c9d3146af5a",
+    "category": "검수검정업체",
+    "name": "케이엠검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-eb02c41d53c0",
+    "category": "검수검정업체",
+    "name": "코리아검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-92b3230dc38b",
+    "category": "검수검정업체",
+    "name": "㈜코리아해사검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-a67e56e1313a",
+    "category": "검수검정업체",
+    "name": "코모스손해사정엔지니어링㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-108006eb2778",
+    "category": "검수검정업체",
+    "name": "㈜퍼스트검정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-fa1e18a81bd7",
+    "category": "검수검정업체",
+    "name": "팩마린서비스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-a5229e80e082",
+    "category": "검수검정업체",
+    "name": "피플앤피플검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-1fc90b357265",
+    "category": "검수검정업체",
+    "name": "㈜한국검사정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-8dd67c5c7e4a",
+    "category": "검수검정업체",
+    "name": "한국에스지에스㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-aefcd5e063ac",
+    "category": "검수검정업체",
+    "name": "한국케이시스검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-02a0b8fa24b6",
+    "category": "검수검정업체",
+    "name": "한국해양검정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-76116f3aae7e",
+    "category": "검수검정업체",
+    "name": "㈜한리해상손해사정",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-4004274a787f",
+    "category": "검수검정업체",
+    "name": "㈜한세검정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-907f150e9221",
+    "category": "검수검정업체",
+    "name": "㈜해외검정공사",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-ca8a058d8f0e",
+    "category": "검수검정업체",
+    "name": "협성손해사정㈜",
+    "source": "해양기관 현황 데이터",
+    "classification": "검정"
+  },
+  {
+    "id": "institution-3470dbf72f55",
+    "category": "조선업체",
+    "name": "㈜강남",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-9f209bbbd490",
+    "category": "조선업체",
+    "name": "그린월드조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-f0c5b7ff1a00",
+    "category": "조선업체",
+    "name": "㈜대불조선",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5ded845fabe5",
+    "category": "조선업체",
+    "name": "대선조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8c8ef19a75e2",
+    "category": "조선업체",
+    "name": "동일조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3d4abb2c2123",
+    "category": "조선업체",
+    "name": "부산조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3a9c34746fb0",
+    "category": "조선업체",
+    "name": "부영그룹",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-1a7c58f64826",
+    "category": "조선업체",
+    "name": "삼강에스앤씨㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fb08ee8fbcc1",
+    "category": "조선업체",
+    "name": "삼성중공업㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-04864f25e153",
+    "category": "조선업체",
+    "name": "선진조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-c1ac077d8173",
+    "category": "조선업체",
+    "name": "에스더블유 조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-a7da0376f125",
+    "category": "조선업체",
+    "name": "HD한국조선해양㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-846c60400c16",
+    "category": "조선업체",
+    "name": "HD현대미포㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e793da2f46e5",
+    "category": "조선업체",
+    "name": "HD현대삼호㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-cb9b82ac62ab",
+    "category": "조선업체",
+    "name": "HD현대중공업㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-39a291d30097",
+    "category": "조선업체",
+    "name": "㈜HJ중공업",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-e9dd3ce97718",
+    "category": "조선업체",
+    "name": "㈜여수해양",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-3c3be7171add",
+    "category": "조선업체",
+    "name": "㈜오리엔트조선",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-eae1ffc71ed5",
+    "category": "조선업체",
+    "name": "우승조선㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-8f395ab7552a",
+    "category": "조선업체",
+    "name": "㈜케이조선",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-94510d807737",
+    "category": "조선업체",
+    "name": "㈜한국메이드",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-fc532b2ca5e3",
+    "category": "조선업체",
+    "name": "㈜한국야나세통영조선소",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d84455c51af2",
+    "category": "조선업체",
+    "name": "한라IMS㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-5d4c52131d9c",
+    "category": "조선업체",
+    "name": "한화오션㈜",
+    "source": "해양기관 현황 데이터"
+  },
+  {
+    "id": "institution-d5727b175445",
+    "category": "조선업체",
+    "name": "㈜해명피에스",
     "source": "해양기관 현황 데이터"
   }
 ]
