@@ -237,6 +237,19 @@ def apply_compatibility_migrations() -> None:
                 "ALTER COLUMN client_updated_at TYPE BIGINT "
                 "USING client_updated_at::BIGINT"
             )
+    if "video_learning_evidence" in tables:
+        columns = {column["name"] for column in inspector.get_columns("video_learning_evidence")}
+        timestamp_type = "TIMESTAMPTZ" if engine.dialect.name == "postgresql" else "TIMESTAMP"
+        if "completed_at" not in columns:
+            statements.append(
+                f"ALTER TABLE video_learning_evidence ADD COLUMN completed_at {timestamp_type}"
+            )
+            # 완료 시각을 따로 기록하지 않던 배포에서는 기존 시청 인증을 완료로 인정해야
+            # 학습 이력과 포트폴리오 증빙이 사라지지 않습니다.
+            backfill_legacy_video_completions = True
+        if "reflection" not in columns:
+            statements.append("ALTER TABLE video_learning_evidence ADD COLUMN reflection TEXT NOT NULL DEFAULT ''")
+
     if "community_posts" in tables:
         columns = {column["name"] for column in inspector.get_columns("community_posts")}
         if "image_url" not in columns:
