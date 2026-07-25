@@ -31,6 +31,7 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -132,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
     // 퀴즈 응시 중 헤더의 일정·알림 버튼을 잠그기 위해 참조를 보관합니다.
     private TextView headerCalendarButton;
     private TextView headerBellButton;
+    // 학습 헤더의 ❤ 찜 개수 표시. 찜 토글 시 즉시 갱신합니다.
+    private TextView headerWishButton;
     private int currentTab = 0;
     // 일정 화면은 하단 내비게이션에 없으므로, 진입 직전 탭을 기억해 뒤로 가기에 사용합니다.
     private int scheduleReturnTab = 0;
@@ -844,6 +847,27 @@ public class MainActivity extends AppCompatActivity {
         brand.addView(brandTitle);
         headerRow.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
 
+        // 학습 화면에서는 찜 개수 하트 버튼을 표시하고, 누르면 찜 목록을 보여줍니다.
+        headerWishButton = null;
+        if (tab == 1 || tab == 2) {
+            int wishCount = store.getBookmarks().size();
+            TextView wish = homeText("❤ " + wishCount, 13, Color.parseColor("#E0475B"), true);
+            wish.setGravity(Gravity.CENTER);
+            wish.setPadding(dp(12), 0, dp(12), 0);
+            wish.setClickable(true);
+            wish.setFocusable(true);
+            wish.setContentDescription("찜 목록 열기 · " + wishCount + "개");
+            GradientDrawable wishBg = new GradientDrawable();
+            wishBg.setColor(Color.WHITE);
+            wishBg.setCornerRadius(dp(18));
+            wishBg.setStroke(dp(1), Color.parseColor("#F3C3CB"));
+            wish.setBackground(wishBg);
+            wish.setOnClickListener(v -> showBookmarkListDialog());
+            LinearLayout.LayoutParams wishParams = new LinearLayout.LayoutParams(-2, dp(36));
+            wishParams.setMargins(0, 0, dp(6), 0);
+            headerRow.addView(wish, wishParams);
+            headerWishButton = wish;
+        }
         headerCalendarButton = null;
         if (tab != 3) {
             headerCalendarButton = homeIconButton("📅", "일정 열기", v -> showApp(3));
@@ -2306,7 +2330,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderLearning() {
         addLearningSegment(1);
-        addAiSearchBox(learningSubTab, "예: 해양환경 입문자가 20분 안에 볼 만한 영상이나 논문 찾아줘", learningSearchLoading, learningSearchResponse);
+        addAiSearchBox(learningSubTab, "AI에게 물어보세요 · \"20분 안에 볼 입문 영상\"", learningSearchLoading, learningSearchResponse);
 
         LinearLayout tabs = row();
         Button videoTab = learningSubTab.equals("video") ? primaryButton("영상") : outlineButton("영상");
@@ -3049,7 +3073,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderSchedule() {
         content.addView(sectionTitle("AI로 활동 찾기"));
-        addAiSearchBox("schedule", "예: 부산에서 고등학생이 여름방학에 참여할 해양 안전 교육이 있을까?", scheduleSearchLoading, scheduleSearchResponse);
+        addAiSearchBox("schedule", "AI로 활동 찾기 · 지역·대상·주제로 질문하세요", scheduleSearchLoading, scheduleSearchResponse);
 
         if (scheduleSearchResponse != null && scheduleSearchResponse.items != null && !scheduleSearchResponse.items.isEmpty()) {
             content.addView(body(scheduleSearchResponse.summary));
@@ -5551,6 +5575,51 @@ public class MainActivity extends AppCompatActivity {
         return id;
     }
 
+    /** 찜 토글 직후 학습 헤더의 ❤ 개수를 갱신합니다. */
+    private void refreshHeaderWishCount() {
+        if (headerWishButton == null) return;
+        int wishCount = store.getBookmarks().size();
+        headerWishButton.setText("❤ " + wishCount);
+        headerWishButton.setContentDescription("찜 목록 열기 · " + wishCount + "개");
+    }
+
+    /** 헤더 ❤ 버튼: 찜한 항목 목록을 보여주고, 선택하면 해당 자료로 이동합니다. */
+    private void showBookmarkListDialog() {
+        final List<String> ids = new ArrayList<>(store.getBookmarks());
+        if (ids.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("찜 목록")
+                    .setMessage("아직 찜한 항목이 없습니다.\n학습 자료나 일정 카드의 ♡ 버튼으로 저장할 수 있어요.")
+                    .setPositiveButton("확인", null)
+                    .show();
+            return;
+        }
+        String[] titles = new String[ids.size()];
+        for (int i = 0; i < ids.size(); i++) titles[i] = displayNameForId(ids.get(i));
+        new AlertDialog.Builder(this)
+                .setTitle("찜 목록 · " + ids.size() + "개")
+                .setItems(titles, (dialog, which) -> openBookmarkedItem(ids.get(which)))
+                .setNegativeButton("닫기", null)
+                .show();
+    }
+
+    /** 찜 목록에서 선택한 항목을 종류에 맞게 엽니다. (영상=검증 플레이어, 논문=원문, 일정=일정 화면) */
+    private void openBookmarkedItem(String id) {
+        for (ContentItem item : DataRepository.contents()) {
+            if (item.id.equals(id)) { openVerifiedContent(item); return; }
+        }
+        for (PaperItem item : DataRepository.papers()) {
+            if (item.id.equals(id)) { openUrl(item.url); return; }
+        }
+        for (ProgramItem item : DataRepository.programs()) {
+            if (item.id.equals(id)) { showApp(3); return; }
+        }
+        for (EventItem item : DataRepository.events()) {
+            if (item.id.equals(id)) { showApp(3); return; }
+        }
+        toast("연결된 자료를 찾지 못했습니다.");
+    }
+
     private void addContentCard(ContentItem item, boolean compact) {
         UserProfile p = store.getProfile();
         String tier = store.getTier();
@@ -5626,6 +5695,7 @@ public class MainActivity extends AppCompatActivity {
             store.toggleBookmark(item.id);
             boolean bookmarked = store.isBookmarked(item.id);
             updateBookmarkHeart(bookmarkHeart, bookmarked, item.title);
+            refreshHeaderWishCount();
             viewModel.recordLearning("bookmark", item.id, item.title, bookmarked ? "saved" : "removed");
             toast(bookmarked ? "찜 목록에 저장했습니다." : "찜을 해제했습니다.");
         });
@@ -5724,6 +5794,7 @@ public class MainActivity extends AppCompatActivity {
             store.toggleBookmark(itemId);
             boolean bookmarked = store.isBookmarked(itemId);
             updateBookmarkHeart(heart, bookmarked, title);
+            refreshHeaderWishCount();
             viewModel.recordLearning(recordType, itemId, title, bookmarked ? "saved" : "removed");
             toast(bookmarked ? "찜 목록에 저장했습니다." : "찜을 해제했습니다.");
         });
@@ -6707,23 +6778,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addAiSearchBox(String resourceType, String hint, boolean loading, ApiModels.AiSearchResponse response) {
-        LinearLayout searchCard = card();
-        searchCard.addView(label("LLM 기반 검색"));
-        EditText input = inputField(hint, "");
-        input.setSingleLine(false);
-        input.setMinLines(2);
-        searchCard.addView(input);
-        Button search = primaryButton(loading ? "검색 중…" : "AI로 자료 찾기");
-        search.setEnabled(!loading);
-        search.setOnClickListener(v -> requestAiSearch(resourceType, input.getText().toString()));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(48));
-        params.setMargins(0, dp(8), 0, 0);
-        searchCard.addView(search, params);
-        if (loading) searchCard.addView(new ProgressBar(this));
+        // 시안 기준 컴팩트 검색바: 🔍 + 한 줄 입력 + 우측 'AI 검색' 알약 버튼.
+        LinearLayout searchBar = row();
+        searchBar.setGravity(Gravity.CENTER_VERTICAL);
+        searchBar.setPadding(dp(6), dp(4), dp(6), dp(4));
+        GradientDrawable barBg = new GradientDrawable();
+        barBg.setColor(Color.WHITE);
+        barBg.setCornerRadius(dp(24));
+        barBg.setStroke(dp(1), Color.parseColor("#D7E7EC"));
+        searchBar.setBackground(barBg);
+        searchBar.setElevation(dp(2));
+
+        TextView icon = new TextView(this);
+        icon.setText("🔍");
+        icon.setTextSize(15);
+        icon.setGravity(Gravity.CENTER);
+        searchBar.addView(icon, new LinearLayout.LayoutParams(dp(32), dp(40)));
+
+        EditText input = new EditText(this);
+        input.setHint(hint);
+        input.setHintTextColor(MUTED);
+        input.setTextColor(TEXT);
+        input.setTextSize(13);
+        input.setSingleLine(true);
+        input.setBackgroundColor(Color.TRANSPARENT);
+        input.setPadding(dp(2), 0, dp(6), 0);
+        input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        input.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH && !loading) {
+                requestAiSearch(resourceType, input.getText().toString());
+                return true;
+            }
+            return false;
+        });
+        searchBar.addView(input, new LinearLayout.LayoutParams(0, dp(44), 1));
+
+        TextView search = new TextView(this);
+        search.setText(loading ? "검색 중…" : "AI 검색");
+        search.setTextSize(12);
+        search.setTypeface(Typeface.DEFAULT_BOLD);
+        search.setTextColor(Color.WHITE);
+        search.setGravity(Gravity.CENTER);
+        GradientDrawable searchBg = new GradientDrawable();
+        searchBg.setColor(loading ? MUTED : NAVY);
+        searchBg.setCornerRadius(dp(18));
+        search.setBackground(searchBg);
+        if (!loading) search.setOnClickListener(v -> requestAiSearch(resourceType, input.getText().toString()));
+        searchBar.addView(search, new LinearLayout.LayoutParams(dp(66), dp(36)));
+
+        LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(-1, -2);
+        barParams.setMargins(0, dp(2), 0, dp(10));
+        content.addView(searchBar, barParams);
+
+        if (loading) content.addView(new ProgressBar(this));
         if (response != null) {
-            searchCard.addView(note(response.usedLiveWeb ? "앱 자료와 실시간 웹 근거를 함께 검토했습니다." : "앱에 등록된 자료를 기준으로 검색했습니다.", OCEAN));
+            content.addView(note(response.usedLiveWeb ? "앱 자료와 실시간 웹 근거를 함께 검토했습니다." : "앱에 등록된 자료를 기준으로 검색했습니다.", OCEAN));
         }
-        content.addView(searchCard);
     }
 
     /**
