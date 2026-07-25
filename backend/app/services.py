@@ -435,6 +435,9 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
         exact = 1.0 if request.query.lower() in document.lower() else 0.0
         return base * 10 + exact * 3
 
+    if request.resourceType == "schedule":
+        items = [item for item in items if schedule_matches_query(item, request.query)]
+
     ranked = sorted(items, key=score, reverse=True)
     selected = [item for item in ranked if score(item) > 0][: request.limit]
 
@@ -444,7 +447,25 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
     )
     sources = [SourceItem(title=s.title, url=s.url, organization=s.organization) for s in live_sources]
     summary = f"‘{request.query}’ 요청과 가장 관련성이 높은 {len(selected)}개 자료를 추렸습니다."
-    if settings.llm_enabled and (selected or live_sources):
+    if request.resourceType == "schedule":
+        today = datetime.now(timezone.utc).date()
+        past_count = sum(schedule_status(item, today) == "past" for item in selected)
+        current_count = sum(schedule_status(item, today) == "current" for item in selected)
+        upcoming_count = sum(schedule_status(item, today) == "upcoming" for item in selected)
+        if selected:
+            summary = (
+                f"‘{request.query}’에 대한 검색 결과입니다. "
+                f"요청한 대상과 시기 조건에 맞는 일정 {len(selected)}건을 찾았습니다. "
+                f"현재 운영 {current_count}건, 예정 {upcoming_count}건, 과거 참고자료 {past_count}건입니다. "
+                "과거 일정은 올해도 같은 시기에 운영된다는 보장이 없으므로 공식 안내를 다시 확인해 주세요."
+            )
+        else:
+            summary = (
+                f"‘{request.query}’에 대한 검색 결과입니다. "
+                "요청한 대상과 시기 조건을 충족하는 등록 일정을 찾지 못했습니다. "
+                "조건이 다른 일정을 대신 추천하지 않았습니다."
+            )
+    elif settings.llm_enabled and (selected or live_sources):
         catalog_text = "\n".join(
             f"- {item.id}: {item.title} / {item.topic} / {item.source} / {item.url}"
             for item in selected
@@ -466,6 +487,91 @@ def search_resources(db: Session, request: AiSearchRequest) -> AiSearchResponse:
         sources=sources,
         usedLiveWeb=bool(live_sources),
     )
+
+
+def schedule_matches_query(item: Content, query: str) -> bool:
+    """Apply only high-confidence schedule constraints expressed by the user.
+
+    Past schedules remain eligible as examples, but test records and schedules for
+    an explicitly incompatible audience or season do not.
+    """
+    metadata = item.metadata_json or {}
+    title = item.title.strip()
+    if "test" in title.lower() or "테스트" in title:
+        return False
+
+    normalized_query = re.sub(r"\s+", "", query.lower())
+    target = re.sub(r"\s+", "", str(metadata.get("target", "")).lower())
+    description = re.sub(r"\s+", "", str(metadata.get("description", "")).lower())
+    audience_text = f"{target} {description}"
+
+    if "고등학생" in normalized_query or "고등학교" in normalized_query:
+        compatible = ("고등" in audience_text or "청소년" in audience_text
+                      or "누구나" in target or "전체" in target)
+        explicitly_incompatible = any(value in target for value in ("성인", "초등", "어린이", "유아"))
+        if not compatible or explicitly_incompatible:
+            return False
+    elif "중학생" in normalized_query or "중학교" in normalized_query:
+        compatible = ("중학" in audience_text or "중·고등" in audience_text or "중고등" in audience_text
+                      or "청소년" in audience_text or "누구나" in target or "전체" in target)
+        explicitly_incompatible = any(value in target for value in ("성인", "초등", "어린이", "유아"))
+        if not compatible or explicitly_incompatible:
+            return False
+    elif "초등학생" in normalized_query or "초등학교" in normalized_query or "어린이" in normalized_query:
+        compatible = ("초등" in audience_text or "어린이" in audience_text or "가족" in target
+                      or "누구나" in target or "전체" in target)
+        if not compatible or "성인" in target:
+            return False
+
+    requested_months: set[int] = set()
+    if "여름방학" in normalized_query or "여름" in normalized_query:
+        requested_months = {7, 8}
+    elif "겨울방학" in normalized_query or "겨울" in normalized_query:
+        requested_months = {12, 1, 2}
+
+    if requested_months:
+        start = parse_schedule_date(metadata.get("startAt"))
+        end = parse_schedule_date(metadata.get("endAt"))
+        title_and_description = f"{title} {metadata.get('description', '')}"
+        season_word = "여름" if requested_months == {7, 8} else "겨울"
+        if start and end:
+            if not date_range_overlaps_months(start, end, requested_months):
+                return False
+        elif season_word not in title_and_description:
+            return False
+    return True
+
+
+def parse_schedule_date(value: Any):
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
+
+
+def date_range_overlaps_months(start, end, months: set[int]) -> bool:
+    if end < start:
+        return False
+    cursor = start.replace(day=1)
+    end_month = end.replace(day=1)
+    while cursor <= end_month:
+        if cursor.month in months:
+            return True
+        cursor = cursor.replace(year=cursor.year + 1, month=1) if cursor.month == 12 else cursor.replace(month=cursor.month + 1)
+    return False
+
+
+def schedule_status(item: Content, today) -> str:
+    metadata = item.metadata_json or {}
+    start = parse_schedule_date(metadata.get("startAt"))
+    end = parse_schedule_date(metadata.get("endAt"))
+    if start and end:
+        if end < today:
+            return "past"
+        if start <= today <= end:
+            return "current"
+        return "upcoming"
+    return "unknown"
 
 
 def retrieve_live_web_sources(query: str, limit: int = 4) -> list[WebEvidence]:
