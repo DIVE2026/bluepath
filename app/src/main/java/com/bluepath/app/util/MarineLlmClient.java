@@ -88,7 +88,10 @@ public class MarineLlmClient {
                 ));
             }
         }
-        if (result.size() != expectedCount) {
+        // 서버는 생성한 모든 문항을 세션에 저장하고 채점 시 문항 수와 답안 수가 정확히 일치하기를
+        // 요구합니다. 형식이 깨진 문항을 건너뛴 세션은 제출 자체가 거부되므로 로컬 문제은행으로 넘깁니다.
+        int received = body.questions == null ? 0 : body.questions.size();
+        if (result.size() != expectedCount || received != result.size()) {
             throw new IllegalStateException("AI가 필요한 " + expectedCount + "문제를 완전한 형식으로 생성하지 못했습니다.");
         }
         return result;

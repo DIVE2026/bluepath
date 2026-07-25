@@ -74,6 +74,7 @@ import com.bluepath.app.view.ActivityHeatmapView;
 import com.bluepath.app.view.MonthCalendarView;
 import com.bluepath.app.view.OceanBackgroundView;
 import com.bluepath.app.view.OceanSkillMapView;
+import com.bluepath.app.view.QuizTimerRingView;
 import com.bluepath.app.view.TierShieldView;
 import com.bluepath.app.view.TierTextFormatter;
 import com.bluepath.app.viewmodel.BluePathViewModel;
@@ -102,7 +103,8 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private static final String WAVE_MARK = "∿";
-    private static final long QUIZ_TIME_LIMIT_MS = 30_000L;
+    private static final long QUIZ_TIME_PER_QUESTION_MS = 30_000L;
+    private static final String QUIZ_SOURCE_SERVER = "BluePath 검증 출제";
     private static final String RICH_BODY_MARKER = CommunityPostActivity.RICH_BODY_MARKER;
 
     private final int NAVY = Color.parseColor("#06223F");
@@ -127,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout content;
     private ScrollView contentScroll;
     private FrameLayout appRoot;
+    // 퀴즈 응시 중 헤더의 일정·알림 버튼을 잠그기 위해 참조를 보관합니다.
+    private TextView headerCalendarButton;
+    private TextView headerBellButton;
     private int currentTab = 0;
     // 일정 화면은 하단 내비게이션에 없으므로, 진입 직전 탭을 기억해 뒤로 가기에 사용합니다.
     private int scheduleReturnTab = 0;
@@ -170,6 +175,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<QuizQuestion> activeQuiz = new ArrayList<>();
     private int[] selectedAnswers = new int[0];
+    private boolean[] quizMarked = new boolean[0];
+    private int quizCurrentIndex = 0;
     private boolean quizGenerating = false;
     private boolean quizSubmitted = false;
     private String quizAttemptTier = "";
@@ -178,11 +185,17 @@ public class MainActivity extends AppCompatActivity {
     private int quizCorrect = 0;
     private int quizAwardedXp = 0;
     private long quizDeadlineElapsedRealtime = 0L;
+    private long quizSessionTotalMs = 0L;
     private CountDownTimer quizCountDownTimer;
-    private TextView quizTimerText;
+    private QuizTimerRingView quizTimerRing;
     private boolean quizTimedOut = false;
     private boolean quizServerAuthoritative = false;
     private boolean quizSubmitting = false;
+    /**
+     * 마지막 문항까지 진행을 마친 뒤 채점 단계로 넘어갔음을 뜻합니다. 채점 요청이 실패해도
+     * 이 값이 유지되므로 마지막 문항 화면으로 되돌아가지 않고 재시도 화면을 보여줍니다.
+     */
+    private boolean quizAwaitingResult = false;
 
     private boolean agentLoading = false;
     private final List<String[]> agentChat = new ArrayList<>();
@@ -751,7 +764,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         cancelQuizTimer();
-        quizTimerText = null;
+        quizTimerRing = null;
         if (tab == 3 && currentTab != 3) scheduleReturnTab = currentTab;
         currentTab = tab;
         applyAppWindow();
@@ -831,20 +844,17 @@ public class MainActivity extends AppCompatActivity {
         brand.addView(brandTitle);
         headerRow.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
 
+        headerCalendarButton = null;
         if (tab != 3) {
-            headerRow.addView(homeIconButton("📅", "일정 열기", v -> showApp(3)),
-                    new LinearLayout.LayoutParams(dp(36), dp(36)));
+            headerCalendarButton = homeIconButton("📅", "일정 열기", v -> showApp(3));
+            headerRow.addView(headerCalendarButton, new LinearLayout.LayoutParams(dp(36), dp(36)));
         }
         LinearLayout.LayoutParams bellParams = new LinearLayout.LayoutParams(dp(36), dp(36));
         bellParams.setMargins(dp(6), 0, 0, 0);
-        headerRow.addView(homeIconButton("🔔", "알림함 열기", v -> showNotificationInbox()), bellParams);
+        headerBellButton = homeIconButton("🔔", "알림함 열기", v -> showNotificationInbox());
+        headerRow.addView(headerBellButton, bellParams);
         header.addView(headerRow);
         if (tab != 0) main.addView(header);
-
-        if (tab == 2 && !quizSubmitted && !activeQuiz.isEmpty()
-                && quizDeadlineElapsedRealtime > 0L) {
-            addPinnedQuizTimer(main);
-        }
 
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
@@ -862,45 +872,14 @@ public class MainActivity extends AppCompatActivity {
         // AI 진로 상담 탭은 채팅 입력바를 화면 하단에 고정합니다. (키보드가 뜨면 함께 올라옴)
         if (tab == 4) main.addView(buildAgentComposer());
 
-        // 퀴즈 진행 중(제출 전)에는 몰입을 위해 하단 내비게이션을 숨깁니다.
-        boolean quizSessionActive = tab == 2 && !activeQuiz.isEmpty() && !quizSubmitted;
-        if (!quizSessionActive) main.addView(buildBottomNav(tab));
+        // 퀴즈 응시 중에는 몰입을 위해 하단 내비게이션을 숨깁니다.
+        if (!isQuizTakingActive()) main.addView(buildBottomNav(tab));
 
         // 커뮤니티 탭에서만 우측 하단 플로팅 글쓰기 버튼을 표시합니다. (게시글 상세에서는 숨김)
         if (tab == 5 && communityDetailPost == null) addCommunityWriteFab();
 
         renderTab(tab);
         if (tab == 0) requestDailyAttendance();
-    }
-
-    private void addPinnedQuizTimer(LinearLayout main) {
-        LinearLayout timerBar = row();
-        timerBar.setGravity(Gravity.CENTER_VERTICAL);
-        timerBar.setPadding(dp(18), dp(10), dp(18), dp(10));
-        timerBar.setElevation(dp(6));
-
-        GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.parseColor("#E8FBFC"));
-        background.setStroke(dp(1), Color.parseColor("#8DE4E1"));
-        timerBar.setBackground(background);
-
-        TextView label = new TextView(this);
-        label.setText("퀴즈 제한 시간");
-        label.setTextColor(NAVY);
-        label.setTextSize(14);
-        label.setTypeface(Typeface.DEFAULT_BOLD);
-        timerBar.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
-
-        quizTimerText = new TextView(this);
-        quizTimerText.setTextColor(OCEAN);
-        quizTimerText.setTextSize(26);
-        quizTimerText.setTypeface(Typeface.DEFAULT_BOLD);
-        quizTimerText.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-        timerBar.addView(quizTimerText, new LinearLayout.LayoutParams(-2, -1));
-
-        long remaining = Math.max(0L, quizDeadlineElapsedRealtime - SystemClock.elapsedRealtime());
-        updateQuizTimerText(remaining);
-        main.addView(timerBar, new LinearLayout.LayoutParams(-1, dp(68)));
     }
 
     private String tabTitle(int tab) {
@@ -1013,6 +992,22 @@ public class MainActivity extends AppCompatActivity {
             case 5: renderCommunity(); break;
             case 6: renderMyPage(); break;
         }
+        applyHeaderQuizLock();
+    }
+
+    /**
+     * 퀴즈 응시 화면에서는 상단 일정·알림 버튼을 숨겨 풀이 도중 다른 화면으로
+     * 이동하지 못하게 합니다. 퀴즈 종료는 응시 화면의 ✕ 버튼으로만 진행합니다.
+     */
+    private void applyHeaderQuizLock() {
+        int visibility = isQuizTakingActive() ? View.GONE : View.VISIBLE;
+        if (headerCalendarButton != null) headerCalendarButton.setVisibility(visibility);
+        if (headerBellButton != null) headerBellButton.setVisibility(visibility);
+    }
+
+    private boolean isQuizTakingActive() {
+        return currentTab == 2 && !activeQuiz.isEmpty() && !quizSubmitted && !quizGenerating
+                && !quizSubmitting && !quizAwaitingResult;
     }
 
     private void addTabIntro(String icon, String eyebrow, String titleText, String description) {
@@ -2385,10 +2380,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderQuiz() {
-        // 퀴즈 진행 중(제출 전)에는 세그먼트를 숨겨 몰입 화면을 유지합니다.
-        if (activeQuiz.isEmpty() || quizSubmitted) addLearningSegment(2);
+        // 퀴즈 응시 중에는 몰입형 응시 화면만 표시합니다.
+        if (isQuizTakingActive()) {
+            renderQuizTaking();
+            return;
+        }
+        addLearningSegment(2);
         String currentTier = store.getTier();
-        content.addView(sectionTitle("AI 승급 퀴즈"));
+        content.addView(sectionTitle("승급 퀴즈"));
         LinearLayout currentTierCard = card();
         currentTierCard.addView(tierSummaryRow(
                 currentTier,
@@ -2417,9 +2416,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (quizGenerating) {
             LinearLayout loading = card();
-            loading.addView(big("해양 도메인 문제를 생성하고 있습니다"));
+            loading.addView(big("문제를 생성하고 있습니다"));
             loading.addView(body(llmClient.isConfigured()
-                    ? "보안 서버의 해양 AI가 영상 주제와 현재 프로필을 바탕으로 4지선다 문제를 구성합니다."
+                    ? "AI가 영상 주제와 현재 프로필을 바탕으로 4지선다 문제를 구성합니다."
                     : "오프라인에서도 사용할 수 있는 검증된 해양 문제은행을 준비합니다."));
             ProgressBar progress = new ProgressBar(this);
             loading.addView(progress);
@@ -2434,12 +2433,12 @@ public class MainActivity extends AppCompatActivity {
             startCard.addView(tierSummaryRow(
                     currentTier,
                     plainTierCopy(PromotionRules.displayTransition(currentTier)),
-                    total + "문제 · 합격선 " + pass + "문제 · 전 문항 4지선다",
+                    total + "문제 · 합격선 " + pass + "문제 · 전 문항 4지선다 · 제한 시간 " + quizTimeLimitText(total),
                     dp(68),
                     dp(80)
             ));
             startCard.addView(body(llmClient.isConfigured()
-                    ? "BluePath 해양 AI가 공공·기관 자료를 검색해 근거 기반 문제를 생성합니다."
+                    ? "BluePath AI가 공공·기관 자료를 검색해 근거 기반 문제를 생성합니다."
                     : "연결이 어려운 상황에서도 해양 특화 로컬 문제은행으로 학습할 수 있습니다."));
             Button generate = primaryButton(llmClient.isConfigured() ? "AI 퀴즈 생성" : "해양 퀴즈 시작");
             generate.setOnClickListener(v -> generateQuizForCurrentTier());
@@ -2448,45 +2447,340 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        boolean gradingFailed = quizAwaitingResult && !quizSubmitted && !quizSubmitting;
+
         LinearLayout session = card();
         session.addView(tierSummaryRow(
                 quizAttemptTier,
                 plainTierText(quizAttemptTier) + " 승급 세션",
                 activeQuiz.size() + "문제 · 합격선 " + PromotionRules.passCount(quizAttemptTier)
-                        + "문제 · 제한 시간 30초 · 출제: " + quizSource,
+                        + "문제 · 제한 시간 " + quizTimeLimitText(activeQuiz.size()) + " · 출제: " + quizSource,
                 dp(68),
                 dp(80)
         ));
-        if (quizTimedOut) session.addView(note("제한 시간이 종료되어 미응답 문항은 오답으로 자동 제출되었습니다.", DANGER));
-        if (!quizNotice.isEmpty()) session.addView(note(quizNotice, MUTED));
+        if (quizTimedOut) session.addView(note("제한 시간이 종료되어 그 시점의 답안이 자동으로 제출되었습니다.", DANGER));
+        if (!quizNotice.isEmpty()) session.addView(note(quizNotice, gradingFailed ? DANGER : MUTED));
         content.addView(session);
 
-        if (quizSubmitted) addQuizResultCard();
+        if (quizSubmitting) {
+            LinearLayout loading = card();
+            loading.addView(big("답안을 채점하고 있습니다"));
+            loading.addView(body("답안과 승급 조건을 검증하고 있습니다. 잠시만 기다려 주세요."));
+            ProgressBar progress = new ProgressBar(this);
+            loading.addView(progress);
+            content.addView(loading);
+            return;
+        }
 
-        for (int i = 0; i < activeQuiz.size(); i++) addQuizQuestionCard(activeQuiz.get(i), i);
+        if (gradingFailed) {
+            LinearLayout failed = card();
+            failed.addView(big("채점을 완료하지 못했습니다"));
+            failed.addView(body("마지막 문항까지 모두 진행했지만 채점 결과를 확정하지 못했습니다. "
+                    + "답안은 그대로 보관되어 있으니 다시 채점을 요청해 주세요."));
+            int answered = 0;
+            for (int value : selectedAnswers) if (value >= 0) answered++;
+            failed.addView(body("응답 " + answered + "문제 · 미응답 " + (activeQuiz.size() - answered) + "문제"));
 
-        if (!quizSubmitted) {
-            Button submit = primaryButton(quizSubmitting ? "서버 검증 중" : "모든 답안 최종 제출 및 채점");
-            submit.setEnabled(!quizSubmitting);
-            submit.setOnClickListener(v -> submitQuiz());
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(54));
-            lp.setMargins(0, dp(6), 0, dp(12));
-            content.addView(submit, lp);
-            startOrResumeQuizTimer();
-        } else {
-            Button retry = primaryButton("현재 티어 새 퀴즈 생성");
-            retry.setOnClickListener(v -> {
+            Button retrySubmit = primaryButton("다시 채점 요청");
+            retrySubmit.setOnClickListener(v -> submitQuiz(quizTimedOut));
+            failed.addView(retrySubmit, new LinearLayout.LayoutParams(-1, dp(50)));
+
+            Button abandon = outlineButton("채점을 포기하고 퀴즈 종료");
+            abandon.setOnClickListener(v -> {
                 clearQuizSession();
                 showApp(2);
             });
-            content.addView(retry, new LinearLayout.LayoutParams(-1, dp(50)));
+            LinearLayout.LayoutParams abandonParams = new LinearLayout.LayoutParams(-1, dp(46));
+            abandonParams.setMargins(0, dp(8), 0, 0);
+            failed.addView(abandon, abandonParams);
+            content.addView(failed);
+            return;
         }
+
+        addQuizResultCard();
+
+        for (int i = 0; i < activeQuiz.size(); i++) addQuizQuestionCard(activeQuiz.get(i), i);
+
+        Button backToQuizHome = primaryButton("결과 닫고 퀴즈 시작 화면으로");
+        backToQuizHome.setOnClickListener(v -> {
+            clearQuizSession();
+            showApp(2);
+        });
+        content.addView(backToQuizHome, new LinearLayout.LayoutParams(-1, dp(50)));
+    }
+
+    private void renderQuizTaking() {
+        int total = activeQuiz.size();
+        if (quizCurrentIndex < 0) quizCurrentIndex = 0;
+        if (quizCurrentIndex > total - 1) quizCurrentIndex = total - 1;
+        final int idx = quizCurrentIndex;
+        QuizQuestion q = activeQuiz.get(idx);
+        int pass = PromotionRules.passCount(quizAttemptTier);
+
+        LinearLayout topBar = row();
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams topBarParams = new LinearLayout.LayoutParams(-1, -2);
+        topBarParams.setMargins(0, 0, 0, dp(6));
+        topBar.setLayoutParams(topBarParams);
+
+        Button exit = outlineButton("✕");
+        exit.setTextSize(18);
+        exit.setOnClickListener(v -> confirmExitQuiz());
+        topBar.addView(exit, new LinearLayout.LayoutParams(dp(48), dp(42)));
+
+        TextView sessionLabel = label(plainTierText(quizAttemptTier) + " 승급 세션");
+        sessionLabel.setGravity(Gravity.CENTER);
+        topBar.addView(sessionLabel, new LinearLayout.LayoutParams(0, -2, 1));
+
+        boolean marked = quizMarked.length > idx && quizMarked[idx];
+        Button flag = outlineButton(marked ? "🚩 표시됨" : "🏳 문제 표시");
+        flag.setTextSize(12);
+        flag.setOnClickListener(v -> {
+            if (quizMarked.length > idx) {
+                quizMarked[idx] = !quizMarked[idx];
+                showApp(2);
+            }
+        });
+        topBar.addView(flag, new LinearLayout.LayoutParams(-2, dp(42)));
+        content.addView(topBar);
+
+        content.addView(quizQuestionNavigator(total, idx));
+
+        LinearLayout infoRow = row();
+        infoRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView positionText = label("문항 " + (idx + 1) + " / " + total);
+        infoRow.addView(positionText, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView passText = label("합격선 " + pass + "문제");
+        passText.setGravity(Gravity.END);
+        infoRow.addView(passText, new LinearLayout.LayoutParams(-2, -2));
+        content.addView(infoRow);
+
+        if (idx == 0 && !quizNotice.isEmpty()) content.addView(note(quizNotice, MUTED));
+
+        LinearLayout card = card();
+
+        LinearLayout headerRow = row();
+        headerRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView topic = label(q.topic);
+        topic.setPadding(0, 0, 0, 0);
+        headerRow.addView(topic, new LinearLayout.LayoutParams(0, -2, 1));
+
+        quizTimerRing = new QuizTimerRingView(this);
+        headerRow.addView(quizTimerRing, new LinearLayout.LayoutParams(dp(56), dp(56)));
+        card.addView(headerRow);
+
+        card.addView(big(q.question));
+
+        for (int i = 0; i < q.options.length; i++) {
+            final int optionIndex = i;
+            boolean selected = selectedAnswers.length > idx && selectedAnswers[idx] == i;
+            card.addView(quizOptionView(q.options[i], i, selected, () -> {
+                if (selectedAnswers.length > idx) {
+                    selectedAnswers[idx] = optionIndex;
+                    showApp(2);
+                }
+            }));
+        }
+        content.addView(card);
+
+        LinearLayout buttonRow = row();
+        buttonRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams buttonRowParams = new LinearLayout.LayoutParams(-1, -2);
+        buttonRowParams.setMargins(0, dp(6), 0, dp(12));
+        buttonRow.setLayoutParams(buttonRowParams);
+
+        Button previous = outlineButton("← 이전");
+        previous.setTextSize(15);
+        previous.setEnabled(idx > 0);
+        previous.setAlpha(idx > 0 ? 1f : 0.4f);
+        previous.setOnClickListener(v -> moveQuizTo(idx - 1));
+        LinearLayout.LayoutParams previousParams = new LinearLayout.LayoutParams(0, dp(52), 1);
+        previousParams.setMargins(0, 0, dp(5), 0);
+        buttonRow.addView(previous, previousParams);
+
+        Button next = outlineButton("다음 →");
+        next.setTextSize(15);
+        next.setEnabled(idx < total - 1);
+        next.setAlpha(idx < total - 1 ? 1f : 0.4f);
+        next.setOnClickListener(v -> moveQuizTo(idx + 1));
+        LinearLayout.LayoutParams nextParams = new LinearLayout.LayoutParams(0, dp(52), 1);
+        nextParams.setMargins(dp(5), 0, 0, 0);
+        buttonRow.addView(next, nextParams);
+        content.addView(buttonRow);
+
+        int answered = 0;
+        for (int value : selectedAnswers) if (value >= 0) answered++;
+        Button submit = primaryButton("답안 제출 · " + answered + " / " + total + " 응답");
+        submit.setOnClickListener(v -> confirmSubmitQuiz());
+        LinearLayout.LayoutParams submitParams = new LinearLayout.LayoutParams(-1, dp(52));
+        submitParams.setMargins(0, 0, 0, dp(12));
+        content.addView(submit, submitParams);
+
+        startOrResumeQuizTimer();
+    }
+
+    /**
+     * 문항 번호를 끊어진 조각으로 보여 주는 진행 표시입니다. 각 조각은 현재 문항, 응답 완료,
+     * 표시해 둔 문항을 구분하며 눌러서 해당 문항으로 바로 이동할 수 있습니다.
+     */
+    private View quizQuestionNavigator(int total, int currentIndex) {
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(-1, -2);
+        containerParams.setMargins(0, dp(4), 0, dp(2));
+        container.setLayoutParams(containerParams);
+
+        int rows = Math.max(1, (total + 9) / 10);
+        int perRow = Math.max(1, (total + rows - 1) / rows);
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+            LinearLayout rowView = row();
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
+            rowParams.setMargins(0, rowIndex == 0 ? 0 : dp(5), 0, 0);
+            rowView.setLayoutParams(rowParams);
+
+            int start = rowIndex * perRow;
+            int end = Math.min(total, start + perRow);
+            for (int i = start; i < start + perRow; i++) {
+                LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(0, dp(30), 1);
+                chipParams.setMargins(i == start ? 0 : dp(3), 0, 0, 0);
+                if (i < end) {
+                    rowView.addView(quizQuestionChip(i, i == currentIndex), chipParams);
+                } else {
+                    rowView.addView(new View(this), chipParams);
+                }
+            }
+            container.addView(rowView);
+        }
+        return container;
+    }
+
+    private View quizQuestionChip(int index, boolean current) {
+        boolean answered = selectedAnswers.length > index && selectedAnswers[index] >= 0;
+        boolean marked = quizMarked.length > index && quizMarked[index];
+
+        TextView chip = new TextView(this);
+        chip.setText(String.valueOf(index + 1));
+        chip.setGravity(Gravity.CENTER);
+        chip.setTextSize(11);
+        chip.setTypeface(current || answered ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        chip.setTextColor(current ? Color.WHITE : (answered ? OCEAN : MUTED));
+        chip.setClickable(true);
+        chip.setFocusable(true);
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(dp(7));
+        bg.setColor(current ? OCEAN : (answered ? Color.parseColor("#E4FBFA") : Color.WHITE));
+        int strokeColor;
+        if (marked) strokeColor = Color.parseColor("#D97706");
+        else if (current || answered) strokeColor = OCEAN;
+        else strokeColor = Color.parseColor("#CBD5E1");
+        bg.setStroke(dp(marked || current ? 2 : 1), strokeColor);
+        chip.setBackground(bg);
+
+        chip.setOnClickListener(v -> moveQuizTo(index));
+        return chip;
+    }
+
+    private View quizOptionView(String text, int index, boolean selected, Runnable onSelect) {
+        LinearLayout option = new LinearLayout(this);
+        option.setOrientation(LinearLayout.HORIZONTAL);
+        option.setGravity(Gravity.CENTER_VERTICAL);
+        option.setPadding(dp(14), dp(14), dp(14), dp(14));
+        option.setClickable(true);
+        option.setFocusable(true);
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(dp(12));
+        bg.setColor(selected ? Color.parseColor("#E4FBFA") : Color.WHITE);
+        bg.setStroke(dp(selected ? 2 : 1), selected ? OCEAN : Color.parseColor("#CBD5E1"));
+        option.setBackground(bg);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.setMargins(0, dp(4), 0, dp(4));
+        option.setLayoutParams(params);
+
+        TextView marker = new TextView(this);
+        marker.setText(String.valueOf((char) ('①' + index)));
+        marker.setTextColor(selected ? OCEAN : MUTED);
+        marker.setTextSize(20);
+        marker.setTypeface(Typeface.DEFAULT_BOLD);
+        marker.setGravity(Gravity.CENTER);
+        option.addView(marker, new LinearLayout.LayoutParams(dp(30), -2));
+
+        TextView optionText = new TextView(this);
+        optionText.setText(tierText(text));
+        optionText.setTextColor(selected ? NAVY : TEXT);
+        optionText.setTextSize(15);
+        optionText.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        optionText.setLineSpacing(dp(2), 1.05f);
+        optionText.setPadding(dp(8), 0, 0, 0);
+        option.addView(optionText, new LinearLayout.LayoutParams(0, -2, 1));
+
+        option.setOnClickListener(v -> onSelect.run());
+        return option;
+    }
+
+    private void confirmExitQuiz() {
+        new AlertDialog.Builder(this)
+                .setTitle("퀴즈를 나가시겠어요?")
+                .setMessage("지금 나가면 진행 중인 퀴즈 답안이 저장되지 않고 사라집니다.")
+                .setNegativeButton("계속 풀기", null)
+                .setPositiveButton("나가기", (dialog, which) -> {
+                    clearQuizSession();
+                    showApp(2);
+                })
+                .show();
+    }
+
+    private void moveQuizTo(int index) {
+        if (activeQuiz.isEmpty()) return;
+        int target = Math.max(0, Math.min(activeQuiz.size() - 1, index));
+        if (target == quizCurrentIndex) return;
+        quizCurrentIndex = target;
+        showApp(2);
+    }
+
+    private void confirmSubmitQuiz() {
+        int answered = 0;
+        for (int value : selectedAnswers) if (value >= 0) answered++;
+        int unanswered = activeQuiz.size() - answered;
+        new AlertDialog.Builder(this)
+                .setTitle("답안을 제출할까요?")
+                .setMessage(unanswered == 0
+                        ? "모든 문항에 답했습니다. 제출한 뒤에는 답안을 수정할 수 없습니다."
+                        : "아직 " + unanswered + "문항이 미응답 상태입니다. 지금 제출하면 미응답 문항은 오답으로 처리됩니다.")
+                .setNegativeButton("계속 풀기", null)
+                .setPositiveButton("제출", (dialog, which) -> {
+                    quizAwaitingResult = true;
+                    submitQuiz(quizTimedOut);
+                })
+                .show();
+    }
+
+    private void submitQuizOnTimeout() {
+        cancelQuizTimer();
+        quizTimedOut = true;
+        quizAwaitingResult = true;
+        submitQuiz(true);
+    }
+
+    private long quizTimeLimitMs(int questionCount) {
+        return QUIZ_TIME_PER_QUESTION_MS * Math.max(0, questionCount);
+    }
+
+    private String quizTimeLimitText(int questionCount) {
+        long seconds = quizTimeLimitMs(questionCount) / 1_000L;
+        if (seconds < 60L) return seconds + "초";
+        long minutes = seconds / 60L;
+        long remainder = seconds % 60L;
+        return remainder == 0L ? minutes + "분" : minutes + "분 " + remainder + "초";
     }
 
     private void generateQuizForCurrentTier() {
         final String tier = store.getTier();
         quizGenerating = true;
         quizSubmitted = false;
+        quizAwaitingResult = false;
         quizAttemptTier = tier;
         quizNotice = "";
         showApp(2);
@@ -2498,7 +2792,7 @@ public class MainActivity extends AppCompatActivity {
             if (llmClient.isConfigured()) {
                 try {
                     generated = llmClient.generateQuiz(tier, store.getProfile(), DataRepository.contents());
-                    source = "BluePath server verified quiz";
+                    source = QUIZ_SOURCE_SERVER;
                 } catch (Exception e) {
                     generated = RecommendationEngine.quizForTier(tier, store.getProfile().interest);
                     source = "검증된 해양 로컬 문제은행";
@@ -2512,7 +2806,7 @@ public class MainActivity extends AppCompatActivity {
 
             final List<QuizQuestion> result = generated;
             final String finalSource = source;
-            final boolean finalServerAuthoritative = "BluePath server verified quiz".equals(source);
+            final boolean finalServerAuthoritative = QUIZ_SOURCE_SERVER.equals(source);
             final String finalNotice = finalServerAuthoritative ? notice : (notice + (notice.isEmpty() ? "" : "\n")
                     + "오프라인 문제은행은 연습 모드입니다. 정답 해설은 제공되지만 XP와 승급에는 반영되지 않습니다.");
             runOnUiThread(() -> {
@@ -2520,6 +2814,8 @@ public class MainActivity extends AppCompatActivity {
                 activeQuiz = result == null ? new ArrayList<>() : new ArrayList<>(result);
                 selectedAnswers = new int[activeQuiz.size()];
                 Arrays.fill(selectedAnswers, -1);
+                quizMarked = new boolean[activeQuiz.size()];
+                quizCurrentIndex = 0;
                 quizSource = finalSource;
                 quizServerAuthoritative = finalServerAuthoritative;
                 quizNotice = finalNotice;
@@ -2527,10 +2823,13 @@ public class MainActivity extends AppCompatActivity {
                 if (activeQuiz.size() != PromotionRules.questionCount(tier)) {
                     activeQuiz.clear();
                     selectedAnswers = new int[0];
+                    quizMarked = new boolean[0];
                     quizDeadlineElapsedRealtime = 0L;
+                    quizSessionTotalMs = 0L;
                     quizNotice = "필요한 문제 수를 충족하지 못해 세션을 시작하지 않았습니다. 다시 생성해 주세요.";
                 } else {
-                    quizDeadlineElapsedRealtime = SystemClock.elapsedRealtime() + QUIZ_TIME_LIMIT_MS;
+                    quizSessionTotalMs = quizTimeLimitMs(activeQuiz.size());
+                    quizDeadlineElapsedRealtime = SystemClock.elapsedRealtime() + quizSessionTotalMs;
                 }
                 showApp(2);
             });
@@ -2539,7 +2838,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void addQuizQuestionCard(QuizQuestion q, int questionIndex) {
         LinearLayout card = card();
-        card.addView(label((questionIndex + 1) + " / " + activeQuiz.size() + " · " + q.topic));
+        boolean marked = quizMarked.length > questionIndex && quizMarked[questionIndex];
+        card.addView(label((marked ? "🚩 " : "") + (questionIndex + 1) + " / " + activeQuiz.size() + " · " + q.topic));
         card.addView(big(q.question));
 
         RadioGroup group = new RadioGroup(this);
@@ -2572,23 +2872,13 @@ public class MainActivity extends AppCompatActivity {
         content.addView(card);
     }
 
-    private void submitQuiz() {
-        submitQuiz(false);
-    }
-
     private void submitQuiz(boolean timedOut) {
-        if (quizSubmitted) return;
+        if (quizSubmitted || quizSubmitting) return;
         if (activeQuiz.isEmpty() || selectedAnswers.length != activeQuiz.size()) {
+            quizNotice = "퀴즈 상태가 올바르지 않아 채점할 수 없습니다. 새 퀴즈를 생성해 주세요.";
             toast("퀴즈를 다시 생성해 주세요.");
+            showApp(2);
             return;
-        }
-        if (!timedOut) {
-            for (int i = 0; i < selectedAnswers.length; i++) {
-                if (selectedAnswers[i] < 0) {
-                    toast((i + 1) + "번 문제의 답을 선택해 주세요. 모든 문항을 답한 뒤 채점합니다.");
-                    return;
-                }
-            }
         }
 
         cancelQuizTimer();
@@ -2596,7 +2886,7 @@ public class MainActivity extends AppCompatActivity {
         quizDeadlineElapsedRealtime = 0L;
         if (quizServerAuthoritative) {
             quizSubmitting = true;
-            quizNotice = "서버에서 답안과 승급 조건을 검증하고 있습니다.";
+            quizNotice = "답안과 승급 조건을 검증하고 있습니다.";
             showApp(2);
             executor.execute(() -> {
                 try {
@@ -2611,13 +2901,14 @@ public class MainActivity extends AppCompatActivity {
                         viewModel.recordLearning("quiz", quizAttemptTier, plainTierText(quizAttemptTier),
                                 result.correctCount + "/" + result.total + (result.passed ? " passed" : " retry"));
                         quizSubmitted = true;
-                        quizNotice = "서버 검증 완료 · 임의 스냅샷 값은 승급에 사용되지 않습니다.";
+                        quizAwaitingResult = false;
+                        quizNotice = "검증 완료 · 임의 스냅샷 값은 승급에 사용되지 않습니다.";
                         showApp(2);
                     });
                 } catch (Exception error) {
                     runOnUiThread(() -> {
                         quizSubmitting = false;
-                        quizNotice = "서버 채점에 실패해 결과를 확정하지 않았습니다: " + safeMessage(error);
+                        quizNotice = "채점에 실패해 결과를 확정하지 않았습니다: " + safeMessage(error);
                         showApp(2);
                     });
                 }
@@ -2636,7 +2927,8 @@ public class MainActivity extends AppCompatActivity {
         viewModel.recordLearning("quiz_practice", quizAttemptTier, plainTierText(quizAttemptTier),
                 correct + "/" + activeQuiz.size() + " practice");
         quizSubmitted = true;
-        quizNotice = "연습 결과입니다. 서버 검증이 없어 XP·숙련도·승급은 변경하지 않았습니다.";
+        quizAwaitingResult = false;
+        quizNotice = "연습 결과입니다. 검증이 없어 XP·숙련도·승급은 변경하지 않았습니다.";
         showApp(2);
     }
 
@@ -2690,9 +2982,12 @@ public class MainActivity extends AppCompatActivity {
     private void clearQuizSession() {
         activeQuiz.clear();
         selectedAnswers = new int[0];
+        quizMarked = new boolean[0];
+        quizCurrentIndex = 0;
         quizSubmitted = false;
         quizGenerating = false;
         quizSubmitting = false;
+        quizAwaitingResult = false;
         quizServerAuthoritative = false;
         quizAttemptTier = "";
         quizSource = "";
@@ -2701,37 +2996,48 @@ public class MainActivity extends AppCompatActivity {
         quizAwardedXp = 0;
         quizTimedOut = false;
         quizDeadlineElapsedRealtime = 0L;
+        quizSessionTotalMs = 0L;
         llmClient.clearQuizSession();
         cancelQuizTimer();
     }
 
     private void startOrResumeQuizTimer() {
-        if (quizSubmitted || quizSubmitting || activeQuiz.isEmpty() || quizDeadlineElapsedRealtime <= 0L) return;
+        if (quizSubmitted || quizSubmitting || quizAwaitingResult
+                || activeQuiz.isEmpty() || quizDeadlineElapsedRealtime <= 0L) return;
         long remaining = quizDeadlineElapsedRealtime - SystemClock.elapsedRealtime();
         if (remaining <= 0L) {
-            submitQuiz(true);
+            submitQuizOnTimeout();
             return;
         }
-        updateQuizTimerText(remaining);
+        updateQuizTimerRing(remaining);
         quizCountDownTimer = new CountDownTimer(remaining, 250L) {
             @Override
             public void onTick(long millisUntilFinished) {
-                updateQuizTimerText(millisUntilFinished);
+                updateQuizTimerRing(millisUntilFinished);
             }
 
             @Override
             public void onFinish() {
-                updateQuizTimerText(0L);
-                submitQuiz(true);
+                updateQuizTimerRing(0L);
+                submitQuizOnTimeout();
             }
         }.start();
     }
 
-    private void updateQuizTimerText(long remainingMillis) {
-        if (quizTimerText == null) return;
+    private void updateQuizTimerRing(long remainingMillis) {
+        if (quizTimerRing == null) return;
         long seconds = Math.max(0L, (remainingMillis + 999L) / 1_000L);
-        quizTimerText.setText(String.format(Locale.KOREA, "남은 시간 00:%02d", seconds));
-        quizTimerText.setTextColor(seconds <= 10L ? DANGER : OCEAN);
+        String label = seconds >= 60L
+                ? String.format(Locale.KOREA, "%d:%02d", seconds / 60L, seconds % 60L)
+                : String.valueOf(seconds);
+        boolean urgent = seconds <= 30L;
+        quizTimerRing.setColors(
+                urgent ? DANGER : OCEAN,
+                Color.parseColor("#E2E8F0"),
+                urgent ? DANGER : NAVY
+        );
+        quizTimerRing.setRemaining(label,
+                quizSessionTotalMs <= 0L ? 0f : (float) remainingMillis / quizSessionTotalMs);
     }
 
     private void cancelQuizTimer() {
