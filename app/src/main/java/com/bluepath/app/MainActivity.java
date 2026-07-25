@@ -31,6 +31,7 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -741,10 +742,10 @@ public class MainActivity extends AppCompatActivity {
         description.setPadding(dp(8), 0, dp(8), dp(20));
         root.addView(description);
 
-        Spinner age = spinner(new String[]{"초등학생", "중학생", "고등학생", "대학생", "성인", "직장인", "학부모/가족"});
-        Spinner interest = spinner(new String[]{"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류"});
-        Spinner goal = spinner(new String[]{"흥미", "체험", "진로탐색", "자격증", "직무역량 강화", "가족 교육"});
-        Spinner level = spinner(new String[]{"입문", "기초", "중급", "심화", "실무"});
+        Spinner age = whiteSpinner(new String[]{"초등학생", "중학생", "고등학생", "대학생", "성인", "직장인", "학부모/가족"});
+        Spinner interest = whiteSpinner(new String[]{"해양환경", "해양생물", "항해", "선박", "독도·해양문화", "해양안전", "항만·물류"});
+        Spinner goal = whiteSpinner(new String[]{"흥미", "체험", "진로탐색", "자격증", "직무역량 강화", "가족 교육"});
+        Spinner level = whiteSpinner(new String[]{"입문", "기초", "중급", "심화", "실무"});
 
         LinearLayout form = authCard();
         form.addView(authLabel("연령대")); form.addView(age);
@@ -7223,6 +7224,31 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, values);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         s.setAdapter(adapter);
+        s.setPadding(0, dp(2), 0, dp(8));
+        return s;
+    }
+
+    private Spinner whiteSpinner(String[] values) {
+        Spinner s = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, values) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getView(position, convertView, parent);
+                view.setTextColor(Color.WHITE);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView view = (TextView) super.getDropDownView(position, convertView, parent);
+                view.setTextColor(Color.WHITE);
+                view.setBackgroundColor(OCEAN);
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        s.setAdapter(adapter);
+        s.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
         s.setPadding(0, dp(2), 0, dp(8));
         return s;
     }
