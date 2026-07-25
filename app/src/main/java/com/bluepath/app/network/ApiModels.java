@@ -36,6 +36,7 @@ public final class ApiModels {
     public static class AuthResponse {
         public String accessToken;
         public String tokenType;
+        public String userId;
         public String email;
         public String displayName;
         public String nickname;
@@ -422,6 +423,20 @@ public final class ApiModels {
         public boolean following;
         public int followerCount;
         public int followingCount;
+    }
+
+    public static class CommunityUserProfileDto {
+        public ProfileSummary profile;
+        public int postCount;
+        public int commentCount;
+        public boolean isMe;
+        public boolean isBlocked;
+    }
+
+    public static class FollowListResponse {
+        public List<ProfileSummary> users = new ArrayList<>();
+        public int total;
+        public boolean hasMore;
     }
 
     public static class GenericResponse {

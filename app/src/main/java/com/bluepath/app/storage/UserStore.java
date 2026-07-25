@@ -101,7 +101,7 @@ public class UserStore {
     }
 
     public boolean hasProfile() {
-        return prefs.contains("ageGroup");
+        return prefs.getBoolean("profileCompleted", false);
     }
 
     public UserProfile getProfile() {
@@ -123,6 +123,7 @@ public class UserStore {
                 .putString("level", profile.level)
                 .putString("persona", profile.persona)
                 .putInt("xp", profile.xp)
+                .putBoolean("profileCompleted", true)
                 .putLong("profileUpdatedAt", System.currentTimeMillis())
                 .apply();
     }
@@ -519,11 +520,12 @@ public class UserStore {
         return prefs.getString("lastQuizSummary", "아직 응시 기록이 없습니다.");
     }
 
-    public void saveCloudSession(String email, String displayName, String nickname, String profileImageUrl,
+    public void saveCloudSession(String userId, String email, String displayName, String nickname, String profileImageUrl,
                                  int followerCount, int followingCount, String joinedAt, String accessToken) {
         activateAccount(email);
         secureTokenStore.put(accessToken == null ? "" : accessToken);
         prefs.edit()
+                .putString("accountUserId", userId == null ? "" : userId)
                 .putString("accountEmail", email == null ? "" : email)
                 .putString("accountDisplayName", displayName == null ? "BluePath Learner" : displayName)
                 .putString("nickname", nickname == null || nickname.trim().isEmpty() ? displayName : nickname.trim())
@@ -540,6 +542,16 @@ public class UserStore {
 
     public String getAccountEmail() {
         return prefs.getString("accountEmail", "");
+    }
+
+    public String getAccountUserId() {
+        return prefs.getString("accountUserId", "");
+    }
+
+    /** True when the given community author id belongs to the signed-in account. */
+    public boolean isMe(String userId) {
+        String mine = getAccountUserId();
+        return !mine.isEmpty() && mine.equals(userId);
     }
 
     public String getLastAttendanceCheckDate() {
@@ -599,6 +611,9 @@ public class UserStore {
         if (response == null) return;
         SharedPreferences.Editor editor = prefs.edit();
         if (response.profile != null) {
+            if (response.profile.userId != null && !response.profile.userId.trim().isEmpty()) {
+                editor.putString("accountUserId", response.profile.userId.trim());
+            }
             if (response.profile.nickname != null && !response.profile.nickname.trim().isEmpty()) {
                 editor.putString("nickname", response.profile.nickname.trim());
             }
@@ -895,11 +910,16 @@ public class UserStore {
         Map<String, Object> snapshot = new HashMap<>();
         snapshot.put("nickname", getNickname());
         snapshot.put("profileImageUrl", getProfileImageUrl());
-        snapshot.put("ageGroup", profile.ageGroup);
-        snapshot.put("interest", profile.interest);
-        snapshot.put("goal", profile.goal);
-        snapshot.put("level", profile.level);
-        snapshot.put("persona", profile.persona);
+        // Onboarding defaults must never reach the cloud: the server would treat a placeholder
+        // age group as a real minor profile and lock the account behind guardian consent.
+        if (hasProfile()) {
+            snapshot.put("profileCompleted", true);
+            snapshot.put("ageGroup", profile.ageGroup);
+            snapshot.put("interest", profile.interest);
+            snapshot.put("goal", profile.goal);
+            snapshot.put("level", profile.level);
+            snapshot.put("persona", profile.persona);
+        }
         snapshot.put("xp", profile.xp);
         snapshot.put("tier", getTier());
         snapshot.put("quizTier", getQuizTier());
@@ -947,6 +967,7 @@ public class UserStore {
         putString(editor, snapshot, "goal");
         putString(editor, snapshot, "level");
         putString(editor, snapshot, "persona");
+        if (Boolean.TRUE.equals(snapshot.get("profileCompleted"))) editor.putBoolean("profileCompleted", true);
         putInt(editor, snapshot, "xp", "xp");
         String quizTier = stringValue(snapshot.get("quizTier"));
         if (!quizTier.isEmpty()) editor.putInt("quizTierRank", PromotionRules.rank(quizTier));

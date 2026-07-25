@@ -64,6 +64,7 @@ class CommunityPostItem(CamelModel):
     author: ProfileSummary
     title: str
     body: str
+    imageUrl: str = ""
     createdAt: datetime
     updatedAt: datetime
     canEdit: bool = False
@@ -136,6 +137,20 @@ class FollowResponse(CamelModel):
     followingCount: int
 
 
+class CommunityUserProfile(CamelModel):
+    profile: ProfileSummary
+    postCount: int = 0
+    commentCount: int = 0
+    isMe: bool = False
+    isBlocked: bool = False
+
+
+class FollowListResponse(CamelModel):
+    users: list[ProfileSummary] = Field(default_factory=list)
+    total: int = 0
+    hasMore: bool = False
+
+
 class DashboardResponse(CamelModel):
     profile: ProfileSummary
     activity: dict[str, int] = Field(default_factory=dict)
@@ -163,6 +178,7 @@ class PasswordResetConfirm(CamelModel):
 class AuthResponse(CamelModel):
     accessToken: str
     tokenType: str = "bearer"
+    userId: str = ""
     email: EmailStr
     displayName: str
     nickname: str

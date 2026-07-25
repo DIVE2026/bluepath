@@ -53,7 +53,7 @@ public class BluePathRepository {
         Response<ApiModels.AuthResponse> response = api.register(
                 new ApiModels.AuthRequest(email, password, guardianEmail, nickname)).execute();
         ApiModels.AuthResponse body = requireBody(response, "회원가입");
-        store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
+        store.saveCloudSession(body.userId, body.email, body.displayName, body.nickname, body.profileImageUrl,
                 body.followerCount, body.followingCount, body.joinedAt, body.accessToken);
         migrateLegacyLearningRecords();
         syncNow();
@@ -65,7 +65,7 @@ public class BluePathRepository {
         Response<ApiModels.AuthResponse> response = api.login(
                 new ApiModels.AuthRequest(email, password, "", null)).execute();
         ApiModels.AuthResponse body = requireBody(response, "로그인");
-        store.saveCloudSession(body.email, body.displayName, body.nickname, body.profileImageUrl,
+        store.saveCloudSession(body.userId, body.email, body.displayName, body.nickname, body.profileImageUrl,
                 body.followerCount, body.followingCount, body.joinedAt, body.accessToken);
         migrateLegacyLearningRecords();
         pullCloudState();
@@ -227,11 +227,19 @@ public class BluePathRepository {
     }
 
     public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, String tag, String sort,
+                                                           String scope, String authorId,
                                                            int limit, int offset) throws IOException {
         requireAuthenticated();
         return requireBody(api.communityPosts(bearer(), category, query == null ? "" : query,
-                tag == null ? "" : tag, sort == null || sort.isEmpty() ? "latest" : sort, limit, offset)
+                tag == null ? "" : tag, sort == null || sort.isEmpty() ? "latest" : sort,
+                scope == null || scope.isEmpty() ? "all" : scope, authorId == null ? "" : authorId,
+                limit, offset)
                 .execute(), "커뮤니티 불러오기");
+    }
+
+    public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, String tag, String sort,
+                                                           int limit, int offset) throws IOException {
+        return communityPosts(category, query, tag, sort, "all", "", limit, offset);
     }
 
     public List<ApiModels.CommunityPostDto> communityPosts(String category, String query, int limit, int offset) throws IOException {
@@ -242,9 +250,14 @@ public class BluePathRepository {
         return communityPosts(category, "", 20, 0);
     }
 
-    public ApiModels.CommunityFeedMetaDto communityFeedMeta(String category) throws IOException {
+    public ApiModels.CommunityFeedMetaDto communityFeedMeta(String category, String scope) throws IOException {
         requireAuthenticated();
-        return requireBody(api.communityFeedMeta(bearer(), category).execute(), "커뮤니티 요약 불러오기");
+        return requireBody(api.communityFeedMeta(bearer(), category,
+                scope == null || scope.isEmpty() ? "all" : scope).execute(), "커뮤니티 요약 불러오기");
+    }
+
+    public ApiModels.CommunityFeedMetaDto communityFeedMeta(String category) throws IOException {
+        return communityFeedMeta(category, "all");
     }
 
     public ApiModels.CommunityPostDto communityPost(String postId) throws IOException {
@@ -355,6 +368,21 @@ public class BluePathRepository {
         ApiModels.FollowResponse response = requireBody(api.toggleFollow(bearer(), userId).execute(), "팔로우");
         store.setFollowingCount(response.followingCount);
         return response;
+    }
+
+    public ApiModels.CommunityUserProfileDto communityUserProfile(String userId) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityUserProfile(bearer(), userId).execute(), "프로필 불러오기");
+    }
+
+    public ApiModels.FollowListResponse communityFollowers(String userId, int limit, int offset) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityFollowers(bearer(), userId, limit, offset).execute(), "팔로워 목록 불러오기");
+    }
+
+    public ApiModels.FollowListResponse communityFollowing(String userId, int limit, int offset) throws IOException {
+        requireAuthenticated();
+        return requireBody(api.communityFollowing(bearer(), userId, limit, offset).execute(), "팔로잉 목록 불러오기");
     }
 
     public String uploadProfileImage(Uri uri) throws IOException {
