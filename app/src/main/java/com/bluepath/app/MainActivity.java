@@ -5814,7 +5814,7 @@ public class MainActivity extends AppCompatActivity {
         cloudCard.addView(logout);
         content.addView(cloudCard);
 
-        content.addView(sectionTitle("학습 알림과 캘린더"));
+        content.addView(sectionTitle("학습 알림 & 캘린더"));
         LinearLayout reminderCard = card();
         reminderCard.addView(big(store.isReminderEnabled()
                 ? "🔔 매일 " + String.format(Locale.KOREA, "%02d:%02d", store.getReminderHour(), store.getReminderMinute())
