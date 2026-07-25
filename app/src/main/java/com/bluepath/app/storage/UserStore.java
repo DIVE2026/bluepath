@@ -520,11 +520,12 @@ public class UserStore {
         return prefs.getString("lastQuizSummary", "아직 응시 기록이 없습니다.");
     }
 
-    public void saveCloudSession(String email, String displayName, String nickname, String profileImageUrl,
+    public void saveCloudSession(String userId, String email, String displayName, String nickname, String profileImageUrl,
                                  int followerCount, int followingCount, String joinedAt, String accessToken) {
         activateAccount(email);
         secureTokenStore.put(accessToken == null ? "" : accessToken);
         prefs.edit()
+                .putString("accountUserId", userId == null ? "" : userId)
                 .putString("accountEmail", email == null ? "" : email)
                 .putString("accountDisplayName", displayName == null ? "BluePath Learner" : displayName)
                 .putString("nickname", nickname == null || nickname.trim().isEmpty() ? displayName : nickname.trim())
@@ -541,6 +542,16 @@ public class UserStore {
 
     public String getAccountEmail() {
         return prefs.getString("accountEmail", "");
+    }
+
+    public String getAccountUserId() {
+        return prefs.getString("accountUserId", "");
+    }
+
+    /** True when the given community author id belongs to the signed-in account. */
+    public boolean isMe(String userId) {
+        String mine = getAccountUserId();
+        return !mine.isEmpty() && mine.equals(userId);
     }
 
     public String getLastAttendanceCheckDate() {
@@ -600,6 +611,9 @@ public class UserStore {
         if (response == null) return;
         SharedPreferences.Editor editor = prefs.edit();
         if (response.profile != null) {
+            if (response.profile.userId != null && !response.profile.userId.trim().isEmpty()) {
+                editor.putString("accountUserId", response.profile.userId.trim());
+            }
             if (response.profile.nickname != null && !response.profile.nickname.trim().isEmpty()) {
                 editor.putString("nickname", response.profile.nickname.trim());
             }

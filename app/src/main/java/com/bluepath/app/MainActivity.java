@@ -142,9 +142,28 @@ public class MainActivity extends AppCompatActivity {
     private String communityCategory = "all";
     private String communityTag = "";
     private String communitySort = "latest";
+    // "all"은 전체 글, "following"은 팔로우한 사용자의 글만 보여 줍니다.
+    private String communityScope = "all";
     private ApiModels.CommunityFeedMetaDto communityMeta;
     private ApiModels.CommunityPostDto communityDetailPost;
     private final Set<String> communityExpandedPosts = new HashSet<>();
+    // 커뮤니티 위에 겹쳐 뜨는 화면들입니다. 프로필 → 팔로워 목록 순으로 두 단계까지 쌓입니다.
+    private String communityProfileUserId = "";
+    private ApiModels.CommunityUserProfileDto communityProfile;
+    private List<ApiModels.CommunityPostDto> communityProfilePosts = new ArrayList<>();
+    private boolean communityProfileLoading = false;
+    private String communityProfileError = "";
+    private String communityFollowListUserId = "";
+    private String communityFollowListMode = "followers";
+    private String communityDetailReturnProfileUserId = "";
+    private List<ApiModels.ProfileSummary> communityFollowList = new ArrayList<>();
+    private boolean communityFollowListLoading = false;
+    private String communityFollowListError = "";
+    // MY 탭에서 팔로워 목록을 열 수도 있어, 오버레이를 띄운 탭을 기억해 두고 그 탭에서만 렌더링합니다.
+    private int communityOverlayTab = 5;
+    // 화면에 떠 있는 팔로우 버튼들을 사용자별로 모아 두고, 상태가 바뀌면 전체 리렌더 없이 그것만 갱신합니다.
+    private final Map<String, List<Runnable>> followViewRefreshers = new HashMap<>();
+    private final Set<String> followRequestsInFlight = new HashSet<>();
     private static final String[] COMMUNITY_TAGS_FREE = {"후기", "정보공유", "진로고민", "자격증·시험", "모임·번개"};
     private static final String[] COMMUNITY_TAGS_QUESTION = {"진로고민", "자격증·시험", "학습자료", "입시", "현직에게"};
     private int selectedActivityYear = Calendar.getInstance(Locale.KOREA).get(Calendar.YEAR);
@@ -278,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
             boolean handled = super.dispatchTouchEvent(event);
             if (triggerRefresh) {
                 // 터치 이벤트 처리가 끝난 뒤 화면을 다시 그리도록 예약합니다.
-                post(MainActivity.this::requestCommunityRefresh);
+                post(MainActivity.this::requestCommunityScreenRefresh);
             }
             return handled;
         }
@@ -899,8 +918,8 @@ public class MainActivity extends AppCompatActivity {
         // 퀴즈 응시 중에는 몰입을 위해 하단 내비게이션을 숨깁니다.
         if (!isQuizTakingActive()) main.addView(buildBottomNav(tab));
 
-        // 커뮤니티 탭에서만 우측 하단 플로팅 글쓰기 버튼을 표시합니다. (게시글 상세에서는 숨김)
-        if (tab == 5 && communityDetailPost == null) addCommunityWriteFab();
+        // 커뮤니티 탭에서만 우측 하단 플로팅 글쓰기 버튼을 표시합니다. (상세·프로필·팔로우 목록에서는 숨김)
+        if (tab == 5 && communityDetailPost == null && !isCommunityOverlayOpen(5)) addCommunityWriteFab();
 
         renderTab(tab);
         if (tab == 0) requestDailyAttendance();
@@ -930,12 +949,67 @@ public class MainActivity extends AppCompatActivity {
         bar.setElevation(dp(14));
         bar.setPadding(dp(4), dp(7), dp(4), dp(9));
 
-        bar.addView(bottomNavItem("⌂", "홈", tab == 0, v -> showApp(0)), bottomNavCell());
-        bar.addView(bottomNavItem("▶", "학습", tab == 1 || tab == 2, v -> showApp(1)), bottomNavCell());
+        bar.addView(bottomNavItem("⌂", "홈", tab == 0, v -> openBottomNavRoot(0)), bottomNavCell());
+        bar.addView(bottomNavItem("▶", "학습", tab == 1 || tab == 2, v -> openBottomNavRoot(1)), bottomNavCell());
         bar.addView(bottomNavAiItem(tab == 4), bottomNavCell());
-        bar.addView(bottomNavItem("≋", "커뮤니티", tab == 5, v -> showApp(5)), bottomNavCell());
-        bar.addView(bottomNavItem("👤", "MY", tab == 6, v -> showApp(6)), bottomNavCell());
+        bar.addView(bottomNavItem("≋", "커뮤니티", tab == 5, v -> openBottomNavRoot(5)), bottomNavCell());
+        bar.addView(bottomNavItem("👤", "MY", tab == 6, v -> openBottomNavRoot(6)), bottomNavCell());
         return bar;
+    }
+
+    /**
+     * 하단 메뉴를 누를 때는 현재 화면의 깊이나 필터를 유지하지 않고 각 탭의 첫 화면으로 돌아갑니다.
+     * 같은 메뉴를 다시 눌러도 화면을 새로 구성하므로 스크롤 역시 맨 위에서 시작합니다.
+     */
+    private void openBottomNavRoot(int tab) {
+        if (tab == 0) {
+            routeDetailsExpanded = false;
+            expandRouteDetailsAfterLoad = false;
+        } else if (tab == 1) {
+            learningSubTab = "video";
+            learningSearchResponse = null;
+        } else if (tab == 5) {
+            resetCommunityToRoot();
+        } else if (tab == 6) {
+            profileEditOpen = false;
+            skillMapOpen = false;
+            resetCommunityOverlays();
+        }
+        showApp(tab);
+    }
+
+    private void resetCommunityToRoot() {
+        cancelPendingCommunitySearch();
+        communityRequestVersion++;
+        communityCategory = "all";
+        communityTag = "";
+        communitySort = "latest";
+        communityScope = "all";
+        communityQuery = "";
+        communityMeta = null;
+        communityLoading = false;
+        communityInitialized = false;
+        communityError = "";
+        communityOffset = 0;
+        communityHasMore = true;
+        communityPosts.clear();
+        communityExpandedPosts.clear();
+        resetCommunityOverlays();
+    }
+
+    private void resetCommunityOverlays() {
+        communityDetailPost = null;
+        communityDetailReturnProfileUserId = "";
+        communityProfileUserId = "";
+        communityProfile = null;
+        communityProfilePosts = new ArrayList<>();
+        communityProfileLoading = false;
+        communityProfileError = "";
+        communityFollowListUserId = "";
+        communityFollowList = new ArrayList<>();
+        communityFollowListLoading = false;
+        communityFollowListError = "";
+        communityOverlayTab = 5;
     }
 
     private LinearLayout.LayoutParams bottomNavCell() {
@@ -1007,6 +1081,7 @@ public class MainActivity extends AppCompatActivity {
     private void renderTab(int tab) {
         if (content == null) return;
         content.removeAllViews();
+        followViewRefreshers.clear();
         switch (tab) {
             case 0: renderHome(); break;
             case 1: renderLearning(); break;
@@ -3495,10 +3570,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderCommunity() {
+        if (isCommunityOverlayOpen(5)) {
+            renderCommunityOverlay();
+            return;
+        }
         if (communityDetailPost != null) {
             renderCommunityDetailScreen();
             return;
         }
+
+        LinearLayout scopeRow = row();
+        scopeRow.setGravity(Gravity.CENTER_VERTICAL);
+        scopeRow.addView(communityScopeChip("전체 글", "all"));
+        scopeRow.addView(communityScopeChip("팔로잉", "following"));
+        LinearLayout.LayoutParams scopeParams = new LinearLayout.LayoutParams(-2, -2);
+        scopeParams.setMargins(0, 0, 0, dp(8));
+        content.addView(scopeRow, scopeParams);
 
         LinearLayout segment = row();
         segment.setGravity(Gravity.CENTER_VERTICAL);
@@ -3602,6 +3689,8 @@ public class MainActivity extends AppCompatActivity {
                     + "② 태그로 좁혀 보기\n탭 아래 태그를 누르면 주제별로 글이 걸러집니다.\n\n"
                     + "③ 글쓰기 · 답변하기\n오른쪽 아래 ✏️ 버튼으로 글을 쓰고, 질문 글에는 답변을 남길 수 있어요.\n\n"
                     + "④ 답변 채택\n질문 작성자가 답변 하나를 채택하면 「채택 완료」 표시가 붙고 목록 맨 위에 고정돼요.\n\n"
+                    + "⑤ 팔로우\n글·댓글의 「＋ 팔로우」 버튼을 누르면 그 사람을 팔로우합니다. 맨 위 「팔로잉」 칩을 누르면 팔로우한 사람의 글만 모아 볼 수 있어요.\n\n"
+                    + "⑥ 프로필 보기\n닉네임이나 프로필 사진을 누르면 그 사람의 프로필로 이동해 팔로워·팔로잉 목록과 작성한 글을 확인할 수 있습니다.\n\n"
                     + "서로의 진로를 응원하는 공간이에요. 비방·홍보 글은 신고할 수 있고, 차단한 사용자의 글과 댓글은 목록에서 제외됩니다.";
             case 6: return "내 프로필 사진, 관심 분야, 목표, 통합 티어, XP, 팔로워·팔로잉 수와 학습·찜·퀴즈 통계를 한곳에서 확인하세요. "
                     + "Ocean Skill Map에서는 퀴즈, 학습 완료와 현장 미션으로 쌓인 분야별 숙련도와 증거를 살펴보고, 노드를 눌러 점수 근거, 하위 역량, NCS 연계, 연결 진로와 다음 추천 활동을 확인할 수 있습니다.\n\n"
@@ -3643,6 +3732,42 @@ public class MainActivity extends AppCompatActivity {
         cancelPendingCommunitySearch();
         communityRequestVersion++;
         communityTag = next;
+        communityLoading = false;
+        communityInitialized = false;
+        communityError = "";
+        communityOffset = 0;
+        communityHasMore = true;
+        communityPosts.clear();
+        communityExpandedPosts.clear();
+        if (currentTab == 5) showApp(5);
+    }
+
+    private TextView communityScopeChip(String labelText, String scope) {
+        boolean selected = scope.equals(communityScope);
+        TextView chip = new TextView(this);
+        chip.setText(labelText);
+        chip.setTextSize(12);
+        chip.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        chip.setTextColor(selected ? Color.WHITE : MUTED);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(selected ? NAVY : Color.WHITE);
+        bg.setCornerRadius(dp(16));
+        bg.setStroke(dp(1), selected ? NAVY : Color.parseColor("#CBD9DE"));
+        chip.setBackground(bg);
+        chip.setPadding(dp(14), dp(6), dp(14), dp(6));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
+        params.setMargins(0, 0, dp(6), 0);
+        chip.setLayoutParams(params);
+        chip.setOnClickListener(v -> switchCommunityScope(scope));
+        return chip;
+    }
+
+    private void switchCommunityScope(String scope) {
+        if (scope == null || scope.equals(communityScope)) return;
+        cancelPendingCommunitySearch();
+        communityScope = scope;
+        communityRequestVersion++;
+        communityMeta = null;
         communityLoading = false;
         communityInitialized = false;
         communityError = "";
@@ -3815,7 +3940,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderCommunityResults() {
         if (communityResultsContainer == null) return;
+        // 상세·프로필·팔로우 목록이 떠 있는 동안에는 뒤에 숨은 목록을 다시 그리지 않습니다.
+        if (communityDetailPost != null || isCommunityOverlayOpen(5)) return;
         communityResultsContainer.removeAllViews();
+        followViewRefreshers.clear();
 
         if (communityMeta != null) {
             LinearLayout metaRow = row();
@@ -3883,10 +4011,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (communityPosts.isEmpty()) {
             LinearLayout empty = card();
-            empty.addView(big(communityQuery.isEmpty() ? "아직 게시글이 없습니다" : "검색 결과가 없습니다"));
-            empty.addView(body(communityQuery.isEmpty()
-                    ? "첫 번째 해양 이야기를 남겨 보세요."
-                    : "다른 검색어를 입력해 보세요."));
+            if (!communityQuery.isEmpty()) {
+                empty.addView(big("검색 결과가 없습니다"));
+                empty.addView(body("다른 검색어를 입력해 보세요."));
+            } else if ("following".equals(communityScope)) {
+                empty.addView(big("팔로우한 사용자의 글이 없습니다"));
+                empty.addView(body("전체 글에서 마음에 드는 작성자를 팔로우하면 이곳에 모아서 볼 수 있어요."));
+                Button browseAll = outlineButton("전체 글 보기");
+                browseAll.setOnClickListener(v -> switchCommunityScope("all"));
+                empty.addView(browseAll, new LinearLayout.LayoutParams(-1, dp(44)));
+            } else {
+                empty.addView(big("아직 게시글이 없습니다"));
+                empty.addView(body("첫 번째 해양 이야기를 남겨 보세요."));
+            }
             communityResultsContainer.addView(empty);
             return;
         }
@@ -3901,6 +4038,16 @@ public class MainActivity extends AppCompatActivity {
             more.setOnClickListener(v -> requestCommunityPage(true));
             communityResultsContainer.addView(more, new LinearLayout.LayoutParams(-1, dp(48)));
         }
+    }
+
+    /** 당겨서 새로고침은 지금 보고 있는 화면만 다시 불러옵니다. */
+    private void requestCommunityScreenRefresh() {
+        if (isCommunityOverlayOpen(5)) {
+            if (!communityFollowListUserId.isEmpty()) loadFollowList();
+            else loadCommunityProfile();
+            return;
+        }
+        requestCommunityRefresh();
     }
 
     private void requestCommunityRefresh() {
@@ -3932,15 +4079,16 @@ public class MainActivity extends AppCompatActivity {
         final String requestedQuery = communityQuery;
         final String requestedTag = communityTag;
         final String requestedSort = communitySort;
+        final String requestedScope = communityScope;
         communityExecutor.execute(() -> {
             try {
                 List<ApiModels.CommunityPostDto> result = cloudRepository.communityPosts(
                         requestedCategory, requestedQuery, requestedTag, requestedSort,
-                        COMMUNITY_PAGE_SIZE, requestedOffset);
+                        requestedScope, "", COMMUNITY_PAGE_SIZE, requestedOffset);
                 ApiModels.CommunityFeedMetaDto meta = null;
                 if (!append) {
                     try {
-                        meta = cloudRepository.communityFeedMeta(requestedCategory);
+                        meta = cloudRepository.communityFeedMeta(requestedCategory, requestedScope);
                     } catch (Exception ignored) {
                         // 요약 정보(카운트·인기글)는 실패해도 목록 표시를 막지 않습니다.
                     }
@@ -3949,6 +4097,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (requestVersion != communityRequestVersion
                             || !requestedCategory.equals(communityCategory)
+                            || !requestedScope.equals(communityScope)
                             || !requestedQuery.equals(communityQuery)) return;
 
                     List<ApiModels.CommunityPostDto> page = result == null ? new ArrayList<>() : result;
@@ -3965,6 +4114,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (requestVersion != communityRequestVersion
                             || !requestedCategory.equals(communityCategory)
+                            || !requestedScope.equals(communityScope)
                             || !requestedQuery.equals(communityQuery)) return;
                     communityLoading = false;
                     communityInitialized = true;
@@ -3990,13 +4140,16 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout authorRow = row();
         authorRow.setGravity(Gravity.CENTER_VERTICAL);
-        authorRow.addView(profileAvatar(post.author.nickname, post.author.profileImageUrl, dp(40)), new LinearLayout.LayoutParams(dp(40), dp(40)));
+        View avatar = communityAvatar(post.author, dp(40));
+        avatar.setOnClickListener(v -> openCommunityProfile(post.author.userId));
+        authorRow.addView(avatar, new LinearLayout.LayoutParams(dp(40), dp(40)));
         LinearLayout nameRow = row();
         nameRow.setGravity(Gravity.CENTER_VERTICAL);
         nameRow.setPadding(dp(8), 0, 0, 0);
         TextView nickname = body(post.author.nickname);
         nickname.setTypeface(Typeface.DEFAULT_BOLD);
         nickname.setPadding(0, 0, dp(6), 0);
+        nickname.setOnClickListener(v -> openCommunityProfile(post.author.userId));
         nameRow.addView(nickname);
         nameRow.addView(communityTierBadge(post.author.tier));
         authorRow.addView(nameRow, new LinearLayout.LayoutParams(0, -2, 1));
@@ -4057,12 +4210,8 @@ public class MainActivity extends AppCompatActivity {
                 + ("question".equals(post.category) ? "답변 " : "") + commentTotal);
         counts.setPadding(0, 0, 0, 0);
         footer.addView(counts, new LinearLayout.LayoutParams(0, -2, 1));
-        if (!store.getNickname().equals(post.author.nickname)) {
-            TextView follow = label(post.author.isFollowing ? "팔로잉" : "팔로우");
-            follow.setTextColor(OCEAN);
-            follow.setPadding(dp(12), dp(6), dp(2), dp(6));
-            follow.setOnClickListener(v -> toggleFollow(post.author.userId));
-            footer.addView(follow);
+        if (!isMyAuthor(post.author)) {
+            footer.addView(followToggleButton(post.author, 11), new LinearLayout.LayoutParams(dp(84), dp(32)));
         }
         card.addView(footer);
 
@@ -4082,13 +4231,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openCommunityDetail(ApiModels.CommunityPostDto post) {
+        // 프로필 화면에서 글을 열었다면 뒤로 가기로 그 프로필에 되돌아갈 수 있도록 기억해 둡니다.
+        communityDetailReturnProfileUserId = communityProfileUserId;
+        communityProfileUserId = "";
+        communityFollowListUserId = "";
         communityDetailPost = post;
+        communityOverlayTab = 5;
         if (currentTab == 5) showApp(5);
         refreshCommunityDetail();
     }
 
     private void closeCommunityDetail() {
         communityDetailPost = null;
+        String returnProfile = communityDetailReturnProfileUserId;
+        communityDetailReturnProfileUserId = "";
+        if (!returnProfile.isEmpty()) {
+            openCommunityProfile(returnProfile);
+            return;
+        }
         if (currentTab == 5) showApp(5);
     }
 
@@ -4145,8 +4305,9 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout card = card();
         LinearLayout authorRow = row();
         authorRow.setGravity(Gravity.CENTER_VERTICAL);
-        authorRow.addView(profileAvatar(post.author.nickname, post.author.profileImageUrl, dp(48)),
-                new LinearLayout.LayoutParams(dp(48), dp(48)));
+        View authorAvatar = communityAvatar(post.author, dp(48));
+        authorAvatar.setOnClickListener(v -> openCommunityProfile(post.author.userId));
+        authorRow.addView(authorAvatar, new LinearLayout.LayoutParams(dp(48), dp(48)));
         LinearLayout authorText = new LinearLayout(this);
         authorText.setOrientation(LinearLayout.VERTICAL);
         authorText.setPadding(dp(10), 0, 0, 0);
@@ -4155,16 +4316,20 @@ public class MainActivity extends AppCompatActivity {
         TextView nickname = body(post.author.nickname);
         nickname.setTypeface(Typeface.DEFAULT_BOLD);
         nickname.setPadding(0, 0, dp(6), 0);
+        nickname.setOnClickListener(v -> openCommunityProfile(post.author.userId));
         nameRow.addView(nickname);
         nameRow.addView(communityTierBadge(post.author.tier));
         authorText.addView(nameRow);
-        authorText.addView(label((question ? "질문 게시판" : "자유 게시판") + " · " + readableDate(post.createdAt)
-                + (question ? " · 조회 " + post.viewCount : "") + " · 팔로워 " + post.author.followerCount));
+        String authorMetaPrefix = (question ? "질문 게시판" : "자유 게시판") + " · " + readableDate(post.createdAt)
+                + (question ? " · 조회 " + post.viewCount : "") + " · 팔로워 ";
+        TextView authorMeta = label(authorMetaPrefix + post.author.followerCount);
+        authorText.addView(authorMeta);
         authorRow.addView(authorText, new LinearLayout.LayoutParams(0, -2, 1));
-        if (!store.getNickname().equals(post.author.nickname)) {
-            Button follow = outlineButton(post.author.isFollowing ? "팔로잉" : "팔로우");
-            follow.setOnClickListener(v -> toggleFollow(post.author.userId));
-            authorRow.addView(follow, new LinearLayout.LayoutParams(dp(88), dp(40)));
+        if (!isMyAuthor(post.author)) {
+            // 팔로우하면 버튼과 함께 이 줄의 팔로워 수도 즉시 따라 바뀌어야 합니다.
+            registerFollowRefresher(post.author.userId,
+                    () -> authorMeta.setText(authorMetaPrefix + post.author.followerCount));
+            authorRow.addView(followToggleButton(post.author, 12), new LinearLayout.LayoutParams(dp(92), dp(38)));
         }
         card.addView(authorRow);
 
@@ -4393,21 +4558,20 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout head = row();
         head.setGravity(Gravity.CENTER_VERTICAL);
-        head.addView(profileAvatar(comment.author.nickname, comment.author.profileImageUrl, dp(34)),
-                new LinearLayout.LayoutParams(dp(34), dp(34)));
+        View commentAvatar = communityAvatar(comment.author, dp(34));
+        commentAvatar.setOnClickListener(v -> openCommunityProfile(comment.author.userId));
+        head.addView(commentAvatar, new LinearLayout.LayoutParams(dp(34), dp(34)));
         TextView name = body(comment.author.nickname);
         name.setTypeface(Typeface.DEFAULT_BOLD);
         name.setPadding(dp(8), 0, 0, 0);
+        name.setOnClickListener(v -> openCommunityProfile(comment.author.userId));
         head.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
         TierShieldView commentShield = tierShield(comment.author.tier);
         LinearLayout.LayoutParams commentShieldParams = new LinearLayout.LayoutParams(dp(30), dp(36));
         commentShieldParams.setMargins(dp(4), 0, dp(4), 0);
         head.addView(commentShield, commentShieldParams);
-        if (!store.getNickname().equals(comment.author.nickname)) {
-            Button follow = outlineButton(comment.author.isFollowing ? "팔로잉" : "팔로우");
-            follow.setTextSize(10);
-            follow.setOnClickListener(v -> toggleFollow(comment.author.userId));
-            head.addView(follow, new LinearLayout.LayoutParams(dp(78), dp(34)));
+        if (!isMyAuthor(comment.author)) {
+            head.addView(followToggleButton(comment.author, 10), new LinearLayout.LayoutParams(dp(80), dp(32)));
         }
         box.addView(head);
         box.addView(replyLevel && replyTarget != null
@@ -4680,16 +4844,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void confirmBlockUser(String userId, String nickname) {
+        boolean blockedNow = communityProfile != null && communityProfile.isBlocked
+                && communityProfile.profile != null && userId.equals(communityProfile.profile.userId);
         new AlertDialog.Builder(this)
-                .setTitle("사용자 차단")
-                .setMessage(nickname + "님의 게시글과 댓글을 숨길까요? 다시 누르면 차단을 해제할 수 있습니다.")
+                .setTitle(blockedNow ? "차단 해제" : "사용자 차단")
+                .setMessage(blockedNow
+                        ? nickname + "님의 차단을 해제할까요? 다시 글과 댓글이 표시됩니다."
+                        : nickname + "님의 게시글과 댓글을 숨길까요? 다시 누르면 차단을 해제할 수 있습니다.")
                 .setNegativeButton("취소", null)
-                .setPositiveButton("차단", (dialog, which) -> executor.execute(() -> {
+                .setPositiveButton(blockedNow ? "차단 해제" : "차단", (dialog, which) -> executor.execute(() -> {
                     try {
                         boolean blocked = cloudRepository.toggleBlock(userId);
                         runOnUiThread(() -> {
                             toast(blocked ? "사용자를 차단했습니다." : "차단을 해제했습니다.");
                             requestCommunityRefresh();
+                            if (userId.equals(communityProfileUserId)) loadCommunityProfile();
                         });
                     } catch (Exception e) {
                         runOnUiThread(() -> toast("차단 처리 실패: " + safeMessage(e)));
@@ -4906,18 +5075,513 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 알약 모양 팔로우 토글 버튼입니다. 같은 사용자의 버튼이 화면에 여러 개 있어도
+     * {@link #followViewRefreshers}에 등록해 두어 한 번의 탭으로 모두 함께 갱신됩니다.
+     */
+    private Button followToggleButton(ApiModels.ProfileSummary author, float textSize) {
+        Button button = new Button(this);
+        button.setAllCaps(false);
+        button.setTextSize(textSize);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        Runnable restyle = () -> styleFollowButton(button, author.isFollowing);
+        restyle.run();
+        registerFollowRefresher(author.userId, restyle);
+        button.setOnClickListener(v -> toggleFollow(author.userId));
+        return button;
+    }
+
+    private void styleFollowButton(Button button, boolean following) {
+        button.setText(following ? "팔로잉" : "＋ 팔로우");
+        button.setTextColor(following ? MUTED : Color.WHITE);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(dp(16));
+        bg.setColor(following ? Color.WHITE : OCEAN);
+        bg.setStroke(dp(1), following ? Color.parseColor("#CBD9DE") : OCEAN);
+        button.setBackground(bg);
+        // 배경 드로어블을 바꾸면 패딩이 초기화되므로 항상 그 뒤에 다시 지정합니다.
+        button.setPadding(dp(10), 0, dp(10), 0);
+    }
+
+    /**
+     * 작성자가 로그인한 본인인지 판별합니다. userId 비교가 정확하지만, 이번 변경 이전에
+     * 로그인해 둔 세션에는 userId가 없으므로 대시보드 동기화 전까지는 닉네임으로 대신 확인합니다.
+     */
+    private boolean isMyAuthor(ApiModels.ProfileSummary author) {
+        if (author == null) return false;
+        String myId = store.getAccountUserId();
+        if (!myId.isEmpty() && author.userId != null && !author.userId.isEmpty()) {
+            return myId.equals(author.userId);
+        }
+        return store.getNickname().equals(author.nickname);
+    }
+
+    private void registerFollowRefresher(String userId, Runnable refresher) {
+        if (userId == null || userId.isEmpty()) return;
+        List<Runnable> refreshers = followViewRefreshers.get(userId);
+        if (refreshers == null) {
+            refreshers = new ArrayList<>();
+            followViewRefreshers.put(userId, refreshers);
+        }
+        refreshers.add(refresher);
+    }
+
+    private void refreshFollowViews(String userId) {
+        List<Runnable> refreshers = followViewRefreshers.get(userId);
+        if (refreshers == null) return;
+        for (Runnable refresher : new ArrayList<>(refreshers)) refresher.run();
+    }
+
+    private boolean isFollowingUser(String userId) {
+        ApiModels.ProfileSummary found = findLoadedProfile(userId);
+        return found != null && found.isFollowing;
+    }
+
+    private ApiModels.ProfileSummary findLoadedProfile(String userId) {
+        for (ApiModels.CommunityPostDto post : communityPosts) {
+            ApiModels.ProfileSummary hit = findProfileInPost(post, userId);
+            if (hit != null) return hit;
+        }
+        for (ApiModels.CommunityPostDto post : communityProfilePosts) {
+            ApiModels.ProfileSummary hit = findProfileInPost(post, userId);
+            if (hit != null) return hit;
+        }
+        ApiModels.ProfileSummary hit = findProfileInPost(communityDetailPost, userId);
+        if (hit != null) return hit;
+        if (communityProfile != null && communityProfile.profile != null
+                && userId.equals(communityProfile.profile.userId)) {
+            return communityProfile.profile;
+        }
+        for (ApiModels.ProfileSummary summary : communityFollowList) {
+            if (userId.equals(summary.userId)) return summary;
+        }
+        return null;
+    }
+
+    private ApiModels.ProfileSummary findProfileInPost(ApiModels.CommunityPostDto post, String userId) {
+        if (post == null) return null;
+        if (post.author != null && userId.equals(post.author.userId)) return post.author;
+        if (post.comments != null) {
+            for (ApiModels.CommunityCommentDto comment : post.comments) {
+                if (comment.author != null && userId.equals(comment.author.userId)) return comment.author;
+            }
+        }
+        return null;
+    }
+
+    /** 메모리에 올라와 있는 모든 작성자 정보의 팔로우 상태와 팔로워 수를 한꺼번에 맞춰 줍니다. */
+    private void applyFollowState(String userId, boolean following) {
+        for (ApiModels.CommunityPostDto post : communityPosts) applyFollowStateToPost(post, userId, following);
+        for (ApiModels.CommunityPostDto post : communityProfilePosts) applyFollowStateToPost(post, userId, following);
+        applyFollowStateToPost(communityDetailPost, userId, following);
+        if (communityProfile != null) applyFollowStateToProfile(communityProfile.profile, userId, following);
+        for (ApiModels.ProfileSummary summary : communityFollowList) {
+            applyFollowStateToProfile(summary, userId, following);
+        }
+    }
+
+    private void applyFollowStateToPost(ApiModels.CommunityPostDto post, String userId, boolean following) {
+        if (post == null) return;
+        applyFollowStateToProfile(post.author, userId, following);
+        if (post.comments == null) return;
+        for (ApiModels.CommunityCommentDto comment : post.comments) {
+            applyFollowStateToProfile(comment.author, userId, following);
+        }
+    }
+
+    private void applyFollowStateToProfile(ApiModels.ProfileSummary summary, String userId, boolean following) {
+        if (summary == null || !userId.equals(summary.userId) || summary.isFollowing == following) return;
+        summary.isFollowing = following;
+        summary.followerCount = Math.max(0, summary.followerCount + (following ? 1 : -1));
+    }
+
+    /**
+     * 서버 응답을 기다리지 않고 버튼 상태를 먼저 바꾼 뒤 요청을 보냅니다.
+     * 실패하면 이전 상태로 되돌리므로 목록 전체를 다시 불러올 필요가 없습니다.
+     */
     private void toggleFollow(String userId) {
+        if (userId == null || userId.isEmpty()) return;
+        if (store.isMe(userId)) {
+            toast("자기 자신은 팔로우할 수 없습니다.");
+            return;
+        }
+        if (!followRequestsInFlight.add(userId)) return;
+
+        boolean next = !isFollowingUser(userId);
+        applyFollowState(userId, next);
+        store.setFollowingCount(store.getFollowingCount() + (next ? 1 : -1));
+        refreshFollowViews(userId);
+
         executor.execute(() -> {
             try {
-                cloudRepository.toggleFollow(userId);
-                runOnUiThread(this::requestCommunityRefresh);
+                ApiModels.FollowResponse response = cloudRepository.toggleFollow(userId);
+                runOnUiThread(() -> {
+                    followRequestsInFlight.remove(userId);
+                    if (response.following != next) {
+                        applyFollowState(userId, response.following);
+                        refreshFollowViews(userId);
+                    }
+                    toast(response.following ? "팔로우했습니다." : "팔로우를 취소했습니다.");
+                });
             } catch (Exception e) {
-                runOnUiThread(() -> toast("팔로우 처리 실패: " + safeMessage(e)));
+                runOnUiThread(() -> {
+                    followRequestsInFlight.remove(userId);
+                    applyFollowState(userId, !next);
+                    store.setFollowingCount(store.getFollowingCount() + (next ? -1 : 1));
+                    refreshFollowViews(userId);
+                    toast("팔로우 처리 실패: " + safeMessage(e));
+                });
             }
         });
     }
 
+    private boolean isCommunityOverlayOpen(int tab) {
+        if (communityOverlayTab != tab) return false;
+        return !communityProfileUserId.isEmpty() || !communityFollowListUserId.isEmpty();
+    }
+
+    /** 팔로우 목록은 프로필 위에 겹쳐 뜨므로, 열려 있으면 목록을 먼저 그립니다. */
+    private void renderCommunityOverlay() {
+        if (!communityFollowListUserId.isEmpty()) {
+            renderCommunityFollowListScreen();
+            return;
+        }
+        renderCommunityProfileScreen();
+    }
+
+    private void openCommunityProfile(String userId) {
+        if (userId == null || userId.isEmpty()) return;
+        if (userId.equals(communityProfileUserId) && communityFollowListUserId.isEmpty()) return;
+        communityProfileUserId = userId;
+        communityProfile = null;
+        communityProfilePosts = new ArrayList<>();
+        communityProfileError = "";
+        communityProfileLoading = true;
+        communityFollowListUserId = "";
+        communityFollowList = new ArrayList<>();
+        communityOverlayTab = 5;
+        showApp(5);
+        loadCommunityProfile();
+    }
+
+    private void closeCommunityProfile() {
+        communityProfileUserId = "";
+        communityProfile = null;
+        communityProfilePosts = new ArrayList<>();
+        communityProfileError = "";
+        communityProfileLoading = false;
+        if (currentTab == 5) showApp(5);
+    }
+
+    private void loadCommunityProfile() {
+        final String userId = communityProfileUserId;
+        if (userId.isEmpty()) return;
+        communityExecutor.execute(() -> {
+            try {
+                ApiModels.CommunityUserProfileDto profile = cloudRepository.communityUserProfile(userId);
+                List<ApiModels.CommunityPostDto> posts = profile.isBlocked
+                        ? new ArrayList<>()
+                        : cloudRepository.communityPosts("all", "", "", "latest", "all", userId,
+                                COMMUNITY_PAGE_SIZE, 0);
+                runOnUiThread(() -> {
+                    if (!userId.equals(communityProfileUserId)) return;
+                    communityProfile = profile;
+                    communityProfilePosts = posts == null ? new ArrayList<>() : posts;
+                    communityProfileLoading = false;
+                    communityProfileError = "";
+                    if (currentTab == communityOverlayTab) showApp(currentTab);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (!userId.equals(communityProfileUserId)) return;
+                    communityProfileLoading = false;
+                    communityProfileError = "프로필을 불러오지 못했습니다: " + safeMessage(e);
+                    if (currentTab == communityOverlayTab) showApp(currentTab);
+                });
+            }
+        });
+    }
+
+    private void renderCommunityProfileScreen() {
+        LinearLayout topBar = row();
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+        TextView back = sectionTitle("‹ 프로필");
+        back.setOnClickListener(v -> closeCommunityProfile());
+        topBar.addView(back, new LinearLayout.LayoutParams(0, -2, 1));
+        content.addView(topBar);
+
+        if (!communityProfileError.isEmpty()) {
+            content.addView(note(communityProfileError, DANGER));
+            Button retry = primaryButton("다시 시도");
+            retry.setOnClickListener(v -> {
+                communityProfileError = "";
+                communityProfileLoading = true;
+                showApp(5);
+                loadCommunityProfile();
+            });
+            content.addView(retry, new LinearLayout.LayoutParams(-1, dp(48)));
+            return;
+        }
+
+        if (communityProfile == null || communityProfile.profile == null) {
+            LinearLayout loading = card();
+            loading.addView(big("프로필을 불러오고 있습니다"));
+            loading.addView(new ProgressBar(this));
+            content.addView(loading);
+            return;
+        }
+
+        ApiModels.ProfileSummary author = communityProfile.profile;
+        boolean self = communityProfile.isMe || isMyAuthor(author);
+
+        if (!self) {
+            TextView menu = sectionTitle("⋯");
+            menu.setPadding(dp(10), dp(12), dp(4), dp(8));
+            menu.setOnClickListener(v -> new AlertDialog.Builder(this)
+                    .setItems(new String[]{"신고", communityProfile.isBlocked ? "차단 해제" : "차단"}, (dialog, which) -> {
+                        if (which == 0) showReportDialog("user", author.userId);
+                        else confirmBlockUser(author.userId, author.nickname);
+                    }).show());
+            topBar.addView(menu);
+        }
+
+        LinearLayout header = card();
+        LinearLayout identity = row();
+        identity.setGravity(Gravity.CENTER_VERTICAL);
+        identity.addView(communityAvatar(author, dp(64)), new LinearLayout.LayoutParams(dp(64), dp(64)));
+        LinearLayout identityText = new LinearLayout(this);
+        identityText.setOrientation(LinearLayout.VERTICAL);
+        identityText.setPadding(dp(12), 0, 0, 0);
+        LinearLayout nameRow = row();
+        nameRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView nickname = big(author.nickname);
+        nickname.setPadding(0, 0, dp(6), 0);
+        nameRow.addView(nickname);
+        nameRow.addView(communityTierBadge(author.tier));
+        identityText.addView(nameRow);
+        identityText.addView(label(readableDate(author.joinedAt) + " 가입"));
+        identity.addView(identityText, new LinearLayout.LayoutParams(0, -2, 1));
+        header.addView(identity);
+
+        LinearLayout stats = row();
+        stats.setGravity(Gravity.CENTER_VERTICAL);
+        stats.addView(profileStatBlock("게시글", communityProfile.postCount, null), profileStatParams());
+        TextView followerValue = profileStatValue(author.followerCount);
+        stats.addView(profileStatBlock("팔로워", followerValue,
+                () -> openFollowList(author.userId, "followers")), profileStatParams());
+        stats.addView(profileStatBlock("팔로잉", profileStatValue(author.followingCount),
+                () -> openFollowList(author.userId, "following")), profileStatParams());
+        registerFollowRefresher(author.userId,
+                () -> followerValue.setText(String.valueOf(author.followerCount)));
+        LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(-1, -2);
+        statsParams.setMargins(0, dp(10), 0, dp(4));
+        header.addView(stats, statsParams);
+
+        if (!self && !communityProfile.isBlocked) {
+            header.addView(followToggleButton(author, 14), new LinearLayout.LayoutParams(-1, dp(46)));
+        }
+        content.addView(header);
+
+        if (communityProfile.isBlocked) {
+            LinearLayout blockedCard = card();
+            blockedCard.addView(big("차단한 사용자입니다"));
+            blockedCard.addView(body(author.nickname + "님의 글과 댓글은 목록에 표시되지 않습니다."));
+            Button unblock = outlineButton("차단 해제");
+            unblock.setOnClickListener(v -> confirmBlockUser(author.userId, author.nickname));
+            blockedCard.addView(unblock, new LinearLayout.LayoutParams(-1, dp(44)));
+            content.addView(blockedCard);
+            return;
+        }
+
+        content.addView(sectionTitle("작성한 글 " + communityProfile.postCount));
+        if (communityProfilePosts.isEmpty()) {
+            LinearLayout empty = card();
+            empty.addView(body(self ? "아직 작성한 글이 없습니다." : "아직 공개된 글이 없습니다."));
+            content.addView(empty);
+            return;
+        }
+        for (ApiModels.CommunityPostDto post : communityProfilePosts) {
+            addCommunityPostCard(content, post);
+        }
+    }
+
+    private LinearLayout.LayoutParams profileStatParams() {
+        return new LinearLayout.LayoutParams(0, -2, 1);
+    }
+
+    private TextView profileStatValue(int value) {
+        TextView view = new TextView(this);
+        view.setText(String.valueOf(value));
+        view.setTextColor(NAVY);
+        view.setTextSize(18);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setGravity(Gravity.CENTER);
+        return view;
+    }
+
+    private LinearLayout profileStatBlock(String labelText, int value, Runnable onClick) {
+        return profileStatBlock(labelText, profileStatValue(value), onClick);
+    }
+
+    private LinearLayout profileStatBlock(String labelText, TextView valueView, Runnable onClick) {
+        LinearLayout block = new LinearLayout(this);
+        block.setOrientation(LinearLayout.VERTICAL);
+        block.setGravity(Gravity.CENTER);
+        block.setPadding(dp(4), dp(6), dp(4), dp(6));
+        block.addView(valueView);
+        TextView caption = label(labelText);
+        caption.setGravity(Gravity.CENTER);
+        caption.setPadding(0, dp(2), 0, 0);
+        block.addView(caption);
+        if (onClick != null) block.setOnClickListener(v -> onClick.run());
+        return block;
+    }
+
+    private void openFollowList(String userId, String mode) {
+        if (userId == null || userId.isEmpty()) {
+            toast("계정 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+            return;
+        }
+        if (currentTab != 5) {
+            // MY 탭에서 연 목록은 커뮤니티 탭에 열려 있던 프로필 위에 겹치면 안 됩니다.
+            communityProfileUserId = "";
+            communityProfile = null;
+            communityProfilePosts = new ArrayList<>();
+        }
+        communityFollowListUserId = userId;
+        communityFollowListMode = mode;
+        communityFollowList = new ArrayList<>();
+        communityFollowListError = "";
+        communityFollowListLoading = true;
+        communityOverlayTab = currentTab;
+        showApp(currentTab);
+        loadFollowList();
+    }
+
+    private void closeFollowList() {
+        communityFollowListUserId = "";
+        communityFollowList = new ArrayList<>();
+        communityFollowListError = "";
+        communityFollowListLoading = false;
+        if (currentTab == communityOverlayTab) showApp(currentTab);
+    }
+
+    private void loadFollowList() {
+        final String userId = communityFollowListUserId;
+        final String mode = communityFollowListMode;
+        if (userId.isEmpty()) return;
+        communityExecutor.execute(() -> {
+            try {
+                ApiModels.FollowListResponse response = "following".equals(mode)
+                        ? cloudRepository.communityFollowing(userId, 50, 0)
+                        : cloudRepository.communityFollowers(userId, 50, 0);
+                runOnUiThread(() -> {
+                    if (!userId.equals(communityFollowListUserId) || !mode.equals(communityFollowListMode)) return;
+                    communityFollowList = response.users == null ? new ArrayList<>() : response.users;
+                    communityFollowListLoading = false;
+                    communityFollowListError = "";
+                    if (currentTab == communityOverlayTab) showApp(currentTab);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (!userId.equals(communityFollowListUserId) || !mode.equals(communityFollowListMode)) return;
+                    communityFollowListLoading = false;
+                    communityFollowListError = "목록을 불러오지 못했습니다: " + safeMessage(e);
+                    if (currentTab == communityOverlayTab) showApp(currentTab);
+                });
+            }
+        });
+    }
+
+    private void renderCommunityFollowListScreen() {
+        boolean following = "following".equals(communityFollowListMode);
+        TextView back = sectionTitle("‹ " + (following ? "팔로잉" : "팔로워"));
+        back.setOnClickListener(v -> closeFollowList());
+        content.addView(back);
+
+        if (!communityFollowListError.isEmpty()) {
+            content.addView(note(communityFollowListError, DANGER));
+            Button retry = primaryButton("다시 시도");
+            retry.setOnClickListener(v -> {
+                communityFollowListError = "";
+                communityFollowListLoading = true;
+                showApp(currentTab);
+                loadFollowList();
+            });
+            content.addView(retry, new LinearLayout.LayoutParams(-1, dp(48)));
+            return;
+        }
+
+        if (communityFollowListLoading) {
+            LinearLayout loading = card();
+            loading.addView(big("목록을 불러오고 있습니다"));
+            loading.addView(new ProgressBar(this));
+            content.addView(loading);
+            return;
+        }
+
+        if (communityFollowList.isEmpty()) {
+            LinearLayout empty = card();
+            empty.addView(big(following ? "팔로우한 사용자가 없습니다" : "아직 팔로워가 없습니다"));
+            empty.addView(body(following
+                    ? "커뮤니티에서 마음에 드는 작성자를 팔로우해 보세요."
+                    : "꾸준히 글과 답변을 남기면 팔로워가 늘어납니다."));
+            content.addView(empty);
+            return;
+        }
+
+        for (ApiModels.ProfileSummary person : communityFollowList) {
+            content.addView(followListRow(person));
+        }
+    }
+
+    private LinearLayout followListRow(ApiModels.ProfileSummary person) {
+        LinearLayout rowCard = card();
+        LinearLayout personRow = row();
+        personRow.setGravity(Gravity.CENTER_VERTICAL);
+        personRow.addView(communityAvatar(person, dp(44)), new LinearLayout.LayoutParams(dp(44), dp(44)));
+        LinearLayout personText = new LinearLayout(this);
+        personText.setOrientation(LinearLayout.VERTICAL);
+        personText.setPadding(dp(10), 0, dp(8), 0);
+        LinearLayout nameRow = row();
+        nameRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView nickname = body(person.nickname);
+        nickname.setTypeface(Typeface.DEFAULT_BOLD);
+        nickname.setPadding(0, 0, dp(6), 0);
+        nameRow.addView(nickname);
+        nameRow.addView(communityTierBadge(person.tier));
+        personText.addView(nameRow);
+        TextView followerLine = label("팔로워 " + person.followerCount);
+        registerFollowRefresher(person.userId,
+                () -> followerLine.setText("팔로워 " + person.followerCount));
+        personText.addView(followerLine);
+        personRow.addView(personText, new LinearLayout.LayoutParams(0, -2, 1));
+        if (!isMyAuthor(person)) {
+            personRow.addView(followToggleButton(person, 11), new LinearLayout.LayoutParams(dp(88), dp(34)));
+        }
+        rowCard.addView(personRow);
+        rowCard.setOnClickListener(v -> openCommunityProfile(person.userId));
+        return rowCard;
+    }
+
+    private TextView myFollowCountView(String text, String mode) {
+        TextView view = new TextView(this);
+        view.setText(text + " ›");
+        view.setTextColor(Color.WHITE);
+        view.setTextSize(12);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setPadding(0, dp(5), dp(14), 0);
+        view.setOnClickListener(v -> openFollowList(store.getAccountUserId(), mode));
+        return view;
+    }
+
     private void renderMyPage() {
+        if (isCommunityOverlayOpen(6)) {
+            renderCommunityOverlay();
+            return;
+        }
         if (profileEditOpen) {
             renderProfileEditScreen();
             return;
@@ -4956,12 +5620,16 @@ public class MainActivity extends AppCompatActivity {
         nameRow.addView(communityTierBadge(plainTierText(tier)));
         profileText.addView(nameRow);
         TextView myMeta = new TextView(this);
-        myMeta.setText(p.ageGroup + " · " + p.interest + " · " + p.goal
-                + "\n팔로워 " + store.getFollowerCount() + " · 팔로잉 " + store.getFollowingCount());
+        myMeta.setText(p.ageGroup + " · " + p.interest + " · " + p.goal);
         myMeta.setTextColor(Color.parseColor("#C9FFFF"));
         myMeta.setTextSize(12);
         myMeta.setPadding(0, dp(3), 0, 0);
         profileText.addView(myMeta);
+        LinearLayout followRow = row();
+        followRow.setGravity(Gravity.CENTER_VERTICAL);
+        followRow.addView(myFollowCountView("팔로워 " + store.getFollowerCount(), "followers"));
+        followRow.addView(myFollowCountView("팔로잉 " + store.getFollowingCount(), "following"));
+        profileText.addView(followRow);
         profileTop.addView(profileText, new LinearLayout.LayoutParams(0, -2, 1));
         TextView editProfile = new TextView(this);
         editProfile.setText("편집");
@@ -7021,7 +7689,20 @@ public class MainActivity extends AppCompatActivity {
         return result.isEmpty() ? fallback : result;
     }
 
+    /**
+     * 커뮤니티에서 쓰는 아바타입니다. 내가 고른 이모지 아바타는 내 계정에만 적용하고,
+     * 다른 사용자에게는 닉네임에서 뽑은 기본 아이콘을 보여 줍니다.
+     */
+    private View communityAvatar(ApiModels.ProfileSummary author, int size) {
+        if (author == null) return profileAvatar("", "", size);
+        return profileAvatar(author.nickname, author.profileImageUrl, size, isMyAuthor(author));
+    }
+
     private View profileAvatar(String nickname, String imageUrl, int size) {
+        return profileAvatar(nickname, imageUrl, size, true);
+    }
+
+    private View profileAvatar(String nickname, String imageUrl, int size, boolean self) {
         if (imageUrl != null && !imageUrl.trim().isEmpty()) {
             ImageView image = new ImageView(this);
             image.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -7031,7 +7712,7 @@ public class MainActivity extends AppCompatActivity {
         TextView fallback = new TextView(this);
         String name = nickname == null || nickname.trim().isEmpty() ? "B" : nickname.trim();
         String[] icons = {"🌊", "🐳", "⚓", "🐬", "⛵", "🪸", "🐚", "🧭"};
-        String chosen = store.getAvatarEmoji();
+        String chosen = self ? store.getAvatarEmoji() : "";
         fallback.setText(chosen.isEmpty() ? icons[(name.hashCode() & 0x7fffffff) % icons.length] : chosen);
         fallback.setTextSize(24);
         fallback.setGravity(Gravity.CENTER);

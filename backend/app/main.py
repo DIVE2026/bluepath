@@ -68,6 +68,7 @@ from .schemas import (
     CommunityPostItem,
     CommunityPostUpdate,
     CommunityReportRequest,
+    CommunityUserProfile,
     CloudStateResponse,
     DashboardResponse,
     PasswordResetConfirm,
@@ -75,6 +76,7 @@ from .schemas import (
     DiamondStatus,
     EvidenceRequest,
     EvidenceReviewRequest,
+    FollowListResponse,
     FollowResponse,
     GenericResponse,
     NicknameAvailability,
@@ -976,12 +978,18 @@ def require_community_access(db: Session, actor_id: str, target_user_id: str) ->
         raise HTTPException(status_code=403, detail="Interaction is unavailable because one account blocked the other")
 
 
+def following_ids_subquery(user_id: str):
+    return select(Follow.following_id).where(Follow.follower_id == user_id)
+
+
 @app.get("/api/v1/community/posts", response_model=list[CommunityPostItem])
 def list_community_posts(
     category: str = Query(default="free", pattern="^(free|question|all)$"),
     q: str = Query(default="", max_length=200),
     tag: str = Query(default="", max_length=40),
     sort: str = Query(default="latest", pattern="^(latest|popular)$"),
+    scope: str = Query(default="all", pattern="^(all|following)$"),
+    authorId: str = Query(default="", max_length=36),
     limit: int = Query(default=20, ge=1, le=50),
     offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
@@ -993,6 +1001,11 @@ def list_community_posts(
         statement = statement.where(CommunityPost.category == category)
     if blocked_ids:
         statement = statement.where(CommunityPost.user_id.not_in(blocked_ids))
+    if scope == "following":
+        statement = statement.where(CommunityPost.user_id.in_(following_ids_subquery(user.id)))
+    author_id = authorId.strip()
+    if author_id:
+        statement = statement.where(CommunityPost.user_id == author_id)
     query = q.strip()
     if query:
         pattern = f"%{query}%"
@@ -1037,16 +1050,20 @@ def community_engagement_score():
 @app.get("/api/v1/community/feed-meta", response_model=CommunityFeedMeta)
 def community_feed_meta(
     category: str = Query(default="free", pattern="^(free|question|all)$"),
+    scope: str = Query(default="all", pattern="^(all|following)$"),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> CommunityFeedMeta:
     blocked_ids = list(blocked_user_ids(db, user.id))
+    followed = following_ids_subquery(user.id) if scope == "following" else None
 
     count_statement = select(func.count()).select_from(CommunityPost)
     if category != "all":
         count_statement = count_statement.where(CommunityPost.category == category)
     if blocked_ids:
         count_statement = count_statement.where(CommunityPost.user_id.not_in(blocked_ids))
+    if followed is not None:
+        count_statement = count_statement.where(CommunityPost.user_id.in_(followed))
     post_count = db.scalar(count_statement) or 0
 
     unanswered = 0
@@ -1056,6 +1073,8 @@ def community_feed_meta(
             CommunityPost.category == "question", ~has_comment.exists())
         if blocked_ids:
             statement = statement.where(CommunityPost.user_id.not_in(blocked_ids))
+        if followed is not None:
+            statement = statement.where(CommunityPost.user_id.in_(followed))
         unanswered = db.scalar(statement) or 0
 
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
@@ -1064,6 +1083,8 @@ def community_feed_meta(
         hot_statement = hot_statement.where(CommunityPost.category == category)
     if blocked_ids:
         hot_statement = hot_statement.where(CommunityPost.user_id.not_in(blocked_ids))
+    if followed is not None:
+        hot_statement = hot_statement.where(CommunityPost.user_id.in_(followed))
     hot = db.scalars(hot_statement.order_by(
         community_engagement_score().desc(), CommunityPost.created_at.desc()).limit(1)).first()
     return CommunityFeedMeta(
@@ -1416,6 +1437,83 @@ def toggle_follow(
         following=following,
         followerCount=count_followers(db, target_user_id),
         followingCount=count_following(db, user.id),
+    )
+
+
+@app.get("/api/v1/community/users/{target_user_id}", response_model=CommunityUserProfile)
+def community_user_profile(
+    target_user_id: str,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> CommunityUserProfile:
+    target = db.get(User, target_user_id)
+    if target is None or not target.is_active:
+        raise HTTPException(status_code=404, detail="User not found")
+    blocked = community_blocked(db, user.id, target_user_id)
+    post_count = db.scalar(
+        select(func.count()).select_from(CommunityPost).where(CommunityPost.user_id == target_user_id)
+    ) or 0
+    comment_count = db.scalar(
+        select(func.count()).select_from(CommunityComment).where(CommunityComment.user_id == target_user_id)
+    ) or 0
+    return CommunityUserProfile(
+        profile=profile_summary(db, target, user),
+        postCount=post_count,
+        commentCount=comment_count,
+        isMe=target_user_id == user.id,
+        isBlocked=blocked,
+    )
+
+
+def follow_list_response(
+    db: Session, viewer: User, edge_column, filter_column, target_user_id: str, limit: int, offset: int
+) -> FollowListResponse:
+    """Page through one side of the follow graph, hiding accounts blocked in either direction."""
+    if db.get(User, target_user_id) is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    excluded = blocked_user_ids(db, viewer.id)
+    statement = (
+        select(User)
+        .join(Follow, edge_column == User.id)
+        .where(filter_column == target_user_id)
+        .order_by(Follow.created_at.desc())
+    )
+    if excluded:
+        statement = statement.where(User.id.not_in(list(excluded)))
+    total = db.scalar(
+        select(func.count()).select_from(statement.order_by(None).subquery())
+    ) or 0
+    rows = list(db.scalars(statement.offset(offset).limit(limit)))
+    return FollowListResponse(
+        users=[profile_summary(db, item, viewer) for item in rows],
+        total=total,
+        hasMore=offset + len(rows) < total,
+    )
+
+
+@app.get("/api/v1/community/users/{target_user_id}/followers", response_model=FollowListResponse)
+def list_followers(
+    target_user_id: str,
+    limit: int = Query(default=30, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> FollowListResponse:
+    return follow_list_response(
+        db, user, Follow.follower_id, Follow.following_id, target_user_id, limit, offset
+    )
+
+
+@app.get("/api/v1/community/users/{target_user_id}/following", response_model=FollowListResponse)
+def list_following(
+    target_user_id: str,
+    limit: int = Query(default=30, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> FollowListResponse:
+    return follow_list_response(
+        db, user, Follow.following_id, Follow.follower_id, target_user_id, limit, offset
     )
 
 
@@ -2604,6 +2702,7 @@ def auth_response(user: User, db: Session) -> AuthResponse:
     nickname = user.nickname or user.display_name or user.email.split("@")[0]
     return AuthResponse(
         accessToken=create_access_token(user),
+        userId=user.id,
         email=user.email,
         displayName=user.display_name,
         nickname=nickname,

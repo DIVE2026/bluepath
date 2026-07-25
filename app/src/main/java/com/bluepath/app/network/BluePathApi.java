@@ -70,6 +70,8 @@ public interface BluePathApi {
             @Query("q") String query,
             @Query("tag") String tag,
             @Query("sort") String sort,
+            @Query("scope") String scope,
+            @Query("authorId") String authorId,
             @Query("limit") int limit,
             @Query("offset") int offset
     );
@@ -77,7 +79,8 @@ public interface BluePathApi {
     @GET("api/v1/community/feed-meta")
     Call<ApiModels.CommunityFeedMetaDto> communityFeedMeta(
             @Header("Authorization") String authorization,
-            @Query("category") String category
+            @Query("category") String category,
+            @Query("scope") String scope
     );
 
     @POST("api/v1/community/posts/{postId}/accept/{commentId}")
@@ -162,6 +165,28 @@ public interface BluePathApi {
     Call<ApiModels.FollowResponse> toggleFollow(
             @Header("Authorization") String authorization,
             @Path("userId") String userId
+    );
+
+    @GET("api/v1/community/users/{userId}")
+    Call<ApiModels.CommunityUserProfileDto> communityUserProfile(
+            @Header("Authorization") String authorization,
+            @Path("userId") String userId
+    );
+
+    @GET("api/v1/community/users/{userId}/followers")
+    Call<ApiModels.FollowListResponse> communityFollowers(
+            @Header("Authorization") String authorization,
+            @Path("userId") String userId,
+            @Query("limit") int limit,
+            @Query("offset") int offset
+    );
+
+    @GET("api/v1/community/users/{userId}/following")
+    Call<ApiModels.FollowListResponse> communityFollowing(
+            @Header("Authorization") String authorization,
+            @Path("userId") String userId,
+            @Query("limit") int limit,
+            @Query("offset") int offset
     );
 
     @GET("api/v1/catalog")

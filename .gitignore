@@ -18,6 +18,7 @@ backend/.env
 
 __pycache__/
 .pytest_cache/
+.venv/
 *.pyc
 *.db
 finetuning/output/
