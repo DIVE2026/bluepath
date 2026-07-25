@@ -7,7 +7,8 @@
     "target": "전체",
     "category": "공연",
     "description": "국가대표 마술사들이 펼치는 마술의 향연",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-002",
@@ -17,7 +18,8 @@
     "target": "전체",
     "category": "공연",
     "description": "사운드와 마술, 마임이 어우러진 퍼포먼스",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-003",
@@ -27,7 +29,8 @@
     "target": "전체",
     "category": "공연",
     "description": "마술과 뮤지컬이 어우러진 어린이 마술뮤지컬",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-004",
@@ -37,7 +40,8 @@
     "target": "전체",
     "category": "공연",
     "description": "사운드와 마술, 마임이 어우러진 퍼포먼스",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-005",
@@ -47,7 +51,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "독도모습과 주변 바다에서 일어나는 해양현상, 생태계 변화를 실감나게 체험 할 수 있는 독도 가상체험 시뮬레이션",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 60
   },
   {
     "id": "museum-event-006",
@@ -57,7 +62,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '아이스에이지 1'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-007",
@@ -67,7 +73,8 @@
     "target": "전체",
     "category": "공연",
     "description": "최신 레이저 장비를 이용한 화려한 레이저매직쇼",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-008",
@@ -77,7 +84,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '꿈의 몰디브'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-009",
@@ -87,17 +95,19 @@
     "target": "전체",
     "category": "공연",
     "description": "음악과 율동이 어우러진 어린이연극에 마술까지 더해진 마술 뮤지컬",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-010",
     "title": "2월 무료영화상영 “해양가족극장”",
     "startDate": "2013-02-01",
-    "endDate": "2013-01-31",
+    "endDate": "2013-02-01",
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '토르-마법망치의 전설 (애니메이션)'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-011",
@@ -107,7 +117,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '해피 피트2'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-012",
@@ -117,7 +128,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '어메이징 어드벤처 원라이프'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-013",
@@ -127,7 +139,8 @@
     "target": "전체",
     "category": "체험",
     "description": "MBC 다큐멘터리 『남극의 눈물』의 생생한 방송 제작 체험담을 공유",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-014",
@@ -137,7 +150,8 @@
     "target": "전체",
     "category": "행사",
     "description": "바다를 소재로 한 노래를 불러보며 발성 및 호흡법, 음정 및 박자 연습 등 교습",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-015",
@@ -147,7 +161,8 @@
     "target": "성인",
     "category": "행사",
     "description": "바다를 소재로 한 노래를 불러보며 발성 및 호흡법, 음정 및 박자 연습 등 교습",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-016",
@@ -167,7 +182,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '서핑업'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-018",
@@ -177,7 +193,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '위대한 곰'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-019",
@@ -187,7 +204,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '혹등고래의 노래'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-020",
@@ -197,7 +215,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '아기기린 자라파'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-021",
@@ -207,7 +226,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '스시로드'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-022",
@@ -217,7 +237,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '샤크'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-023",
@@ -227,7 +248,8 @@
     "target": "전체",
     "category": "행사",
     "description": "역사적 사실로 본 독도에 대한 강연",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-024",
@@ -237,7 +259,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '파퍼씨네 펭귄들'",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-025",
@@ -247,7 +270,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '새비의 어드벤쳐2'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-026",
@@ -257,7 +281,8 @@
     "target": "전체",
     "category": "행사",
     "description": "7명의 아동이 성탄절에 가장 이루고 싶은 소원을 이야기하고, 친구들과 그 마음을 노래로 표현",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
   },
   {
     "id": "museum-event-027",
@@ -267,7 +292,8 @@
     "target": "성인",
     "category": "공연",
     "description": "클래식 및 가곡/국악, 창작 뮤지컬 등 공연",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 40
   },
   {
     "id": "museum-event-028",
@@ -277,7 +303,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-029",
@@ -287,7 +314,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-030",
@@ -297,7 +325,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-031",
@@ -307,7 +336,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-032",
@@ -317,7 +347,8 @@
     "target": "전체",
     "category": "행사",
     "description": "학예사와 함께하는 갤러리토크 '바다와 만난 이야기'",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 15
   },
   {
     "id": "museum-event-033",
@@ -327,7 +358,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '님스 아일랜드2'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-034",
@@ -337,7 +369,8 @@
     "target": "전체",
     "category": "행사",
     "description": "실종, 유괴 예방 막대 인형극",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-035",
@@ -347,7 +380,8 @@
     "target": "전체",
     "category": "행사",
     "description": "항해에 필요한 여러 가지 장비와 그 사용법을 통해 드넓고 안전한 바다를 꿈꾸는 장을 마련",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
   },
   {
     "id": "museum-event-036",
@@ -357,7 +391,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '오션 원더랜드'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-037",
@@ -417,7 +452,8 @@
     "target": "전체",
     "category": "행사",
     "description": "해양문학을 통해 한국과 서양의 바다에 대한 생각을 알아보는 시간",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
   },
   {
     "id": "museum-event-043",
@@ -427,7 +463,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '서핑 업'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-044",
@@ -437,7 +474,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "해양문화가 있는 날' 기념 영화 상영 '바람의 파이터'",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-045",
@@ -447,7 +485,8 @@
     "target": "전체",
     "category": "영화·영상",
     "description": "모두가 즐길 수 있는 영화 상영 '라이프 오브 파이'등",
-    "source": "국립해양박물관 교육행사 운영 데이터"
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
   },
   {
     "id": "museum-event-046",
@@ -497,6 +536,3197 @@
     "target": "전체",
     "category": "행사",
     "description": "해리, 해나와 사진찍기 등 행사 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0051",
+    "title": "9월 영화 상영 안내",
+    "startDate": "2014-09-06",
+    "endDate": "2014-09-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '라이프 오브 파이'등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0052",
+    "title": "9월 해양 문화가 있는 날",
+    "startDate": "2014-09-24",
+    "endDate": "2014-09-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '7번방의 선물'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0053",
+    "title": "10월 해양가족극장",
+    "startDate": "2014-10-01",
+    "endDate": "2014-10-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '코리아'등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0054",
+    "title": "[본선]바다사랑 어린이 동요대회",
+    "startDate": "2014-10-26",
+    "endDate": "2014-10-26",
+    "target": "전체",
+    "category": "행사",
+    "description": "바다 사랑 어린이 동요 대회 모집기간 본선",
     "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0055",
+    "title": "해양체험제전「海품날」",
+    "startDate": "2014-10-25",
+    "endDate": "2014-10-25",
+    "target": "전체",
+    "category": "체험",
+    "description": "우리 배 만들기, 내가 그리는 바다이야기, 바다 사랑 글짓기, 그림 그리기 대회",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0056",
+    "title": "청소년어울림마당",
+    "startDate": "2014-10-19",
+    "endDate": "2014-10-19",
+    "target": "전체",
+    "category": "공연",
+    "description": "상담·체험부스 운영, 문화공연, 청소년 1분 발언대 등",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0057",
+    "title": "연합체험한마당",
+    "startDate": "2014-10-18",
+    "endDate": "2014-10-18",
+    "target": "전체",
+    "category": "체험",
+    "description": "국립해양박물관에서는 우리나라 대표 한선인 '조선통신사선' 모형만들기를 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0058",
+    "title": "[예선]바다사랑 어린이동요대회",
+    "startDate": "2014-10-17",
+    "endDate": "2014-10-17",
+    "target": "전체",
+    "category": "행사",
+    "description": "바다 사랑 어린이 동요 대회 모집기간 연장",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0059",
+    "title": "10월 해양 문화가 있는 날",
+    "startDate": "2014-10-29",
+    "endDate": "2014-10-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '관상'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0060",
+    "title": "11월 해양가족극장",
+    "startDate": "2014-11-01",
+    "endDate": "2014-11-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '유령'등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0061",
+    "title": "11월 해양 문화가 있는 날",
+    "startDate": "2014-11-26",
+    "endDate": "2014-11-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '최종병기 활'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0062",
+    "title": "12월 해양가족극장",
+    "startDate": "2014-12-01",
+    "endDate": "2014-12-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '완득이'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0063",
+    "title": "송년 바다사랑 작은음악회",
+    "startDate": "2014-12-20",
+    "endDate": "2014-12-20",
+    "target": "전체",
+    "category": "공연",
+    "description": "미니오케스트라의 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0064",
+    "title": "12월 해양문화가 있는 날",
+    "startDate": "2014-12-31",
+    "endDate": "2014-12-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '완득이'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0065",
+    "title": "1월 해양가족극장",
+    "startDate": "2015-01-01",
+    "endDate": "2015-01-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '고래를 찾는 자전거'등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0066",
+    "title": "1월 해양 문화가 있는 날",
+    "startDate": "2015-01-28",
+    "endDate": "2015-01-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '원챈스'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0067",
+    "title": "2월 해양가족극장",
+    "startDate": "2015-02-07",
+    "endDate": "2015-02-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '남극의 쉐프'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0068",
+    "title": "설날특선 영화상영",
+    "startDate": "2015-02-18",
+    "endDate": "2015-02-22",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '미스터 고' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0069",
+    "title": "한복 다이버 피딩쇼",
+    "startDate": "2015-02-18",
+    "endDate": "2015-02-22",
+    "target": "전체",
+    "category": "공연",
+    "description": "물고기 먹이주기 쇼",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0070",
+    "title": "한복입은 해리ㆍ해나와 사진찍기",
+    "startDate": "2015-02-18",
+    "endDate": "2015-02-21",
+    "target": "전체",
+    "category": "행사",
+    "description": "한복입은 해리, 해나와 사진찍기 등 행사 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0071",
+    "title": "전통공연 '우리가락 한마당'",
+    "startDate": "2015-02-20",
+    "endDate": "2015-02-20",
+    "target": "전체",
+    "category": "공연",
+    "description": "희망찬 소리와 함께하는 신명나는 우리가락 한마당",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0072",
+    "title": "해양 병풍ㆍ족자 만들기",
+    "startDate": "2015-02-19",
+    "endDate": "2015-02-19",
+    "target": "전체",
+    "category": "체험",
+    "description": "미니어쳐 병풍, 족자를 만들고 바다와 관련된 그림 그리기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0073",
+    "title": "2월 해양문화가 있는 날",
+    "startDate": "2015-02-25",
+    "endDate": "2015-02-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '바람과 함께 사라지다'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0074",
+    "title": "제2기 대학생기자단 발대식",
+    "startDate": "2015-02-27",
+    "endDate": "2015-02-27",
+    "target": "전체",
+    "category": "행사",
+    "description": "기자단 발대식",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0075",
+    "title": "2월 해양가족극장",
+    "startDate": "2015-02-07",
+    "endDate": "2015-02-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '남극의 쉐프'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0076",
+    "title": "3월 해양가족극장",
+    "startDate": "2015-03-07",
+    "endDate": "2015-03-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '업' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0077",
+    "title": "3월 해양 문화가 있는 날",
+    "startDate": "2015-03-25",
+    "endDate": "2015-03-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '변호인'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0078",
+    "title": "해운대ㆍ동래교육지원청 업무 협약 체결식",
+    "startDate": "2015-03-26",
+    "endDate": "2015-03-26",
+    "target": "전체",
+    "category": "행사",
+    "description": "해양에 대한 미래비전과 바른 인성을 갖춘 인재를 양성하기 위하여 협약을 체결",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0079",
+    "title": "4월 해양가족극장",
+    "startDate": "2015-04-04",
+    "endDate": "2015-04-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '해운대' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0080",
+    "title": "4월 해양 문화가 있는 날",
+    "startDate": "2015-04-29",
+    "endDate": "2015-04-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '천군'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0081",
+    "title": "5월 해양가족극장",
+    "startDate": "2015-05-02",
+    "endDate": "2015-05-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '휴고' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0082",
+    "title": "어린이날 특별행사",
+    "startDate": "2015-05-05",
+    "endDate": "2015-05-05",
+    "target": "전체",
+    "category": "행사",
+    "description": "해리, 해나와 사진찍기 등 행사 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0083",
+    "title": "「바다사랑 작은음악회」",
+    "startDate": "2015-05-03",
+    "endDate": "2015-05-03",
+    "target": "전체",
+    "category": "공연",
+    "description": "현악 4중주단 인연 팀의 연주와 해설",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0084",
+    "title": "창작 바다노래 공모전 본선",
+    "startDate": "2015-05-09",
+    "endDate": "2015-05-09",
+    "target": "전체",
+    "category": "공연",
+    "description": "바다를 소재로 제작된 미발표 음원 공모",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0085",
+    "title": "5월 해양 문화가 있는 날",
+    "startDate": "2015-05-27",
+    "endDate": "2015-05-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '사운드 오브 뮤직'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0086",
+    "title": "석가탄신일 행사 [연등만들기]",
+    "startDate": "2015-05-25",
+    "endDate": "2015-05-25",
+    "target": "전체",
+    "category": "체험",
+    "description": "한지를 이용한 물고기 모양 연등 만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 10
+  },
+  {
+    "id": "museum-event-src-0087",
+    "title": "6월 해양가족극장",
+    "startDate": "2015-06-06",
+    "endDate": "2015-06-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '고지전' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0088",
+    "title": "6월 해양 문화가 있는 날",
+    "startDate": "2015-06-24",
+    "endDate": "2015-06-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '공동경비구역 JSA'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0089",
+    "title": "7월 해양가족극장",
+    "startDate": "2015-07-04",
+    "endDate": "2015-07-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '레미제라블' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0090",
+    "title": "7월 해양 문화가 있는 날",
+    "startDate": "2015-07-29",
+    "endDate": "2015-07-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '드리프트'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0091",
+    "title": "8월 해양가족극장",
+    "startDate": "2015-08-01",
+    "endDate": "2015-08-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '니모를 찾아서' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0092",
+    "title": "8월 해양 문화가 있는 날",
+    "startDate": "2015-08-26",
+    "endDate": "2015-08-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '메피스토'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0093",
+    "title": "한국학콘서트",
+    "startDate": "2015-09-11",
+    "endDate": "2015-09-11",
+    "target": "전체",
+    "category": "공연",
+    "description": "디지털부산역사문화대전' 시연회 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0094",
+    "title": "9월 해양가족극장",
+    "startDate": "2015-09-05",
+    "endDate": "2015-09-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '마당을 나온 암탉' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0095",
+    "title": "추석맞이 민속 문화 행사",
+    "startDate": "2015-09-26",
+    "endDate": "2015-09-29",
+    "target": "전체",
+    "category": "공연",
+    "description": "한복 다이버 피딩쇼 등 문화행사",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0096",
+    "title": "물고기 풍경 만들기",
+    "startDate": "2015-09-28",
+    "endDate": "2015-09-28",
+    "target": "전체",
+    "category": "체험",
+    "description": "물고기 모양을 활용하여 풍경 만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0097",
+    "title": "10월 해양가족극장",
+    "startDate": "2015-10-01",
+    "endDate": "2015-10-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '신기전' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0098",
+    "title": "10월 해양 문화가 있는 날",
+    "startDate": "2015-10-28",
+    "endDate": "2015-10-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '마술피리'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0099",
+    "title": "우리 수산물 홍보 행사 「바다 한입」",
+    "startDate": "2015-10-29",
+    "endDate": "2015-11-07",
+    "target": "전체",
+    "category": "행사",
+    "description": "학습지 수령 후 답안 작성하여 경품 추첨",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 250
+  },
+  {
+    "id": "museum-event-src-0100",
+    "title": "11월 해양가족극장",
+    "startDate": "2015-11-07",
+    "endDate": "2015-11-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '해양경찰 마르코' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0101",
+    "title": "해군 문화 체험 행사",
+    "startDate": "2015-11-10",
+    "endDate": "2015-11-15",
+    "target": "전체",
+    "category": "체험",
+    "description": "해군창설일 기념 군악대 연주회를 비롯해 다채로운 행사",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0102",
+    "title": "제2차 우리 수산물 홍보 행사",
+    "startDate": "2015-11-08",
+    "endDate": "2015-11-25",
+    "target": "전체",
+    "category": "행사",
+    "description": "학습지 수령 후 답안 작성하여 경품 추첨",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0103",
+    "title": "11월 해양 문화가 있는 날",
+    "startDate": "2015-11-25",
+    "endDate": "2015-11-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '호두까기인형'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0104",
+    "title": "12월 해양가족극장",
+    "startDate": "2015-12-05",
+    "endDate": "2015-12-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '허삼관' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0105",
+    "title": "12월 「해양 문화가 있는 날」",
+    "startDate": "2015-12-30",
+    "endDate": "2015-12-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '춤이 말하다'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0106",
+    "title": "신년문화공연 「그림자극으로 만나는 창부타령 」",
+    "startDate": "2016-01-01",
+    "endDate": "2016-01-01",
+    "target": "전체",
+    "category": "공연",
+    "description": "그림자극으로 만나는 창부타령",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0107",
+    "title": "1월 해양가족극장",
+    "startDate": "2016-01-02",
+    "endDate": "2016-01-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '꼬마잠수함 올리' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0108",
+    "title": "1월 해양 문화가 있는 날",
+    "startDate": "2016-01-27",
+    "endDate": "2016-01-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '미워도 다시한번'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0109",
+    "title": "설맞이 문화행사",
+    "startDate": "2016-02-06",
+    "endDate": "2016-02-10",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "새해 윷점풀이, 설날 영화 상영 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0110",
+    "title": "동래학춤 배우기",
+    "startDate": "2016-02-09",
+    "endDate": "2016-02-09",
+    "target": "초등",
+    "category": "공연",
+    "description": "명인에게 학춤을 배우고 즉석에서 함께 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0111",
+    "title": "2월 해양가족극장",
+    "startDate": "2016-02-06",
+    "endDate": "2016-02-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '조선명탐정:사라진 놉의 딸' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0112",
+    "title": "2월 「해양 문화가 있는 날」",
+    "startDate": "2016-02-24",
+    "endDate": "2016-02-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '저하늘에도 슬픔이'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0113",
+    "title": "3월 해양가족극장",
+    "startDate": "2016-03-05",
+    "endDate": "2016-03-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '행복을 찾아서' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0114",
+    "title": "3월 「해양 문화가 있는 날」",
+    "startDate": "2016-03-30",
+    "endDate": "2016-03-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '서편제'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0115",
+    "title": "4월 「해양가족극장」",
+    "startDate": "2016-04-02",
+    "endDate": "2016-04-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '신데렐라' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0116",
+    "title": "[법인1주년 기념 특별강연] 작가와의 만남 「징비록: 지옥의 전쟁 그리고 반성의 기록」",
+    "startDate": "2016-04-20",
+    "endDate": "2016-04-20",
+    "target": "전체",
+    "category": "강연",
+    "description": "김홍식 작가와의 만남",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0117",
+    "title": "[생명의 바다 그림대회 연계]전시해설 프로그램(초등학생)",
+    "startDate": "2016-04-16",
+    "endDate": "2016-04-24",
+    "target": "초등",
+    "category": "전시",
+    "description": "해양에 대해 공부하고 그림에 대한 아이디어 얻기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0118",
+    "title": "[생명의 바다 그림대회 연계]전시해설 프로그램(중고등학생)",
+    "startDate": "2016-04-17",
+    "endDate": "2016-04-24",
+    "target": "청소년",
+    "category": "전시",
+    "description": "해양에 대해 공부하고 그림에 대한 아이디어 얻기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0119",
+    "title": "4월 해양 문화가 있는 날",
+    "startDate": "2016-04-27",
+    "endDate": "2016-04-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '귀로'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0120",
+    "title": "5월 해양가족극장",
+    "startDate": "2016-05-05",
+    "endDate": "2016-05-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '스폰지밥(극장판)' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0121",
+    "title": "[어린이날 행사] 바다사랑 재활용품 동력 배 만들기",
+    "startDate": "2016-05-05",
+    "endDate": "2016-05-05",
+    "target": "전체",
+    "category": "체험",
+    "description": "바다 쓰레기로 많이 나오는 생활쓰레기인 페트병을 활용하여 고무동력 배 제작",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0122",
+    "title": "해설이 있는 도서관 속 갤러리 토크",
+    "startDate": "2016-05-05",
+    "endDate": "2016-05-14",
+    "target": "전체",
+    "category": "전시",
+    "description": "해설과 함께 국립해양박물관 해양도서관에서 갤러리 토크",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0123",
+    "title": "5월 「해양 문화가 있는 날」",
+    "startDate": "2016-05-25",
+    "endDate": "2016-05-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '고교 얄개'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0124",
+    "title": "6월 「해양가족극장」",
+    "startDate": "2016-06-04",
+    "endDate": "2016-06-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '명량' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0125",
+    "title": "제9회 「부산항축제」",
+    "startDate": "2016-05-28",
+    "endDate": "2016-05-29",
+    "target": "전체",
+    "category": "행사",
+    "description": "부산항 스탬프 투어, 해양 런닝맨 미션 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0126",
+    "title": "독도전문가와 함께하는 ‘우리 바다로, 독도로’ (A석)",
+    "startDate": "2016-06-25",
+    "endDate": "2016-06-26",
+    "target": "성인",
+    "category": "행사",
+    "description": "울릉도와 독도를 탐방하고 해양문화 강좌 수강",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 17
+  },
+  {
+    "id": "museum-event-src-0127",
+    "title": "독도전문가와 함께하는 ‘우리 바다로, 독도로’(B석)",
+    "startDate": "2016-06-25",
+    "endDate": "2016-06-26",
+    "target": "성인",
+    "category": "행사",
+    "description": "울릉도와 독도를 탐방하고 해양문화 강좌 수강",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 6
+  },
+  {
+    "id": "museum-event-src-0128",
+    "title": "국립해양박물관과 함께하는 해양문화체험 「부산 바다로」",
+    "startDate": "2016-04-06",
+    "endDate": "2016-08-31",
+    "target": "전체",
+    "category": "체험",
+    "description": "국립해양박물관, 태종대, 자갈치시장 등을 체험하는 문화체험 프로그램",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0129",
+    "title": "바다를 품은 책 : 자산어보 / 손택수 작가와의 만남",
+    "startDate": "2016-07-06",
+    "endDate": "2016-07-07",
+    "target": "전체",
+    "category": "행사",
+    "description": "자산어보 손택수 작가와의 만남",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0130",
+    "title": "7월 해양가족극장",
+    "startDate": "2016-07-02",
+    "endDate": "2016-07-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '돌핀테일2', '닌자터틀1' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0131",
+    "title": "국립부산국악원과 함께하는 「전통문화가 있는 날」",
+    "startDate": "2016-06-29",
+    "endDate": "2016-06-29",
+    "target": "전체",
+    "category": "공연",
+    "description": "풍류음악, 궁중무용 등 연주",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0132",
+    "title": "청소년 해양역사 만들기 대회",
+    "startDate": "2016-07-30",
+    "endDate": "2016-07-30",
+    "target": "청소년",
+    "category": "체험",
+    "description": "해양역사 의식 고취 위해 거북선 조립 및 글짓기 대회 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 200
+  },
+  {
+    "id": "museum-event-src-0133",
+    "title": "바다 복(福) 받아가세요!",
+    "startDate": "2016-07-17",
+    "endDate": "2016-08-14",
+    "target": "전체",
+    "category": "행사",
+    "description": "재미있는 미션을 수행하고 경품 수령",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 250
+  },
+  {
+    "id": "museum-event-src-0134",
+    "title": "로봇물고기 경진대회",
+    "startDate": "2016-08-22",
+    "endDate": "2016-08-23",
+    "target": "청소년",
+    "category": "행사",
+    "description": "로봇물고기를 주제로 구동원리 학습 및 창의적인 물고기 제작활동",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0135",
+    "title": "7월 해양 문화가 있는 날",
+    "startDate": "2016-07-27",
+    "endDate": "2016-07-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '피서지에서 생긴 일'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0136",
+    "title": "8월 해양가족극장",
+    "startDate": "2016-08-06",
+    "endDate": "2016-08-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '족구왕', '땡큐대디' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0137",
+    "title": "수산물 원산지 표시제도 퀴즈 골든벨",
+    "startDate": "2016-08-05",
+    "endDate": "2016-08-05",
+    "target": "초등",
+    "category": "체험",
+    "description": "국립수산물품질관리원과 함께하는 수산물 원산지 표시제도 퀴즈 골든벨",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0138",
+    "title": "푸른바다거북 방류 행사",
+    "startDate": "2016-08-12",
+    "endDate": "2016-08-12",
+    "target": "전체",
+    "category": "공연",
+    "description": "푸른바다거북(1미) 및 치어(감성돔 1000미) 방류, 축하공연(수궁가)",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0139",
+    "title": "야외 영화상영",
+    "startDate": "2016-08-20",
+    "endDate": "2016-08-20",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 야외 상영 '계춘할망'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 400
+  },
+  {
+    "id": "museum-event-src-0140",
+    "title": "가족마당극 「바다로 간 토끼」",
+    "startDate": "2016-08-25",
+    "endDate": "2016-08-27",
+    "target": "전체",
+    "category": "공연",
+    "description": "가족마당극 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0141",
+    "title": "부산시립국악관현악단과 한판 놀아봅시다~ 얼씨구~!!",
+    "startDate": "2016-09-03",
+    "endDate": "2016-09-03",
+    "target": "전체",
+    "category": "공연",
+    "description": "국립해양박물관 관람객 500만명 돌파기념 축하공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0142",
+    "title": "얌모얌모 콘서트",
+    "startDate": "2016-08-31",
+    "endDate": "2016-08-31",
+    "target": "전체",
+    "category": "공연",
+    "description": "극단 예가 얌모얌모콘서트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0143",
+    "title": "9월 해양가족극장",
+    "startDate": "2016-09-10",
+    "endDate": "2016-09-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '로마의 휴일' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0144",
+    "title": "책과 함께 하는 빛그림 공연",
+    "startDate": "2016-09-04",
+    "endDate": "2016-09-07",
+    "target": "전체",
+    "category": "공연",
+    "description": "빛그림 공연과 옛이야기 노래를 직접 불러보는 시간",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0145",
+    "title": "영화와 함께하는 도서관",
+    "startDate": "2016-09-16",
+    "endDate": "2016-09-16",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '릴로&스티치'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0146",
+    "title": "한가위 문화행사",
+    "startDate": "2016-09-14",
+    "endDate": "2016-09-18",
+    "target": "전체",
+    "category": "공연",
+    "description": "한가위 국악한마당, 한가위 민속놀이 한마당 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0147",
+    "title": "나만의 그림책 만들기",
+    "startDate": "2016-09-22",
+    "endDate": "2016-09-22",
+    "target": "초등 8-11세",
+    "category": "체험",
+    "description": "‘어린이 세계 명작’ 결말을 자유롭게 재구성하여 창의적인 나만의 그림책을 제작",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 15
+  },
+  {
+    "id": "museum-event-src-0148",
+    "title": "해양도서관, 독서의 달 행사",
+    "startDate": "2016-09-03",
+    "endDate": "2016-09-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "공연, 가족 애니메이션 상영, 그림책 만들기 체험 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0149",
+    "title": "바다생물을 찾자!",
+    "startDate": "2016-09-23",
+    "endDate": "2016-09-23",
+    "target": "전체",
+    "category": "체험",
+    "description": "도서관 자료검색 체험을 통해 해양도서관에서 소장하고 있는 도서 찾기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0150",
+    "title": "한가위 가족 제기왕 선발대회",
+    "startDate": "2016-09-17",
+    "endDate": "2016-09-17",
+    "target": "전체",
+    "category": "행사",
+    "description": "추석을 맞아 '한가위 가족 제기왕 선발대회'를 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0151",
+    "title": "도서관 이용자 교육",
+    "startDate": "2016-09-27",
+    "endDate": "2016-09-28",
+    "target": "전체",
+    "category": "행사",
+    "description": "도서관 자료검색, 활용 및 웹자료 이용교육",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 15
+  },
+  {
+    "id": "museum-event-src-0152",
+    "title": "9월 해양문화가 있는 날",
+    "startDate": "2016-09-28",
+    "endDate": "2016-09-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '티파니에서 아침을'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0153",
+    "title": "10월 해양가족극장",
+    "startDate": "2016-10-01",
+    "endDate": "2016-10-22",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '라푼젤', '라이온킹' 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0154",
+    "title": "[과학연극]우당탕 해양 과학탐험대",
+    "startDate": "2016-10-27",
+    "endDate": "2016-10-29",
+    "target": "전체",
+    "category": "공연",
+    "description": "독도, 남극지와 현장중계 흥미진진 과학연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0155",
+    "title": "10월 해양문화가 있는 날",
+    "startDate": "2016-10-26",
+    "endDate": "2016-10-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '전국 노래자랑'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0156",
+    "title": "[과학연극]우당탕 해양 과학탐험대_정기공연",
+    "startDate": "2016-11-03",
+    "endDate": "2016-12-03",
+    "target": "전체",
+    "category": "공연",
+    "description": "독도, 남극지와 현장중계 흥미진진 과학연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0157",
+    "title": "바다인형극 보러 박물관 가자!(토끼와 자라의 용궁이야기)",
+    "startDate": "2016-11-09",
+    "endDate": "2016-12-27",
+    "target": "전체",
+    "category": "공연",
+    "description": "토끼와 자라의 용궁이야기 연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0158",
+    "title": "[해양문화체험프로그램] 부산 바다로!",
+    "startDate": "2016-11-23",
+    "endDate": "2016-12-07",
+    "target": "해양문화소외계층/단체",
+    "category": "체험",
+    "description": "국립해양박물관, 새누리호 승선 등을 체험하는 문화체험 프로그램",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0159",
+    "title": "W-SCIENCE 페스티벌 [천문도 배경 캐리커쳐를 그려드립니다]",
+    "startDate": "2016-11-19",
+    "endDate": "2016-11-19",
+    "target": "전체",
+    "category": "행사",
+    "description": "천문도 배경 캐리커쳐",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 40
+  },
+  {
+    "id": "museum-event-src-0160",
+    "title": "11월 해양 문화가 있는 날",
+    "startDate": "2016-11-30",
+    "endDate": "2016-11-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '80일간의 세계일주'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0161",
+    "title": "12월 해양가족극장",
+    "startDate": "2016-12-10",
+    "endDate": "2016-12-10",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '눈의 여왕: 트롤의 마법거울'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0162",
+    "title": "북극의 자연과 삶의 모습을 전하는 다큐멘터리 상영",
+    "startDate": "2016-12-09",
+    "endDate": "2016-12-09",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 'People of a Feather', 'Nanook of the North'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0163",
+    "title": "송년문화공연 「문화로 따뜻한 오후」",
+    "startDate": "2016-12-25",
+    "endDate": "2016-12-25",
+    "target": "전체",
+    "category": "공연",
+    "description": "크리스마스 특별공연 매직쇼+샌드아트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0164",
+    "title": "발간 기념 특별초청 강연회",
+    "startDate": "2016-12-17",
+    "endDate": "2016-12-17",
+    "target": "성인",
+    "category": "강연",
+    "description": "발간 의의 및 18세기 프랑스 인들의 한국에 대한 시각",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 40
+  },
+  {
+    "id": "museum-event-src-0165",
+    "title": "12월 해양 문화가 있는 날",
+    "startDate": "2016-12-28",
+    "endDate": "2016-12-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '사랑의 블랙홀'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0166",
+    "title": "1월 해양가족극장",
+    "startDate": "2017-01-01",
+    "endDate": "2017-01-01",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '영상으로 만나는 유니버설발레단 심청'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0167",
+    "title": "[2017 설날문화행사] 즐겁게 복닭福닭",
+    "startDate": "2017-01-27",
+    "endDate": "2017-01-30",
+    "target": "전체",
+    "category": "공연",
+    "description": "전통 민속놀이 한마당, 한복 다이버피딩쇼 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0168",
+    "title": "1월 해양 문화가 있는 날",
+    "startDate": "2017-01-25",
+    "endDate": "2017-01-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '동주'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0169",
+    "title": "2월 해양 문화가 있는 날",
+    "startDate": "2017-02-22",
+    "endDate": "2017-02-22",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '파이란'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0170",
+    "title": "2월 일요극장",
+    "startDate": "2017-02-26",
+    "endDate": "2017-02-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '마술피리'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0171",
+    "title": "매일 만나보는 바다 인형극",
+    "startDate": "2017-03-14",
+    "endDate": "2017-03-31",
+    "target": "만 3세~ 초등 2학년",
+    "category": "공연",
+    "description": "토끼와 자라의 용궁이야기, 충치 해적왕 연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0172",
+    "title": "3월 일요극장",
+    "startDate": "2017-03-26",
+    "endDate": "2017-03-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 'Spirit of Beethoven'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0173",
+    "title": "3월 해양 문화가 있는 날",
+    "startDate": "2017-03-29",
+    "endDate": "2017-03-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '봉이 김선달'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0174",
+    "title": "「일리아스와 오뒷세이아」 해양인문학 명사초청 강연",
+    "startDate": "2017-04-25",
+    "endDate": "2017-04-25",
+    "target": "성인",
+    "category": "강연",
+    "description": "와 관련 해양인문학 강연 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0175",
+    "title": "바다인형극 「토끼와 자라의 용궁이야기」",
+    "startDate": "2017-04-22",
+    "endDate": "2017-04-22",
+    "target": "만 3세~ 초등 2학년",
+    "category": "공연",
+    "description": "토끼와 자라의 용궁이야기 연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0176",
+    "title": "[충무공이순신 탄신기념] 거북선 만들기 대회",
+    "startDate": "2017-04-29",
+    "endDate": "2017-04-29",
+    "target": "가족",
+    "category": "체험",
+    "description": "충무공이순신의 탄신을 기념하여 거북선 만들기 대회를 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0177",
+    "title": "[가정의달 행사] 조선마술사",
+    "startDate": "2017-05-03",
+    "endDate": "2017-05-06",
+    "target": "전체",
+    "category": "공연",
+    "description": "가정의 달 5월을 맞이하여 박물관에서 준비한 국악과 마술, 뮤지컬이 결합된 복합공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0178",
+    "title": "[독도3D 애니메이션]독도수비대 강치",
+    "startDate": "2017-04-18",
+    "endDate": "2017-12-31",
+    "target": "단체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0179",
+    "title": "[가정의달 행사]우리가족 소원담은 연등만들기",
+    "startDate": "2017-05-03",
+    "endDate": "2017-05-03",
+    "target": "가족",
+    "category": "체험",
+    "description": "석가탄신일을 맞아 가족과 함께 즐거운 연등 만들기 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 25
+  },
+  {
+    "id": "museum-event-src-0180",
+    "title": "[가정의달 행사]가족 딱지왕 선발대회",
+    "startDate": "2017-05-05",
+    "endDate": "2017-05-05",
+    "target": "가족",
+    "category": "행사",
+    "description": "어린이날을 맞아 온가족이 함께하는 가족 딱지왕 선발대회",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0181",
+    "title": "[가정의달 행사]프로그램 안내",
+    "startDate": "2017-04-29",
+    "endDate": "2017-05-07",
+    "target": "전체",
+    "category": "체험",
+    "description": "거북선 만들기 대회, 소원등 만들기 체험 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0182",
+    "title": "4월 문화가 있는 날",
+    "startDate": "2017-04-26",
+    "endDate": "2017-04-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영 '명량'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0183",
+    "title": "4월 일요극장",
+    "startDate": "2017-04-30",
+    "endDate": "2017-04-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영 '종묘제례악'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0184",
+    "title": "「수중고고학도서」전 - 바다 속 보물을 찾아서",
+    "startDate": "2017-04-28",
+    "endDate": "2017-05-26",
+    "target": "전체",
+    "category": "전시",
+    "description": "수중고고학 관련 소장도서 및 故김도현 박사 기증도서 전시회 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0185",
+    "title": "북콘서트",
+    "startDate": "2017-05-13",
+    "endDate": "2017-05-13",
+    "target": "전체",
+    "category": "공연",
+    "description": "김병근 저자와 함께하는 수중고고학으로의 초대",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0186",
+    "title": "5월 일요극장",
+    "startDate": "2017-05-21",
+    "endDate": "2017-05-21",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0187",
+    "title": "5월 해양문화가 있는 날",
+    "startDate": "2017-05-31",
+    "endDate": "2017-05-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0188",
+    "title": "「바다탐험대 옥토넛 시즌4」 상영",
+    "startDate": "2017-07-26",
+    "endDate": "2017-08-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0189",
+    "title": "6월 일요극장",
+    "startDate": "2017-06-25",
+    "endDate": "2017-06-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0190",
+    "title": "6월 해양 문화가 있는 날",
+    "startDate": "2017-06-28",
+    "endDate": "2017-06-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0191",
+    "title": "바닷속 민요 이야기",
+    "startDate": "2017-07-01",
+    "endDate": "2017-07-01",
+    "target": "전체",
+    "category": "공연",
+    "description": "민요 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0192",
+    "title": "7월 「해양 문화가 있는 날」",
+    "startDate": "2017-07-26",
+    "endDate": "2017-07-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0193",
+    "title": "7월 「일요극장」",
+    "startDate": "2017-07-30",
+    "endDate": "2017-07-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0194",
+    "title": "여름방학 국악캠프 「우리 뱃노래 배우기」",
+    "startDate": "2017-08-07",
+    "endDate": "2017-08-11",
+    "target": "청소년",
+    "category": "공연",
+    "description": "국립해양박물관 상주단체의 청소년 대상 뱃노래 교육",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0195",
+    "title": "김승진ㆍ엄홍길의 「독종 토크 콘서트」 - 대학생(대학원생 포함)",
+    "startDate": "2017-08-24",
+    "endDate": "2017-08-24",
+    "target": "성인",
+    "category": "공연",
+    "description": "기획전 기념 토크 콘서트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0196",
+    "title": "김승진ㆍ엄홍길의 「독종 토크 콘서트」 - 일반인",
+    "startDate": "2017-08-24",
+    "endDate": "2017-08-24",
+    "target": "성인",
+    "category": "공연",
+    "description": "기획전 기념 토크 콘서트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 200
+  },
+  {
+    "id": "museum-event-src-0197",
+    "title": "「북극곰 살리기」도서전시 - 북극곰의 삶과 터전 그리고 미래",
+    "startDate": "2017-08-11",
+    "endDate": "2017-09-29",
+    "target": "전체",
+    "category": "전시",
+    "description": "여름철 에너지 절약 운동의 일환으로 소장도서 전시전을 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0198",
+    "title": "2017 부산공연장 상주단체 페스티벌",
+    "startDate": "2017-08-22",
+    "endDate": "2017-08-22",
+    "target": "전체",
+    "category": "공연",
+    "description": "무용단, 극단 공연 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0199",
+    "title": "영화의전당과 함께하는 「야외 영화상영」",
+    "startDate": "2017-08-19",
+    "endDate": "2017-08-19",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "비긴어게인' 야외 영화상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0200",
+    "title": "김승진 선장의 갤러리 토크",
+    "startDate": "2017-08-22",
+    "endDate": "2017-08-23",
+    "target": "전체",
+    "category": "전시",
+    "description": "우리나라 최초로 단독ㆍ무기항ㆍ무원조 요트 세계일주를 성공한 선장의 세계일주 도전기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0201",
+    "title": "8월 「일요극장」",
+    "startDate": "2017-08-27",
+    "endDate": "2017-08-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0202",
+    "title": "8월 「해양 문화가 있는 날」",
+    "startDate": "2017-08-30",
+    "endDate": "2017-08-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0203",
+    "title": "부산시립국악관현악단 초청음악회 '영도의 가을'",
+    "startDate": "2017-09-02",
+    "endDate": "2017-09-02",
+    "target": "전체",
+    "category": "공연",
+    "description": "오륙도를 배경으로 펼치는 오감만족 음악향연",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0204",
+    "title": "「도시를 읽다 展」 - 독일도서관 건축스케치",
+    "startDate": "2017-09-05",
+    "endDate": "2017-09-24",
+    "target": "전체",
+    "category": "행사",
+    "description": "독일 내 여러 도시들을 여행하며 스케치로 재해석된 아름다운 독일 도서관 건축물",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0205",
+    "title": "「해저 2만리」 해양인문학 명사초청 강연",
+    "startDate": "2017-09-21",
+    "endDate": "2017-09-21",
+    "target": "전체",
+    "category": "체험",
+    "description": "노틸러스호의 경이로운 해저탐험기 ‘해저2만리’ 강연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0206",
+    "title": "9월 「일요극장」",
+    "startDate": "2017-09-24",
+    "endDate": "2017-09-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0207",
+    "title": "9월 「해양 문화가 있는 날」",
+    "startDate": "2017-09-27",
+    "endDate": "2017-09-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0208",
+    "title": "바닷속 민요 이야기",
+    "startDate": "2017-09-16",
+    "endDate": "2017-09-16",
+    "target": "전체",
+    "category": "공연",
+    "description": "민요 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 250
+  },
+  {
+    "id": "museum-event-src-0209",
+    "title": "[2017 추석문화행사] 판타스틱 매직 콘서트",
+    "startDate": "2017-10-05",
+    "endDate": "2017-10-08",
+    "target": "전체",
+    "category": "공연",
+    "description": "카드마술, 그림자쇼, 버블쇼가 결합된 온가족이 즐기는 마술콘서트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 150
+  },
+  {
+    "id": "museum-event-src-0210",
+    "title": "해양애니메이션 「꼬마해녀 몽니와 해녀특공대」",
+    "startDate": "2017-09-19",
+    "endDate": "2017-11-16",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0211",
+    "title": "[2017 추석문화행사]가족연희극 심청전 '청아'",
+    "startDate": "2017-10-06",
+    "endDate": "2017-10-06",
+    "target": "전체",
+    "category": "행사",
+    "description": "판소리 심청전을 재구성한 작품으로, 효에 대한 이야기'를 신명나게 풀어보는 퓨전 연희극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0212",
+    "title": "[바다인형극]크리스마스의 선물",
+    "startDate": "2017-10-19",
+    "endDate": "2017-12-22",
+    "target": "만3세~ 초등3학년",
+    "category": "행사",
+    "description": "바다인형극 '피터팬과 후크선장'과 '토끼와 자라의 용궁이야기'",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0213",
+    "title": "2017 추석문화행사 '한가위 큰잔치' 안내",
+    "startDate": "2017-09-30",
+    "endDate": "2017-10-09",
+    "target": "전체",
+    "category": "전시",
+    "description": "테마전시, 문화행사 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0214",
+    "title": "꽃이 피면 오마던 님은 - 해녀할멈의 패총팔찌",
+    "startDate": "2017-10-09",
+    "endDate": "2017-10-09",
+    "target": "전체",
+    "category": "공연",
+    "description": "뮤지컬 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0215",
+    "title": "10월 「해양 문화가 있는 날」",
+    "startDate": "2017-10-25",
+    "endDate": "2017-10-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0216",
+    "title": "10월 「일요극장」",
+    "startDate": "2017-10-29",
+    "endDate": "2017-10-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0217",
+    "title": "[학술대회] 용, 제왕의 용, 바다의 용",
+    "startDate": "2017-11-01",
+    "endDate": "2017-11-01",
+    "target": "전체",
+    "category": "행사",
+    "description": "용에 대한 각국의 연구성과 논의 학술대회 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 200
+  },
+  {
+    "id": "museum-event-src-0218",
+    "title": "영화 속의 우리음악 이야기",
+    "startDate": "2017-11-11",
+    "endDate": "2017-11-11",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "경상도민요보존회 대표 소리꾼 최윤영이 영화 속에 녹아있는 우리소리를 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0219",
+    "title": "11월 「일요극장」",
+    "startDate": "2017-11-26",
+    "endDate": "2017-11-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0220",
+    "title": "11월 「해양 문화가 있는 날」",
+    "startDate": "2017-11-29",
+    "endDate": "2017-11-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0221",
+    "title": "W-SCIENCE 페스티벌",
+    "startDate": "2017-11-25",
+    "endDate": "2017-11-26",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 5가지 사이언스 미션 투어",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0222",
+    "title": "신나는 예술여행",
+    "startDate": "2017-11-30",
+    "endDate": "2017-11-30",
+    "target": "전체",
+    "category": "공연",
+    "description": "한국해양과학기술원 이전 환영 오페라 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0223",
+    "title": "연말맞이 「국립해양박물관 5대 특별행사」 안내",
+    "startDate": "2017-12-05",
+    "endDate": "2018-01-01",
+    "target": "전체",
+    "category": "체험",
+    "description": "기획전, 체험이벤트, 보드게임 운영등",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0224",
+    "title": "꽃이 피면 오마던 님은 - 해녀할멈의 패총팔찌",
+    "startDate": "2017-12-08",
+    "endDate": "2017-12-08",
+    "target": "전체",
+    "category": "공연",
+    "description": "뮤지컬 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0225",
+    "title": "[해양애니메이션]바다탐험대 옥토넛",
+    "startDate": "2017-12-09",
+    "endDate": "2017-12-30",
+    "target": "전체",
+    "category": "체험",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0226",
+    "title": "12월 「해양 문화가 있는 날」",
+    "startDate": "2017-12-27",
+    "endDate": "2017-12-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0227",
+    "title": "12월 「일요극장」",
+    "startDate": "2017-12-03",
+    "endDate": "2017-12-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0228",
+    "title": "[드로잉 서커스] 크로키키 브라더스와 함께하는 유쾌한 크리스마스",
+    "startDate": "2017-12-02",
+    "endDate": "2017-12-24",
+    "target": "전체",
+    "category": "공연",
+    "description": "화려한 퍼포먼스로 재탄생시킨 드로잉 서커스 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0229",
+    "title": "2017 송년페스티벌(에어피쉬 체험 예약)",
+    "startDate": "2017-12-02",
+    "endDate": "2017-12-25",
+    "target": "전체",
+    "category": "체험",
+    "description": "새해소망을 적어 에어피쉬와 함께 날리기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 5
+  },
+  {
+    "id": "museum-event-src-0230",
+    "title": "국립해양박물관 연말연시 특별행사",
+    "startDate": "2017-12-30",
+    "endDate": "2018-01-01",
+    "target": "전체",
+    "category": "체험",
+    "description": "고등어 페이퍼토이 만들기, 독도 해저 VR체험 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0231",
+    "title": "1월 「해양 문화가 있는 날」",
+    "startDate": "2018-01-31",
+    "endDate": "2018-01-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0232",
+    "title": "1월 「일요극장」",
+    "startDate": "2018-01-02",
+    "endDate": "2018-01-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0233",
+    "title": "[2018 설날문화행사] 초록마술사의",
+    "startDate": "2018-02-17",
+    "endDate": "2018-02-17",
+    "target": "전체",
+    "category": "공연",
+    "description": "어린이와 가족을 대상으로 한 마술 및 버블체험 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0234",
+    "title": "[2018 설날문화행사] 새해 복 많이 받으시개",
+    "startDate": "2018-02-15",
+    "endDate": "2018-02-18",
+    "target": "전체",
+    "category": "체험",
+    "description": "전통민속놀이 한마당, 가훈 써주기 이벤트 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0235",
+    "title": "2월 「일요극장」 윤동주, 달을 쏘다",
+    "startDate": "2018-02-02",
+    "endDate": "2018-02-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0236",
+    "title": "2월 「해양 문화가 있는 날」 우아한 거짓말",
+    "startDate": "2018-02-28",
+    "endDate": "2018-02-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0237",
+    "title": "[평창 여행의 달 맞이 특별 프로그램] 떠나자! 국립해양박물관에서 만나는 겨울바다!",
+    "startDate": "2018-02-13",
+    "endDate": "2018-03-16",
+    "target": "전체",
+    "category": "행사",
+    "description": "해양명품 100선 바다를 품다 With Me, 생생하게 느끼는 바다로의 초대 ‘VR 프로그램’",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0238",
+    "title": "3월 「일요극장」 달래이야기",
+    "startDate": "2018-03-02",
+    "endDate": "2018-03-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0239",
+    "title": "2018 해양애니메이션 씨어터",
+    "startDate": "2018-03-01",
+    "endDate": "2018-05-12",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0240",
+    "title": "3월 「해양 문화가 있는 날」 검사외전",
+    "startDate": "2018-03-02",
+    "endDate": "2018-03-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0241",
+    "title": "[소규모 봄꽃 전시] 꽃바람 휘날리며",
+    "startDate": "",
+    "endDate": "2018-05-07",
+    "target": "전체",
+    "category": "전시",
+    "description": "소규모 봄꽃 전시",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0242",
+    "title": "「슈퍼피쉬」 북콘서트",
+    "startDate": "2018-09-14",
+    "endDate": "2018-09-14",
+    "target": "전체",
+    "category": "공연",
+    "description": "송웅달cp의 북콘서트",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 60
+  },
+  {
+    "id": "museum-event-src-0243",
+    "title": "제4회 생명의바다 그림대회",
+    "startDate": "",
+    "endDate": "2018-04-07",
+    "target": "청소년",
+    "category": "행사",
+    "description": "생명의 바다 그림대회",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0244",
+    "title": "직장인 문화 힐링 프로그램 「요가@뮤지엄」",
+    "startDate": "2018-10-17",
+    "endDate": "2018-12-19",
+    "target": "성인",
+    "category": "행사",
+    "description": "빈야가, 아쉬탕가, 인 요가 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 70
+  },
+  {
+    "id": "museum-event-src-0245",
+    "title": "4월 「일요극장」 가곡의 밤",
+    "startDate": "2018-04-29",
+    "endDate": "2018-04-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0246",
+    "title": "4월 「해양 문화가 있는 날」 덕혜옹주",
+    "startDate": "2018-04-25",
+    "endDate": "2018-04-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0247",
+    "title": "북아트 강좌 「우리가 만드는 바다여행기」",
+    "startDate": "2018-04-21",
+    "endDate": "2018-04-21",
+    "target": "초등",
+    "category": "체험",
+    "description": "어린이와 가족을 대상으로 한 북아트 만들기 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0248",
+    "title": "4월 도서관 주간 「바다를 여행하다, 세계의 크루즈선」",
+    "startDate": "2018-04-20",
+    "endDate": "2018-05-13",
+    "target": "전체",
+    "category": "체험",
+    "description": "도서관 내 전시와 크루즈 포토존 인증샷 이벤트",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0249",
+    "title": "5월 문화행사 「즐거운 어린이날」 - 퍼니 저글링쇼",
+    "startDate": "",
+    "endDate": "2018-05-07",
+    "target": "전체",
+    "category": "공연",
+    "description": "서커스와 마슬과 판토마임을 접목한 퍼니저글링쇼",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0250",
+    "title": "5월 문화행사 「즐거운 어린이날」 - 카네이션 캔들 만들기",
+    "startDate": "2018-05-07",
+    "endDate": "2018-05-07",
+    "target": "초등",
+    "category": "체험",
+    "description": "감사의 마음을 담아 카네이션 캔들만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0251",
+    "title": "2018 국립해양박물관 「로봇물고기 올림피아드」",
+    "startDate": "",
+    "endDate": "2018-06-03",
+    "target": "청소년",
+    "category": "행사",
+    "description": "로봇물고기를 주제로 구동원리 학습 및 창의적인 물고기 제작활동",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 25
+  },
+  {
+    "id": "museum-event-src-0252",
+    "title": "5월 「일요극장」 SAC THE LITTLE HARMONY",
+    "startDate": "2018-05-02",
+    "endDate": "2018-05-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0253",
+    "title": "5월 「해양 문화가 있는 날」 판도라",
+    "startDate": "2018-05-03",
+    "endDate": "2018-05-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0254",
+    "title": "국제교류전 「대항해시대, 바닷길에서 만난 아시아 도자기」 큐레이터와의 대화",
+    "startDate": "2018-05-30",
+    "endDate": "2018-05-31",
+    "target": "전체",
+    "category": "행사",
+    "description": "담당 큐레이터의 해설과 함께 국제교류 순회전을 관람",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0255",
+    "title": "2018 W-SCIENCE 페스티벌",
+    "startDate": "2018-05-20",
+    "endDate": "2018-05-20",
+    "target": "전체",
+    "category": "체험",
+    "description": "11가지 다양한 과학체험을 무료로 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0256",
+    "title": "바다주간",
+    "startDate": "2018-05-03",
+    "endDate": "2018-06-03",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0257",
+    "title": "6월 「일요극장」 디토 파라디소",
+    "startDate": "2018-06-24",
+    "endDate": "2018-06-24",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0258",
+    "title": "6월 「해양 문화가 있는 날」 인천상륙작전",
+    "startDate": "2018-06-02",
+    "endDate": "2018-06-27",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0259",
+    "title": "[썸머 워라밸의 밤] 요가@뮤지엄",
+    "startDate": "2018-07-01",
+    "endDate": "2018-09-19",
+    "target": "성인",
+    "category": "전시",
+    "description": "아쉬탕가 요가 수업 기획전시",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0260",
+    "title": "7월 「일요극장」 봉장취",
+    "startDate": "2018-07-02",
+    "endDate": "2018-07-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0261",
+    "title": "7월 「해양 문화가 있는 날」 택시운전사",
+    "startDate": "2018-07-25",
+    "endDate": "2018-07-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0262",
+    "title": "해양애니메이션 「옥토넛」",
+    "startDate": "2018-09-14",
+    "endDate": "2018-09-14",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0263",
+    "title": "영화의전당과 함께하는 「야외 영화상영」 덕구",
+    "startDate": "",
+    "endDate": "2018-04-07",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "영화의 전당과 함께하는 야외 영화상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0264",
+    "title": "8월 「일요극장」 시크릿뮤지엄 / 위대한 낙서",
+    "startDate": "2018-10-17",
+    "endDate": "2018-12-19",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0265",
+    "title": "8월 「해양 문화가 있는 날」 라라랜드",
+    "startDate": "2018-08-29",
+    "endDate": "2018-08-29",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0266",
+    "title": "9월 「일요극장」 국립국악원 종묘제례악",
+    "startDate": "2018-09-03",
+    "endDate": "2018-09-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0267",
+    "title": "해양문화탐방 프로그램 「이순신, 정의의 바다」",
+    "startDate": "2018-10-12",
+    "endDate": "2018-10-13",
+    "target": "성인",
+    "category": "행사",
+    "description": "통영, 여수 등 지역에서 ‘이순신’의 임진왜란 당시의 발자취를 탐방",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 25
+  },
+  {
+    "id": "museum-event-src-0268",
+    "title": "2018 추석맞이 문화행사(넌버벌 퍼포먼스 예약)",
+    "startDate": "2018-09-02",
+    "endDate": "2018-09-26",
+    "target": "전체",
+    "category": "공연",
+    "description": "유쾌한 두 남자의 일루젼 드로잉 퍼포먼스",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0269",
+    "title": "2018 추석맞이 문화행사(송편모양 비누만들기 예약)",
+    "startDate": "2018-09-23",
+    "endDate": "2018-09-24",
+    "target": "전체",
+    "category": "체험",
+    "description": "송편모양 비누 만들기 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 15
+  },
+  {
+    "id": "museum-event-src-0270",
+    "title": "2018 신나는 예술여행",
+    "startDate": "2018-10-06",
+    "endDate": "2018-10-06",
+    "target": "전체",
+    "category": "공연",
+    "description": "국립해양박물관에서 열리는 국악아카펠라 토리's 주최 문화예술 프로그램",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0271",
+    "title": "10월 「일요극장」 헨델의 메시아",
+    "startDate": "2018-10-02",
+    "endDate": "2018-10-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0272",
+    "title": "극지·해양도서 독후감 공모전 당선작 전시",
+    "startDate": "2018-10-16",
+    "endDate": "2018-11-11",
+    "target": "전체",
+    "category": "전시",
+    "description": "관련 인사가 추천한 도서의 독후감 당선작 52점 전시",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0273",
+    "title": "10월 「해양 문화가 있는 날」 해적",
+    "startDate": "2018-10-03",
+    "endDate": "2018-10-31",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0274",
+    "title": "극지·해양 다큐멘터리 및 영화 상영",
+    "startDate": "2018-10-20",
+    "endDate": "2018-11-11",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "북극의 눈물, 라이프오브파이 등 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0275",
+    "title": "해양애니메이션 「꼬마해녀 몽니와 해녀특공대」",
+    "startDate": "2018-11-01",
+    "endDate": "2018-12-29",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관에서 만나는 해양애니메이션",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0276",
+    "title": "11월 「일요극장」 셰익스피어 페리클레스",
+    "startDate": "2018-11-25",
+    "endDate": "2018-11-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0277",
+    "title": "11월 「해양 문화가 있는 날」 남한산성",
+    "startDate": "2018-11-28",
+    "endDate": "2018-11-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0278",
+    "title": "12월 「일요극장」 병동소녀는 집으로, 돌아가지 않는다",
+    "startDate": "2018-12-03",
+    "endDate": "2018-12-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "모두가 즐길 수 있는 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0279",
+    "title": "12월 해양 문화가 있는 날」 타워",
+    "startDate": "2018-12-26",
+    "endDate": "2018-12-26",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0280",
+    "title": "굿바이 2018' 국립해양박물관 송년음악회",
+    "startDate": "2018-12-02",
+    "endDate": "2018-12-23",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "해양문화가 있는 날' 기념 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0281",
+    "title": "3·1운동 100주년 기념 체험프로그램 「도전! 해양사 골든벨」",
+    "startDate": "2019-03-30",
+    "endDate": "2019-03-30",
+    "target": "전체",
+    "category": "공연",
+    "description": "뮤직퍼포먼스를 통한 크로스오버 공연과 클래식을 함께 즐길 수 있는 공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0282",
+    "title": "해양유산 등대 탐방",
+    "startDate": "2019-06-14",
+    "endDate": "2019-10-18",
+    "target": "성인(스마트폰 소지 필수)",
+    "category": "전시",
+    "description": "테마전시 전시해걸과 담당 큐레이터와의 대화",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0283",
+    "title": "2019 추석문화행사",
+    "startDate": "2019-09-12",
+    "endDate": "2019-09-12",
+    "target": "전체",
+    "category": "체험",
+    "description": "국립해양박물관 추석 문화행사 참여 및 전통·해양문화 체험활동 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0284",
+    "title": "세상모든 가족함께 바다나들이",
+    "startDate": "2019-10-06",
+    "endDate": "2019-10-06",
+    "target": "전체",
+    "category": "공연",
+    "description": "가족 체험 프로그램 참여 및 문화공연 관람",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 400
+  },
+  {
+    "id": "museum-event-src-0285",
+    "title": "해양도서관 라키비움 조성 기념 전시",
+    "startDate": "2019-09-17",
+    "endDate": "2019-10-13",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "라키비움 조성 기념 도서 전시와 영상 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0286",
+    "title": "[2020오션북페어] 바다책 골든벨",
+    "startDate": "2020-11-25",
+    "endDate": "2020-11-25",
+    "target": "초등학생(보호자 1명)",
+    "category": "행사",
+    "description": "바다책 골든벨 진행(1,2차 예선 온라인, 본선 오프라인)",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0287",
+    "title": "[2020오션북페어] 집콕, 챌린지 체험",
+    "startDate": "2020-11-25",
+    "endDate": "2020-12-05",
+    "target": "초등학생 가족",
+    "category": "체험",
+    "description": "김영만 아저씨와 국 립해양박물관 유튜브 방송",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0288",
+    "title": "[2020오션북페어]공연",
+    "startDate": "2020-12-04",
+    "endDate": "2020-12-05",
+    "target": "전체",
+    "category": "공연",
+    "description": "이야기극 행사 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0289",
+    "title": "[2020오션북페어]북콘서트",
+    "startDate": "2020-12-03",
+    "endDate": "2020-12-03",
+    "target": "전체",
+    "category": "공연",
+    "description": "북콘서트 행사 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0290",
+    "title": "[2020오션북페어] 북페어 안내",
+    "startDate": "2020-12-01",
+    "endDate": "2020-12-01",
+    "target": "전체",
+    "category": "공연",
+    "description": "해양 관련 강연·공연 관람 및 해양문화 체험활동 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0291",
+    "title": "[2020오션북페어] 실시간 댓글 이벤트",
+    "startDate": "2020-12-03",
+    "endDate": "2020-12-03",
+    "target": "전체",
+    "category": "체험",
+    "description": "오션북페어 유튜브 실시간 방송 참여 및 채팅 이벤트를 통한 온라인 체험활동 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0292",
+    "title": "지구의 날' 맞이 행사 「바다를 꿈꾸다. 海멍海몽」",
+    "startDate": "2021-04-22",
+    "endDate": "2021-04-22",
+    "target": "전체",
+    "category": "행사",
+    "description": "지구의 날을 맞아 바다 사랑 ‘명 때리기’ 행사",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0293",
+    "title": "소설 「자산어보」 온라인 북콘서트",
+    "startDate": "2021-05-07",
+    "endDate": "2021-05-07",
+    "target": "전체",
+    "category": "공연",
+    "description": "오세영 작가와 소설 '자산어보'관련 북토크 콘서트 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0294",
+    "title": "국립해양박물관 × TODA 『우리, 다시 콘서트』",
+    "startDate": "2021-10-22",
+    "endDate": "2021-10-22",
+    "target": "전체",
+    "category": "공연",
+    "description": "야외 해오름마당에서 바다를 주제로 한 우리, 다시 콘서트 관람",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0295",
+    "title": "[오션북페어] 북토크 콘서트",
+    "startDate": "2021-11-27",
+    "endDate": "2021-11-28",
+    "target": "전체",
+    "category": "공연",
+    "description": "유다정 작가와 바다관련 북토크 콘서트 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0296",
+    "title": "[오션북페어] 비치코밍(Beachcombing)",
+    "startDate": "2021-11-13",
+    "endDate": "2021-11-14",
+    "target": "전체",
+    "category": "행사",
+    "description": "태종대 감지해변에서 비치코밍 활동을 통해 해양 쓰레기를 수거",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0297",
+    "title": "[오션북페어]나만의 책만들기 워크숍",
+    "startDate": "2021-11-27",
+    "endDate": "2021-11-28",
+    "target": "가족",
+    "category": "체험",
+    "description": "쥘베른의 상상여행을 모티브로 우리가족만의 그림책 만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 10
+  },
+  {
+    "id": "museum-event-src-0298",
+    "title": "[오션북페어]유상통 프로젝트 - 오브제 음악극 'Life Boom'",
+    "startDate": "2021-11-28",
+    "endDate": "2021-11-28",
+    "target": "전체",
+    "category": "공연",
+    "description": "모든 소품이 폐기물과 쓰레기로 만들어진 '오브제 음악극' 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0299",
+    "title": "[오션북페어] 퓨처국악 '루츠리덤'",
+    "startDate": "2021-11-27",
+    "endDate": "2021-11-27",
+    "target": "전체",
+    "category": "공연",
+    "description": "퓨처국악 공연 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0300",
+    "title": "[오션북페어]바다책 골든벨",
+    "startDate": "2021-11-03",
+    "endDate": "2021-11-28",
+    "target": "전체",
+    "category": "행사",
+    "description": "바다책 골든벨 진행(1,2차 예선, 본선 온라인)",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0301",
+    "title": "[오션북페어]바다시네마",
+    "startDate": "2021-11-25",
+    "endDate": "2021-11-28",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "국제해양영화제 상영작 관람",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0302",
+    "title": "[오션북페어] 그림없는 그림책 '요나이야기'",
+    "startDate": "2021-11-13",
+    "endDate": "2021-11-28",
+    "target": "전체",
+    "category": "공연",
+    "description": "라디오극 공연과 나의 상상에 따른 그림책 만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0303",
+    "title": "[오션북페어] 북토크 콘서트(ZOOM)",
+    "startDate": "2021-11-26",
+    "endDate": "2021-11-26",
+    "target": "전체",
+    "category": "공연",
+    "description": "해저 2만리'를 통한 노시훈교수의 강의",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0304",
+    "title": "[내가 꿈꾸는 국립해양박물관] 그림 그리기 대회",
+    "startDate": "2022-05-06",
+    "endDate": "2022-05-06",
+    "target": "초등학교 1학년~6학년",
+    "category": "행사",
+    "description": "가정의 달 맞이 해양박물관의 미래에 대한 그림그리기 대회 개최",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 150
+  },
+  {
+    "id": "museum-event-src-0305",
+    "title": "2022 추석문화행사",
+    "startDate": "2022-09-09",
+    "endDate": "2022-09-12",
+    "target": "전체",
+    "category": "공연",
+    "description": "한복 피딩쇼, 해버미와 사진찍기 행사 등",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0306",
+    "title": "뮤지엄 나잇(SEANESEUM)",
+    "startDate": "2022-09-30",
+    "endDate": "2022-09-30",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "수족관 밑에서 해양영화 감상, 딸라소테라피 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 40
+  },
+  {
+    "id": "museum-event-src-0307",
+    "title": "絃이 흐르는 박물관 -한 · 중 합동 현악 연주회",
+    "startDate": "2022-10-22",
+    "endDate": "2022-10-22",
+    "target": "전체",
+    "category": "전시",
+    "description": "기획전시 '한 · 중 해양문명의 교류' 연계 기념 현악 연주회",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0308",
+    "title": "[오션북페스타] 바다시네마",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "투미의 항해일지, 바다의 팜프파탈, 쏠배감펭 등 영화 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 200
+  },
+  {
+    "id": "museum-event-src-0309",
+    "title": "[오션북페스타] 곽재식 작가 강연&북토크",
+    "startDate": "2022-11-12",
+    "endDate": "2023-01-08",
+    "target": "전체",
+    "category": "강연",
+    "description": "곽재식 작가 강연 및 북토크 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0310",
+    "title": "[오션북페스타] 작가 북토크",
+    "startDate": "2022-11-12",
+    "endDate": "2023-01-08",
+    "target": "전체",
+    "category": "강연",
+    "description": "부산, 바다, 책을 키워드로 한 낭독 및 책소개, 관객과의 대화",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 50
+  },
+  {
+    "id": "museum-event-src-0311",
+    "title": "[오션북페스타] 바다별시(別試)",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "공연",
+    "description": "조선의 선비가 되어 과거시험을 보는 연극 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 40
+  },
+  {
+    "id": "museum-event-src-0312",
+    "title": "플랜테리어 소품만들기",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "체험",
+    "description": "반려식물 이오난사와 바다소품으로 나만의 감성을 담은 화분 만들기",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0313",
+    "title": "[오션북페스타]바다책전시",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "전시",
+    "description": "국립해양박물관 학술, 전시, 교육 등 발간 도서 전시",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0314",
+    "title": "[오션북페스타] 퓨전국악 공연",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "공연",
+    "description": "피리&재즈피아노 퓨전국악공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0315",
+    "title": "[오션북페스타] 바다 책갈피 만들기",
+    "startDate": "2022-11-12",
+    "endDate": "2022-11-12",
+    "target": "전체",
+    "category": "체험",
+    "description": "다양한 재료를 활용한 바다 책갈피 만들기 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 500
+  },
+  {
+    "id": "museum-event-src-0316",
+    "title": "천만관람객 돌파 기념행사",
+    "startDate": "2023-04-24",
+    "endDate": "2023-04-24",
+    "target": "전체",
+    "category": "공연",
+    "description": "스트릿 매직공연, 해버미와 사진찍기 행사 등",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0317",
+    "title": "별별바다神 전시 연계 콘서트",
+    "startDate": "2023-05-27",
+    "endDate": "2023-06-03",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '별별바다' 연계 기념 국악공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0318",
+    "title": "리뉴얼 개관식 참여 국민대표단 모집",
+    "startDate": "2023-09-15",
+    "endDate": "2023-09-15",
+    "target": "전체",
+    "category": "전시",
+    "description": "상설전시실 새단장 기념 국민대표 모집",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 60
+  },
+  {
+    "id": "museum-event-src-0319",
+    "title": "국립해양박물관 바다음악제[바다의 협주곡 Concerto del mare]",
+    "startDate": "2024-06-06",
+    "endDate": "2024-06-08",
+    "target": "전체",
+    "category": "공연",
+    "description": "바다를 주제로 한 다양한 종류의 음악공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0320",
+    "title": "정크아트 전시[Eco Art Evolutions]",
+    "startDate": "2024-07-12",
+    "endDate": "2024-07-28",
+    "target": "전체",
+    "category": "전시",
+    "description": "폐품을 활용해 제작한 작품 전시와 연계 이벤트 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0321",
+    "title": "임교진씨를 찾습니다",
+    "startDate": "2024-07-30",
+    "endDate": "2024-10-27",
+    "target": "전체",
+    "category": "행사",
+    "description": "『조행일록』의 저자 임교진과 책 속 인물들의 동명이인 방문시 혜택",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0322",
+    "title": "큐레이터의 시선, [조행일록, 서해바다로 나라 곡식을 옮기다]",
+    "startDate": "2024-08-28",
+    "endDate": "2024-09-25",
+    "target": "전체",
+    "category": "전시",
+    "description": "큐레이터의 작품해설을 들으며 전시를 관람",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0323",
+    "title": "[기획전시 연계] 익산성당포구농악 공연",
+    "startDate": "2024-08-24",
+    "endDate": "2024-08-24",
+    "target": "전체",
+    "category": "공연",
+    "description": "익산성당포구농악(전라북도 무형유산) 공연을 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0324",
+    "title": "2024년 ESG 페스티벌[환경다큐 영화제]",
+    "startDate": "2024-09-12",
+    "endDate": "2024-09-13",
+    "target": "15세 이상 관람객",
+    "category": "영화·영상",
+    "description": "영화제",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
+  },
+  {
+    "id": "museum-event-src-0325",
+    "title": "2024년 ESG 페스티벌[체험극+환경예술워크숍]",
+    "startDate": "2024-09-14",
+    "endDate": "2024-09-18",
+    "target": "9세 이상 관람객",
+    "category": "공연",
+    "description": "참여형 연극과 팝업메이킹 워크숍",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 20
+  },
+  {
+    "id": "museum-event-src-0326",
+    "title": "2024년 ESG 페스티벌[업사이클링 아트]",
+    "startDate": "2024-09-15",
+    "endDate": "2024-09-15",
+    "target": "12세 이상 관람객",
+    "category": "체험",
+    "description": "업사이클링 아트 체험",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 15
+  },
+  {
+    "id": "museum-event-src-0327",
+    "title": "2024 국립해양박물관 추석 문화 행사",
+    "startDate": "2024-09-12",
+    "endDate": "2024-09-18",
+    "target": "전체",
+    "category": "공연",
+    "description": "추석문화행사로 ESG페스티벌, 한복 피팅쇼, 전통 민속 놀이 한마당 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0328",
+    "title": "국립해양박물관 봄꽃 축제",
+    "startDate": "2025-04-08",
+    "endDate": "2025-05-11",
+    "target": "전체",
+    "category": "행사",
+    "description": "국립해양박물관 봄꽃 축제",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0329",
+    "title": "2025 뮤지엄나잇[오션필름위크]",
+    "startDate": "2025-05-17",
+    "endDate": "2025-05-25",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "씨네토크와 해양 애니메이션 상영",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0330",
+    "title": "한여름밤의 수족관 음악회",
+    "startDate": "2025-07-18",
+    "endDate": "2025-07-18",
+    "target": "성인",
+    "category": "공연",
+    "description": "해양관련 4중주 음악을 감상하는 수족관 앞 음악회",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 60
+  },
+  {
+    "id": "museum-event-src-0331",
+    "title": "2025 추석 문화 행사",
+    "startDate": "2025-10-03",
+    "endDate": "2025-10-09",
+    "target": "전체",
+    "category": "영화·영상",
+    "description": "추석맞이 영화 상영, 한복 피팅쇼, 특별 공연 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0332",
+    "title": "제2회 해양 클러스터 Festival",
+    "startDate": "2025-11-07",
+    "endDate": "2025-11-09",
+    "target": "전체",
+    "category": "공연",
+    "description": "해양클러스터 성과 전시회, 오픈데이, 과학마술콘서트, 최태성 강사 초청 특강 등",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0333",
+    "title": "(평일)바다인형극 '인어공주와 조개빛 바다이야기'",
+    "startDate": "2025-12-02",
+    "endDate": "2025-12-11",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '조개' 연계 기념 문화공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0334",
+    "title": "(주말)바다인형극 '인어공주와 조개빛 바다이야기'",
+    "startDate": "2025-12-06",
+    "endDate": "2025-12-06",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '조개' 연계 기념 문화공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0335",
+    "title": "(평일)바다인형극 '조개가 들려주는 토끼와 자라의 용궁 이야기'",
+    "startDate": "2025-12-16",
+    "endDate": "2025-12-18",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '조개' 연계 기념 문화공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0336",
+    "title": "바다인형극 '조개가 들려주는 토끼와 자라의 용궁 이야기'",
+    "startDate": "2025-12-13",
+    "endDate": "2025-12-20",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '조개' 연계 기념 문화공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0337",
+    "title": "바다인형극 '구두쇠 스크루지' 특별공연",
+    "startDate": "2025-12-25",
+    "endDate": "2025-12-25",
+    "target": "전체",
+    "category": "공연",
+    "description": "기획전시 '조개' 연계 기념 문화공연(특별공연)",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0338",
+    "title": "2026 설명절 문화행사",
+    "startDate": "2026-02-14",
+    "endDate": "2026-02-18",
+    "target": "전체",
+    "category": "공연",
+    "description": "설명절 문화행사로 기념품증정, 피딩쇼, 민속놀이 진행",
+    "source": "국립해양박물관 교육행사 운영 데이터"
+  },
+  {
+    "id": "museum-event-src-0339",
+    "title": "‘BeFM Kids' 영어랑 놀자 특집공개방송",
+    "startDate": "2026-03-28",
+    "endDate": "2026-03-28",
+    "target": "전체",
+    "category": "행사",
+    "description": "부산영어방송에서 ‘BeFM Kids’ 유튜브 채널 홍보를 위한 특집 공개방송",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 100
+  },
+  {
+    "id": "museum-event-src-0340",
+    "title": "(평일)피터팬이 들려주는 바다 인형극",
+    "startDate": "2026-04-10",
+    "endDate": "2026-04-28",
+    "target": "전체",
+    "category": "공연",
+    "description": "피터팬과 함께 네버랜드로 모험을 떠나는 연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 300
+  },
+  {
+    "id": "museum-event-src-0341",
+    "title": "(주말) 피터팬이 들려주는 바다 인형극",
+    "startDate": "2026-04-11",
+    "endDate": "2026-04-25",
+    "target": "전체",
+    "category": "공연",
+    "description": "피터팬과 함께 네버랜드로 모험을 떠나는 연극",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 150
+  },
+  {
+    "id": "museum-event-src-0342",
+    "title": "[해양미술페스티벌] 청소년, 어린이 체험부스展",
+    "startDate": "2026-05-02",
+    "endDate": "2026-05-05",
+    "target": "전체",
+    "category": "체험",
+    "description": "해진공과 함께하는 해양미술페스티벌",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 1000
+  },
+  {
+    "id": "museum-event-src-0343",
+    "title": "[2026 바다의 날 기념 특별공연] 해양수도 부산, 우리의 음악으로 항해하다",
+    "startDate": "2026-05-31",
+    "endDate": "2026-05-31",
+    "target": "전체",
+    "category": "공연",
+    "description": "2026 바다의 날 기념 특별공연",
+    "source": "국립해양박물관 교육행사 운영 데이터",
+    "capacity": 30
   }
 ]
