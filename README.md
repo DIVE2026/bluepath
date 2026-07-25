@@ -30,7 +30,7 @@ The bottom navigation has been removed. Every tab begins with an introduction pa
 
 ### Smart Nautical Chart
 
-<img src="assets/shot4.jpeg" alt="Smart Nautical Chart" width="400" height="600">
+<img src="assets/shot4.jpeg" alt="Smart Nautical Chart" width="800" height="1200">
 
 The Home screen creates an explainable route from the learner’s current profile and activity history to a selected marine career.
 
