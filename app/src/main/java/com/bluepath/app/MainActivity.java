@@ -5796,7 +5796,12 @@ public class MainActivity extends AppCompatActivity {
         catalog.setOnClickListener(v -> viewModel.refreshCatalog());
         cloudCard.addView(catalog);
         Button logout = outlineButton("로그아웃");
-        logout.setOnClickListener(v -> viewModel.logout());
+        logout.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle("로그아웃할까요?")
+                .setMessage("로그아웃하면 로그인 화면으로 돌아갑니다.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("로그아웃", (dialog, which) -> viewModel.logout())
+                .show());
         cloudCard.addView(logout);
         content.addView(cloudCard);
 
