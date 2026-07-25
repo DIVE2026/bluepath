@@ -101,7 +101,7 @@ public class UserStore {
     }
 
     public boolean hasProfile() {
-        return prefs.contains("ageGroup");
+        return prefs.getBoolean("profileCompleted", false);
     }
 
     public UserProfile getProfile() {
@@ -123,6 +123,7 @@ public class UserStore {
                 .putString("level", profile.level)
                 .putString("persona", profile.persona)
                 .putInt("xp", profile.xp)
+                .putBoolean("profileCompleted", true)
                 .putLong("profileUpdatedAt", System.currentTimeMillis())
                 .apply();
     }
@@ -895,11 +896,16 @@ public class UserStore {
         Map<String, Object> snapshot = new HashMap<>();
         snapshot.put("nickname", getNickname());
         snapshot.put("profileImageUrl", getProfileImageUrl());
-        snapshot.put("ageGroup", profile.ageGroup);
-        snapshot.put("interest", profile.interest);
-        snapshot.put("goal", profile.goal);
-        snapshot.put("level", profile.level);
-        snapshot.put("persona", profile.persona);
+        // Onboarding defaults must never reach the cloud: the server would treat a placeholder
+        // age group as a real minor profile and lock the account behind guardian consent.
+        if (hasProfile()) {
+            snapshot.put("profileCompleted", true);
+            snapshot.put("ageGroup", profile.ageGroup);
+            snapshot.put("interest", profile.interest);
+            snapshot.put("goal", profile.goal);
+            snapshot.put("level", profile.level);
+            snapshot.put("persona", profile.persona);
+        }
         snapshot.put("xp", profile.xp);
         snapshot.put("tier", getTier());
         snapshot.put("quizTier", getQuizTier());
@@ -947,6 +953,7 @@ public class UserStore {
         putString(editor, snapshot, "goal");
         putString(editor, snapshot, "level");
         putString(editor, snapshot, "persona");
+        if (Boolean.TRUE.equals(snapshot.get("profileCompleted"))) editor.putBoolean("profileCompleted", true);
         putInt(editor, snapshot, "xp", "xp");
         String quizTier = stringValue(snapshot.get("quizTier"));
         if (!quizTier.isEmpty()) editor.putInt("quizTierRank", PromotionRules.rank(quizTier));
