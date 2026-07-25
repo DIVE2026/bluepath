@@ -102,6 +102,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
     private static final String WAVE_MARK = "∿";
     private static final long QUIZ_TIME_PER_QUESTION_MS = 30_000L;
+    private static final String QUIZ_SOURCE_SERVER = "BluePath 검증 출제";
     private static final String RICH_BODY_MARKER = CommunityPostActivity.RICH_BODY_MARKER;
 
     private final int NAVY = Color.parseColor("#06223F");
@@ -128,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout appRoot;
     private LinearLayout sidebar;
     private View sidebarScrim;
+    private Button headerMenuButton;
+    private Button headerManualButton;
     private int currentTab = 0;
     private String learningSubTab = "video";
     private String communityCategory = "free";
@@ -763,6 +766,7 @@ public class MainActivity extends AppCompatActivity {
         Button menu = outlineButton("☰");
         menu.setTextSize(20);
         menu.setOnClickListener(v -> openSidebar());
+        headerMenuButton = menu;
         headerRow.addView(menu, new LinearLayout.LayoutParams(dp(48), dp(42)));
 
         LinearLayout brand = new LinearLayout(this);
@@ -806,6 +810,7 @@ public class MainActivity extends AppCompatActivity {
         Button manual = outlineButton("승급 기준");
         manual.setTextSize(11);
         manual.setOnClickListener(v -> showPromotionManual());
+        headerManualButton = manual;
         headerRow.addView(manual, new LinearLayout.LayoutParams(dp(88), dp(38)));
         header.addView(headerRow);
         main.addView(header);
@@ -929,7 +934,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openSidebar() {
-        if (sidebar == null || sidebarScrim == null) return;
+        if (sidebar == null || sidebarScrim == null || isQuizTakingActive()) return;
         sidebarScrim.setAlpha(0f);
         sidebarScrim.setVisibility(View.VISIBLE);
         sidebarScrim.animate().alpha(1f).setDuration(180).start();
@@ -990,6 +995,22 @@ public class MainActivity extends AppCompatActivity {
             case 5: renderCommunity(); break;
             case 6: renderMyPage(); break;
         }
+        applyHeaderQuizLock();
+    }
+
+    /**
+     * 퀴즈 응시 화면에서는 상단 메뉴와 승급 기준 버튼을 숨겨 풀이 도중 다른 화면으로
+     * 이동하지 못하게 합니다. 퀴즈 종료는 응시 화면의 ✕ 버튼으로만 진행합니다.
+     */
+    private void applyHeaderQuizLock() {
+        int visibility = isQuizTakingActive() ? View.GONE : View.VISIBLE;
+        if (headerMenuButton != null) headerMenuButton.setVisibility(visibility);
+        if (headerManualButton != null) headerManualButton.setVisibility(visibility);
+    }
+
+    private boolean isQuizTakingActive() {
+        return currentTab == 2 && !activeQuiz.isEmpty() && !quizSubmitted && !quizGenerating
+                && !quizSubmitting && !quizAwaitingResult;
     }
 
     private void addTabIntro(String icon, String eyebrow, String titleText, String description) {
@@ -1889,8 +1910,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderQuiz() {
-        if (!activeQuiz.isEmpty() && !quizSubmitted && !quizGenerating && !quizSubmitting
-                && !quizAwaitingResult) {
+        if (isQuizTakingActive()) {
             renderQuizTaking();
             return;
         }
@@ -1899,13 +1919,13 @@ public class MainActivity extends AppCompatActivity {
                 "SKILL CHECK",
                 "퀴즈 · 역량 진단",
                 "현재 통합 티어와 다음 승급 기준을 확인한 뒤, 내 관심 분야와 학습 기록에 맞춘 4지선다 퀴즈에 도전해 보세요. "
-                        + "서버 연결 시에는 해양 AI가 앱 자료와 공공·기관 근거를 바탕으로 문제를 만들고, 연결이 어려울 때는 검증된 해양 로컬 문제은행으로 자동 전환됩니다.\n\n"
-                        + "퀴즈는 한 문제씩 보면서 진행하고, 세션 전체에 문항 수 × 30초의 제한 시간이 적용됩니다. 남은 시간은 원형 타이머로 표시되며 제한 시간이 끝나면 그 시점의 답안이 자동 제출됩니다. "
+                        + "서버 연결 시에는 AI가 앱 자료와 공공·기관 근거를 바탕으로 문제를 만들고, 연결이 어려울 때는 검증된 해양 로컬 문제은행으로 자동 전환됩니다.\n\n"
+                        + "퀴즈는 한 문제씩 보면서 진행하고, 세션 전체에 문항 수 × 30초의 제한 시간이 적용됩니다. 남은 시간은 타이머로 표시되며 제한 시간이 끝나면 그 시점의 답안이 자동 제출됩니다. "
                         + "제한 시간 안에는 이전·다음 버튼이나 문항 번호를 눌러 자유롭게 이동하며 답을 바꿀 수 있고, 준비가 되면 직접 제출할 수 있습니다. 제출 후에는 점수, 정답 여부, 내가 고른 답, 정답과 해설, 획득 XP와 승급 결과를 문항별로 확인할 수 있습니다. "
                         + "각 주제의 정답·오답 기록은 MY의 역량 여권과 다음 학습·진로 추천에 반영되며, 같은 티어의 새 퀴즈에 다시 도전하거나 승급 기준 전체 매뉴얼을 확인할 수 있습니다."
         );
         String currentTier = store.getTier();
-        content.addView(sectionTitle("AI 승급 퀴즈"));
+        content.addView(sectionTitle("승급 퀴즈"));
         LinearLayout currentTierCard = card();
         currentTierCard.addView(tierSummaryRow(
                 currentTier,
@@ -1936,7 +1956,7 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout loading = card();
             loading.addView(big("문제를 생성하고 있습니다"));
             loading.addView(body(llmClient.isConfigured()
-                    ? "해양 AI가 영상 주제와 현재 프로필을 바탕으로 4지선다 문제를 구성합니다."
+                    ? "AI가 영상 주제와 현재 프로필을 바탕으로 4지선다 문제를 구성합니다."
                     : "오프라인에서도 사용할 수 있는 검증된 해양 문제은행을 준비합니다."));
             ProgressBar progress = new ProgressBar(this);
             loading.addView(progress);
@@ -1956,7 +1976,7 @@ public class MainActivity extends AppCompatActivity {
                     dp(80)
             ));
             startCard.addView(body(llmClient.isConfigured()
-                    ? "BluePath 해양 AI가 공공·기관 자료를 검색해 근거 기반 문제를 생성합니다."
+                    ? "BluePath AI가 공공·기관 자료를 검색해 근거 기반 문제를 생성합니다."
                     : "연결이 어려운 상황에서도 해양 특화 로컬 문제은행으로 학습할 수 있습니다."));
             Button generate = primaryButton(llmClient.isConfigured() ? "AI 퀴즈 생성" : "해양 퀴즈 시작");
             generate.setOnClickListener(v -> generateQuizForCurrentTier());
@@ -1983,7 +2003,7 @@ public class MainActivity extends AppCompatActivity {
         if (quizSubmitting) {
             LinearLayout loading = card();
             loading.addView(big("답안을 채점하고 있습니다"));
-            loading.addView(body("서버에서 답안과 승급 조건을 검증하고 있습니다. 잠시만 기다려 주세요."));
+            loading.addView(body("답안과 승급 조건을 검증하고 있습니다. 잠시만 기다려 주세요."));
             ProgressBar progress = new ProgressBar(this);
             loading.addView(progress);
             content.addView(loading);
@@ -2019,12 +2039,12 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < activeQuiz.size(); i++) addQuizQuestionCard(activeQuiz.get(i), i);
 
-        Button retry = primaryButton("현재 티어 새 퀴즈 생성");
-        retry.setOnClickListener(v -> {
+        Button backToQuizHome = primaryButton("결과 닫고 퀴즈 시작 화면으로");
+        backToQuizHome.setOnClickListener(v -> {
             clearQuizSession();
             showApp(2);
         });
-        content.addView(retry, new LinearLayout.LayoutParams(-1, dp(50)));
+        content.addView(backToQuizHome, new LinearLayout.LayoutParams(-1, dp(50)));
     }
 
     private void renderQuizTaking() {
@@ -2310,7 +2330,7 @@ public class MainActivity extends AppCompatActivity {
             if (llmClient.isConfigured()) {
                 try {
                     generated = llmClient.generateQuiz(tier, store.getProfile(), DataRepository.contents());
-                    source = "BluePath server verified quiz";
+                    source = QUIZ_SOURCE_SERVER;
                 } catch (Exception e) {
                     generated = RecommendationEngine.quizForTier(tier, store.getProfile().interest);
                     source = "검증된 해양 로컬 문제은행";
@@ -2324,7 +2344,7 @@ public class MainActivity extends AppCompatActivity {
 
             final List<QuizQuestion> result = generated;
             final String finalSource = source;
-            final boolean finalServerAuthoritative = "BluePath server verified quiz".equals(source);
+            final boolean finalServerAuthoritative = QUIZ_SOURCE_SERVER.equals(source);
             final String finalNotice = finalServerAuthoritative ? notice : (notice + (notice.isEmpty() ? "" : "\n")
                     + "오프라인 문제은행은 연습 모드입니다. 정답 해설은 제공되지만 XP와 승급에는 반영되지 않습니다.");
             runOnUiThread(() -> {
@@ -2404,7 +2424,7 @@ public class MainActivity extends AppCompatActivity {
         quizDeadlineElapsedRealtime = 0L;
         if (quizServerAuthoritative) {
             quizSubmitting = true;
-            quizNotice = "서버에서 답안과 승급 조건을 검증하고 있습니다.";
+            quizNotice = "답안과 승급 조건을 검증하고 있습니다.";
             showApp(2);
             executor.execute(() -> {
                 try {
@@ -2420,13 +2440,13 @@ public class MainActivity extends AppCompatActivity {
                                 result.correctCount + "/" + result.total + (result.passed ? " passed" : " retry"));
                         quizSubmitted = true;
                         quizAwaitingResult = false;
-                        quizNotice = "서버 검증 완료 · 임의 스냅샷 값은 승급에 사용되지 않습니다.";
+                        quizNotice = "검증 완료 · 임의 스냅샷 값은 승급에 사용되지 않습니다.";
                         showApp(2);
                     });
                 } catch (Exception error) {
                     runOnUiThread(() -> {
                         quizSubmitting = false;
-                        quizNotice = "서버 채점에 실패해 결과를 확정하지 않았습니다: " + safeMessage(error);
+                        quizNotice = "채점에 실패해 결과를 확정하지 않았습니다: " + safeMessage(error);
                         showApp(2);
                     });
                 }
@@ -2446,7 +2466,7 @@ public class MainActivity extends AppCompatActivity {
                 correct + "/" + activeQuiz.size() + " practice");
         quizSubmitted = true;
         quizAwaitingResult = false;
-        quizNotice = "연습 결과입니다. 서버 검증이 없어 XP·숙련도·승급은 변경하지 않았습니다.";
+        quizNotice = "연습 결과입니다. 검증이 없어 XP·숙련도·승급은 변경하지 않았습니다.";
         showApp(2);
     }
 
