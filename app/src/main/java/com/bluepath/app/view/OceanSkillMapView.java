@@ -87,6 +87,14 @@ public class OceanSkillMapView extends View {
         listener = value;
     }
 
+    /** 1보다 작으면 요약 카드용 축소 렌더링 (노드·글자·간격을 함께 줄이고 하단 안내문 생략). */
+    private float compactScale = 1f;
+
+    public void setCompactScale(float value) {
+        compactScale = Math.max(0.35f, Math.min(1f, value));
+        invalidate();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -94,12 +102,13 @@ public class OceanSkillMapView extends View {
 
         float width = getWidth();
         float height = getHeight();
+        float s = compactScale;
         float cx = width / 2f;
-        float cy = height / 2f - dp(5);
-        float outerX = Math.max(dp(112), width * 0.37f);
-        float outerY = Math.max(dp(100), height * 0.27f);
-        float nodeRadius = Math.max(dp(31), Math.min(dp(39), width * 0.095f));
-        float centerRadius = dp(52);
+        float cy = height / 2f - dp(5) * s;
+        float outerX = Math.max(dp(112) * s, width * 0.37f);
+        float outerY = Math.max(dp(100) * s, height * (s < 1f ? 0.33f : 0.27f));
+        float nodeRadius = Math.max(dp(31) * s, Math.min(dp(39) * s, width * 0.095f));
+        float centerRadius = dp(52) * s;
 
         float[] xs = new float[SkillProfileCatalog.TOPICS.length];
         float[] ys = new float[SkillProfileCatalog.TOPICS.length];
@@ -120,10 +129,10 @@ public class OceanSkillMapView extends View {
 
         int average = SkillProfileCatalog.averageMastery(mastery);
         canvas.drawCircle(cx, cy, centerRadius, centerPaint);
-        scorePaint.setTextSize(dp(21));
-        canvas.drawText(String.valueOf(average), cx, cy - dp(1), scorePaint);
-        scorePaint.setTextSize(dp(10));
-        canvas.drawText("종합", cx, cy + dp(18), scorePaint);
+        scorePaint.setTextSize(dp(21) * s);
+        canvas.drawText(String.valueOf(average), cx, cy - dp(1) * s, scorePaint);
+        scorePaint.setTextSize(dp(10) * s);
+        canvas.drawText("종합", cx, cy + dp(18) * s, scorePaint);
 
         for (int i = 0; i < SkillProfileCatalog.TOPICS.length; i++) {
             String topic = SkillProfileCatalog.TOPICS[i];
@@ -131,7 +140,7 @@ public class OceanSkillMapView extends View {
             int count = evidence.getOrDefault(topic, 0);
             float x = xs[i];
             float y = ys[i];
-            float radius = nodeRadius + Math.min(dp(5), score / 25f);
+            float radius = nodeRadius + Math.min(dp(5) * s, score / 25f);
             boolean pressed = topic.equals(pressedTopic);
 
             nodePaint.setColor(nodeColor(score));
@@ -139,16 +148,18 @@ public class OceanSkillMapView extends View {
             canvas.drawCircle(x, y, pressed ? radius + dp(3) : radius, nodePaint);
             canvas.drawCircle(x, y, pressed ? radius + dp(3) : radius, ringPaint);
 
-            scorePaint.setTextSize(dp(17));
-            canvas.drawText(score + "", x, y - dp(1), scorePaint);
-            scorePaint.setTextSize(dp(8.5f));
-            canvas.drawText("증거 " + count, x, y + dp(14), scorePaint);
+            scorePaint.setTextSize(dp(17) * s);
+            canvas.drawText(score + "", x, y - dp(1) * s, scorePaint);
+            if (s >= 0.8f) {
+                scorePaint.setTextSize(dp(8.5f));
+                canvas.drawText("증거 " + count, x, y + dp(14), scorePaint);
+            }
 
-            textPaint.setTextSize(dp(10));
+            textPaint.setTextSize(dp(10) * s);
             String[] labelLines = splitLabel(topic);
-            float labelY = y + radius + dp(15);
+            float labelY = y + radius + dp(15) * s;
             for (int line = 0; line < labelLines.length; line++) {
-                canvas.drawText(labelLines[line], x, labelY + line * dp(12), textPaint);
+                canvas.drawText(labelLines[line], x, labelY + line * dp(12) * s, textPaint);
             }
 
             hitTargets.put(topic, new RectF(
@@ -157,12 +168,14 @@ public class OceanSkillMapView extends View {
             ));
         }
 
-        textPaint.setTextSize(dp(10));
-        textPaint.setFakeBoldText(false);
-        textPaint.setColor(Color.parseColor("#64748B"));
-        canvas.drawText("노드를 눌러 점수 근거와 다음 활동을 확인하세요", cx, height - dp(8), textPaint);
-        textPaint.setFakeBoldText(true);
-        textPaint.setColor(Color.parseColor("#17324D"));
+        if (s >= 1f) {
+            textPaint.setTextSize(dp(10));
+            textPaint.setFakeBoldText(false);
+            textPaint.setColor(Color.parseColor("#64748B"));
+            canvas.drawText("노드를 눌러 점수 근거와 다음 활동을 확인하세요", cx, height - dp(8), textPaint);
+            textPaint.setFakeBoldText(true);
+            textPaint.setColor(Color.parseColor("#17324D"));
+        }
     }
 
     @Override

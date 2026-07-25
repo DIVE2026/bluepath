@@ -29,6 +29,66 @@ def auth_header(token: str) -> dict[str, str]:
     return {'Authorization': f'Bearer {token}'}
 
 
+def test_daily_attendance_awards_xp_once() -> None:
+    with TestClient(app) as client:
+        register = client.post('/api/v1/auth/register', json={
+            'email': 'attendance-user@example.com',
+            'password': 'AttendancePassword123!',
+            'guardianEmail': None,
+            'nickname': 'AttendanceUser',
+        })
+        assert register.status_code == 200, register.text
+        headers = auth_header(register.json()['accessToken'])
+
+        first = client.post('/api/v1/attendance/check-in', headers=headers)
+        assert first.status_code == 200, first.text
+        assert first.json()['newlyCheckedIn'] is True
+        assert first.json()['streak'] == 1
+        assert first.json()['xpAwarded'] == 10
+        assert first.json()['xp'] == 10
+
+        duplicate = client.post('/api/v1/attendance/check-in', headers=headers)
+        assert duplicate.status_code == 200, duplicate.text
+        assert duplicate.json()['newlyCheckedIn'] is False
+        assert duplicate.json()['streak'] == 1
+        assert duplicate.json()['xpAwarded'] == 0
+        assert duplicate.json()['xp'] == 10
+
+
+def test_community_tags_are_stored_and_updated() -> None:
+    with TestClient(app) as client:
+        register = client.post('/api/v1/auth/register', json={
+            'email': 'community-tags@example.com',
+            'password': 'CommunityTagsPassword123!',
+            'guardianEmail': None,
+            'nickname': 'CommunityTagsUser',
+        })
+        assert register.status_code == 200, register.text
+        headers = auth_header(register.json()['accessToken'])
+
+        created = client.post('/api/v1/community/posts', headers=headers, json={
+            'category': 'free',
+            'title': '태그 분리 저장 테스트',
+            'body': '후기 태그는 본문과 별도로 저장되어야 합니다.',
+            'tags': ['후기', '정보공유'],
+        })
+        assert created.status_code == 200, created.text
+        assert created.json()['tags'] == ['후기', '정보공유']
+        assert '#후기' not in created.json()['body']
+
+        updated = client.put(
+            f"/api/v1/community/posts/{created.json()['id']}",
+            headers=headers,
+            json={
+                'title': '수정된 태그 분리 저장 테스트',
+                'body': '수정할 때도 태그는 본문과 별도로 저장되어야 합니다.',
+                'tags': ['모임·번개'],
+            },
+        )
+        assert updated.status_code == 200, updated.text
+        assert updated.json()['tags'] == ['모임·번개']
+
+
 def issue_qr(client: TestClient, exhibit_code: str = 'submersible', exhibit_title: str = '잠수정 전시') -> dict:
     login = client.post('/api/v1/auth/login', json={
         'email': 'admin@bluepath.example.com',
@@ -659,9 +719,11 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
             'category': 'question',
             'title': '해양 진로 질문',
             'body': '항만 물류 진로를 준비하려면 무엇부터 시작해야 하나요?',
+            'tags': ['진로고민', '자격증·시험'],
         })
         assert post.status_code == 200, post.text
         assert post.json()['imageUrl'] == ''
+        assert post.json()['tags'] == ['진로고민', '자격증·시험']
         post_id = post.json()['id']
         author_id = post.json()['author']['userId']
 
@@ -709,9 +771,11 @@ def test_nickname_community_follow_reactions_and_dashboard() -> None:
         updated = client.put(f'/api/v1/community/posts/{post_id}', headers=first_headers, json={
             'title': '수정된 해양 진로 질문',
             'body': '항만 물류와 해양 데이터 진로를 함께 준비하려면 무엇부터 시작해야 하나요?',
+            'tags': ['학습자료'],
         })
         assert updated.status_code == 200, updated.text
         assert updated.json()['canEdit'] is True
+        assert updated.json()['tags'] == ['학습자료']
 
         updated_comment = client.put(f"/api/v1/community/comments/{comment.json()['id']}", headers=second_headers, json={
             'body': '기초 물류 영상, 현장 교육, 데이터 기초부터 추천합니다.',
