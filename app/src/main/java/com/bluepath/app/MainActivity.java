@@ -4429,7 +4429,8 @@ public class MainActivity extends AppCompatActivity {
             else ordered.add(comment);
         }
 
-        boolean viewerIsAuthor = store.getNickname().equals(post.author.nickname);
+        // 닉네임 문자열 비교는 계정 ID가 다르거나 닉네임 변경 시 오판하므로 계정 기반으로 판별합니다.
+        boolean viewerIsAuthor = post.canEdit || isMyAuthor(post.author);
         for (ApiModels.CommunityCommentDto comment : ordered) {
             boolean accepted = comment.id.equals(post.acceptedCommentId);
             LinearLayout holder = new LinearLayout(this);
@@ -4446,9 +4447,9 @@ public class MainActivity extends AppCompatActivity {
                 holder.addView(acceptedLabel);
             }
             addCommentBox(holder, post, comment, null, false);
-            if (question && viewerIsAuthor && !accepted
-                    && !store.getNickname().equals(comment.author.nickname)) {
-                Button accept = outlineButton("이 답변 채택");
+            if (question && viewerIsAuthor && !accepted && !isMyAuthor(comment.author)) {
+                Button accept = outlineButton("✅ 이 답변 채택");
+                accept.setTextSize(12);
                 accept.setOnClickListener(v -> requestAcceptAnswer(post.id, comment.id));
                 LinearLayout.LayoutParams acceptParams = new LinearLayout.LayoutParams(-1, dp(40));
                 acceptParams.setMargins(0, dp(2), 0, dp(4));
@@ -4573,6 +4574,28 @@ public class MainActivity extends AppCompatActivity {
         if (!isMyAuthor(comment.author)) {
             head.addView(followToggleButton(comment.author, 10), new LinearLayout.LayoutParams(dp(80), dp(32)));
         }
+        // 수정·삭제·신고·차단은 게시글과 동일하게 댓글 우측 ⋯ 메뉴로 정리합니다.
+        TextView commentMenu = body("⋯");
+        commentMenu.setTypeface(Typeface.DEFAULT_BOLD);
+        commentMenu.setGravity(Gravity.CENTER);
+        commentMenu.setContentDescription("댓글 관리 메뉴");
+        commentMenu.setOnClickListener(v -> {
+            String[] options = comment.canEdit
+                    ? new String[]{"수정", "삭제"}
+                    : new String[]{"신고", "작성자 차단"};
+            new AlertDialog.Builder(this).setItems(options, (dialog, which) -> {
+                if (comment.canEdit) {
+                    if (which == 0) showEditCommentDialog(comment);
+                    else confirmDeleteComment(comment.id);
+                } else {
+                    if (which == 0) showReportDialog("comment", comment.id);
+                    else confirmBlockUser(comment.author.userId, comment.author.nickname);
+                }
+            }).show();
+        });
+        LinearLayout.LayoutParams commentMenuParams = new LinearLayout.LayoutParams(dp(32), dp(32));
+        commentMenuParams.setMargins(dp(2), 0, 0, 0);
+        head.addView(commentMenu, commentMenuParams);
         box.addView(head);
         box.addView(replyLevel && replyTarget != null
                 ? replyMentionBody(replyTarget.author.nickname, comment.body)
@@ -4580,27 +4603,14 @@ public class MainActivity extends AppCompatActivity {
         box.addView(label(readableDate(comment.createdAt)));
         box.addView(reactionBar("comment", comment.id, comment.reactions));
 
-        LinearLayout commentActions = row();
-        Button reply = outlineButton("답글");
+        // 답글만 가벼운 텍스트 버튼으로 남깁니다.
+        TextView reply = label("답글 쓰기");
+        reply.setTextColor(OCEAN);
+        reply.setTypeface(Typeface.DEFAULT_BOLD);
+        reply.setPadding(dp(4), dp(2), dp(10), dp(4));
         reply.setOnClickListener(v -> showCommunityCommentDialog(
                 post.id, comment.id, "@" + comment.author.nickname + "에게 답글"));
-        commentActions.addView(reply, weightedButtonParams(true));
-        if (comment.canEdit) {
-            Button edit = outlineButton("수정");
-            edit.setOnClickListener(v -> showEditCommentDialog(comment));
-            Button delete = outlineButton("삭제");
-            delete.setOnClickListener(v -> confirmDeleteComment(comment.id));
-            commentActions.addView(edit, weightedButtonParams(false));
-            commentActions.addView(delete, weightedButtonParams(false));
-        } else {
-            Button report = outlineButton("신고");
-            report.setOnClickListener(v -> showReportDialog("comment", comment.id));
-            Button block = outlineButton("차단");
-            block.setOnClickListener(v -> confirmBlockUser(comment.author.userId, comment.author.nickname));
-            commentActions.addView(report, weightedButtonParams(false));
-            commentActions.addView(block, weightedButtonParams(false));
-        }
-        box.addView(commentActions);
+        box.addView(reply, new LinearLayout.LayoutParams(-2, -2));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.setMargins(0, dp(6), 0, dp(2));
         container.addView(box, params);
@@ -4619,10 +4629,19 @@ public class MainActivity extends AppCompatActivity {
     private View reactionBar(String targetType, String targetId, List<ApiModels.ReactionSummary> reactions) {
         LinearLayout bar = row();
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        Button reaction = outlineButton("공감");
-        reaction.setTextSize(12);
+        // 텍스트 버튼 대신 작은 이모지 버튼: 누르면 이모지 팔레트가 열립니다.
+        TextView reaction = new TextView(this);
+        reaction.setText("😊＋");
+        reaction.setTextSize(14);
+        reaction.setGravity(Gravity.CENTER);
+        reaction.setContentDescription("공감 이모지 선택");
+        GradientDrawable reactionBg = new GradientDrawable();
+        reactionBg.setColor(Color.WHITE);
+        reactionBg.setCornerRadius(dp(19));
+        reactionBg.setStroke(dp(1), Color.parseColor("#BFE0E6"));
+        reaction.setBackground(reactionBg);
         reaction.setOnClickListener(v -> showReactionBubble(reaction, targetType, targetId, reactions));
-        LinearLayout.LayoutParams reactionParams = new LinearLayout.LayoutParams(dp(72), dp(38));
+        LinearLayout.LayoutParams reactionParams = new LinearLayout.LayoutParams(dp(54), dp(36));
         reactionParams.setMargins(0, dp(6), dp(6), dp(6));
         bar.addView(reaction, reactionParams);
 
