@@ -19,7 +19,12 @@
 
         <activity android:name=".CommunityPostActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity android:name=".VerifiedVideoActivity" android:screenOrientation="portrait" android:exported="false" />
-        <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="true" android:theme="@style/Theme.BluePath.Splash">
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:theme="@style/Theme.BluePath.Splash"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
