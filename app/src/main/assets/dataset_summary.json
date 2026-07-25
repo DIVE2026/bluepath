@@ -8,12 +8,14 @@
     "해양직무 NCS 데이터"
   ],
   "recordCounts": {
-    "surveyResponses": 43,
-    "museumPrograms": 43,
-    "trainingCourses": 49,
-    "combinedPrograms": 92,
-    "museumEvents": 50,
-    "marineInstitutions": 88,
+    "surveyResponses": 2694,
+    "museumPrograms": 477,
+    "trainingCourses": 3965,
+    "combinedPrograms": 4442,
+    "museumEvents": 343,
+    "marineInstitutions": 1082,
+    "ncsOccupations": 75,
+    "ncsCompetencyUnits": 841,
     "videos": 28
   },
   "appUseCases": [
