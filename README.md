@@ -30,7 +30,7 @@ The bottom navigation has been removed. Every tab begins with an introduction pa
 
 ### Smart Nautical Chart
 
-<img src="assets/shot4.jpeg" alt="Smart Nautical Chart" width="300" height="400">
+<img src="assets/shot4.jpeg" alt="Smart Nautical Chart" width="400" height="600">
 
 The Home screen creates an explainable route from the learner’s current profile and activity history to a selected marine career.
 
@@ -122,7 +122,7 @@ The community uses the same learner identity and progression context shown in Ho
 
 ### Ocean Skill Passport
 
-<img src="assets/shot10.jpeg" alt="Ocean Skill Passport" width="300" height="400">
+<img src="assets/shot10.jpeg" alt="Ocean Skill Passport" width="400" height="500">
 
 MY is an authenticated personal ocean passport that turns recorded activity into both an explorable skill profile and a reusable evidence portfolio. It includes:
 
@@ -145,7 +145,7 @@ MY is an authenticated personal ocean passport that turns recorded activity into
 
 ### Natural-Language Search and Marine AI
 
-<img src="assets/shot12.png" alt="Natural-Language Search and Marine AI" width="300" height="400">
+<img src="assets/shot12.png" alt="Natural-Language Search and Marine AI" width="400" height="500">
 
 Learning Materials and Schedule each provide a natural-language search box. AI Career Counseling combines learner profile data, current tier, app knowledge, and optional live retrieval.
 
