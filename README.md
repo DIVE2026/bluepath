@@ -69,7 +69,9 @@ The deterministic route engine owns ranking, node ordering, prerequisites, expec
 
 ### 2. Unified Tier System
 
-<img src="assets/shot2-v2.png" alt="BluePath tier and activity dashboard" width="300" height="600">
+<img src="assets/shot13.png" alt="BluePath tier and activity dashboard" width="300" height="600">
+<img src="assets/shot14.png" alt="BluePath tier and activity dashboard" width="300" height="600">
+
 
 BluePath uses one effective tier across the learner profile, Home, quizzes, Community, and MY. The effective tier follows the strongest verified progression path available to the account.
 
