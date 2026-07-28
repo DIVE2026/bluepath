@@ -2,7 +2,6 @@
 
 <img src="assets/beginning.gif" alt="BluePath home screen" width="300" height="400">
 
-**Android 7.0+ · BluePath 1.4.1 · Java 17 · FastAPI · PostgreSQL/pgvector**
 
 BluePath is an Android learning and career-navigation platform that turns marine videos, museum and training programs, quizzes, schedules, community participation, institutional data, and NCS-oriented competencies into one explainable growth journey.
 
